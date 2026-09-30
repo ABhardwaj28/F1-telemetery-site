@@ -303,12 +303,81 @@ export async function loadTelemetry(
   const seed = (targetDriver.charCodeAt(0) * 7 + (targetDriver.charCodeAt(1) || 0) * 3 + targetLap * 11) % 100;
   const seedOffset = (seed - 50) / 100; // -0.5 to +0.5
 
-  // Lap progression modifier:
-  // In Quali: Lap 1 is warm-up/out-lap, Lap 2 is peak shootout pole lap, Lap 3 is second run
-  // In Race: Fuel load burns down, tyres degrade over stints
-  const lapModifier = isQuali
-    ? (targetLap === 2 ? -0.45 : targetLap === 1 ? 1.8 : 0.15)
-    : (targetLap * 0.035 - Math.min(0.8, targetLap * 0.015));
+  // ─── Realistic Lap-by-Lap Operational Context ───
+  let lapSpeedDelta = 0;
+  let lapApexDelta = 0;
+  let lapBrakeDelta = 0;
+  let lapThrottleFactor = 1.0;
+  let lapDrsAllowed = true;
+  let lapCompound = "SOFT";
+  let tyreLife = 1;
+
+  if (isQuali) {
+    // Qualifying sequence:
+    // Lap 1: Out-Lap (Warmup, cruising, no DRS)
+    // Lap 2: Flying Lap 1 (Shootout / Pole Lap)
+    // Lap 3: Cool-Down / Recharge Lap (Slow cruise)
+    // Lap 4: Flying Lap 2 (Second push on scrubbed tyres)
+    // Lap 5+: Cycles
+    const qualiCycle = (targetLap - 1) % 4;
+    if (qualiCycle === 0) {
+      lapSpeedDelta = -42; // warmup cruise
+      lapApexDelta = -18;
+      lapBrakeDelta = 32;
+      lapThrottleFactor = 0.80;
+      lapDrsAllowed = false;
+      lapCompound = "SOFT";
+      tyreLife = 1;
+    } else if (qualiCycle === 1) {
+      lapSpeedDelta = 4.5; // peak attack
+      lapApexDelta = 4.0;
+      lapBrakeDelta = -8;
+      lapThrottleFactor = 1.10;
+      lapDrsAllowed = true;
+      lapCompound = "SOFT";
+      tyreLife = 2;
+    } else if (qualiCycle === 2) {
+      lapSpeedDelta = -60; // recharge lap
+      lapApexDelta = -26;
+      lapBrakeDelta = 42;
+      lapThrottleFactor = 0.68;
+      lapDrsAllowed = false;
+      lapCompound = "SOFT";
+      tyreLife = 3;
+    } else {
+      lapSpeedDelta = 1.5; // second flying lap
+      lapApexDelta = 1.8;
+      lapBrakeDelta = -4;
+      lapThrottleFactor = 1.05;
+      lapDrsAllowed = true;
+      lapCompound = "SOFT";
+      tyreLife = 4;
+    }
+  } else {
+    // Race sequence:
+    // Lap 1: Race start + heavy traffic + no DRS
+    // Laps 2+: Fuel burn off (+0.3 km/h/lap) vs tyre wear (-0.4 km/h/lap in corners)
+    if (targetLap === 1) {
+      lapSpeedDelta = -28;
+      lapApexDelta = -14;
+      lapBrakeDelta = 36;
+      lapThrottleFactor = 0.86;
+      lapDrsAllowed = false;
+      lapCompound = "MEDIUM";
+      tyreLife = 1;
+    } else {
+      const fuelWeightEffect = (targetLap - 1) * 0.35;
+      const stintLap = (targetLap % 20) + 1;
+      const tyreWearEffect = stintLap * 0.42;
+      lapSpeedDelta = fuelWeightEffect - tyreWearEffect * 0.4;
+      lapApexDelta = -tyreWearEffect;
+      lapBrakeDelta = tyreWearEffect * 0.7;
+      lapThrottleFactor = Math.max(0.85, 1.0 - tyreWearEffect * 0.007);
+      lapDrsAllowed = true;
+      lapCompound = targetLap > 36 ? "SOFT" : targetLap > 18 ? "HARD" : "MEDIUM";
+      tyreLife = stintLap;
+    }
+  }
 
   let currTime = 0;
   const rawData: any[] = [];
@@ -336,23 +405,17 @@ export async function loadTelemetry(
     const turnBaseSpeed = nearestTurn?.speed && nearestTurn.speed > 40 ? nearestTurn.speed : 115;
     
     // Quali vs Race Dynamics:
-    // In Quali: Maximum grip, ultra-sharp apex speeds (+8% to +15% carrying speed)
-    // In Race: Fuel heavy, tyre-saving apex speeds (more conservative)
     const apexSensitivity = isQuali ? 1.055 : 0.97;
-    const driverApexSpeed = turnBaseSpeed * profile.apexSpeedFactor * apexSensitivity + seedOffset * (isQuali ? 2.5 : 0.8) - lapModifier * 1.2;
+    const driverApexSpeed = Math.max(40, turnBaseSpeed * profile.apexSpeedFactor * apexSensitivity + lapApexDelta + seedOffset * (isQuali ? 2.5 : 0.8));
 
     // Top speed on straights
     const baseTopSpeed = circuitSlug === "monza" ? 352 : circuitSlug === "spa" || circuitSlug === "las_vegas" || circuitSlug === "baku" ? 342 : circuitSlug === "monaco" ? 288 : 322;
-    // Quali engine "party mode" gives extra straight-line punch
     const engineModeDelta = isQuali ? 9.5 : -4.0;
-    const targetTopSpeed = baseTopSpeed + profile.topSpeedDelta + engineModeDelta + seedOffset * 2.8;
+    const targetTopSpeed = Math.max(180, baseTopSpeed + profile.topSpeedDelta + engineModeDelta + lapSpeedDelta + seedOffset * 2.8);
 
     // Braking threshold:
-    // Quali: Ultra-late threshold braking spike right on the limit
-    // Race: Earlier braking (+18m earlier) with lift-and-coast before brake hit
-    const brakingDist = isQuali
-      ? (68 + (targetTopSpeed - driverApexSpeed) * 0.40 + profile.brakePointOffset)
-      : (88 + (targetTopSpeed - driverApexSpeed) * 0.48 + profile.brakePointOffset + 16);
+    const baseBraking = isQuali ? 68 : 88;
+    const brakingDist = baseBraking + (targetTopSpeed - driverApexSpeed) * (isQuali ? 0.40 : 0.48) + profile.brakePointOffset + lapBrakeDelta;
 
     let speed: number;
     let throttle: number;
@@ -362,7 +425,7 @@ export async function loadTelemetry(
     if (distToTurn < 16) {
       // Apex clipping zone
       speed = driverApexSpeed + (distToTurn / 16) * (isQuali ? 8 : 4);
-      throttle = isQuali ? Math.round(32 * profile.throttleAggression) : 15;
+      throttle = isQuali ? Math.round(32 * profile.throttleAggression * lapThrottleFactor) : Math.round(15 * lapThrottleFactor);
       brake = false;
     } else if (isApproaching && distToTurn <= brakingDist) {
       // Braking zone
@@ -370,7 +433,7 @@ export async function loadTelemetry(
       speed = targetTopSpeed - brakeProgress * (targetTopSpeed - driverApexSpeed);
       // Lift and coast in race vs instant cut in quali
       if (!isQuali && distToTurn > brakingDist - 25) {
-        throttle = Math.max(0, Math.round((distToTurn - (brakingDist - 25)) * 4));
+        throttle = Math.max(0, Math.round((distToTurn - (brakingDist - 25)) * 4 * lapThrottleFactor));
         brake = false;
       } else {
         throttle = 0;
@@ -384,17 +447,17 @@ export async function loadTelemetry(
       if (isQuali) {
         const baseThrottle = exitProgress > 0.30 ? 100 : (38 + exitProgress * 85) * profile.throttleAggression;
         const tractionMod = exitProgress < 0.35 ? Math.sin(dist * 1.8 + seed) * 4 : 0;
-        throttle = Math.max(0, Math.min(100, Math.round(baseThrottle + tractionMod)));
+        throttle = Math.max(0, Math.min(100, Math.round((baseThrottle + tractionMod) * lapThrottleFactor)));
       } else {
-        throttle = Math.min(100, Math.round((20 + exitProgress * 80) * 0.95));
+        throttle = Math.min(100, Math.round((20 + exitProgress * 80) * 0.95 * lapThrottleFactor));
       }
       brake = false;
     } else {
       // Straightaway
       speed = targetTopSpeed;
-      throttle = 100;
+      throttle = Math.min(100, Math.round(100 * lapThrottleFactor));
       brake = false;
-      if (distToTurn > 180 && speed > 270) {
+      if (distToTurn > 180 && speed > 270 && lapDrsAllowed) {
         drs = 1;
       }
     }
@@ -454,8 +517,7 @@ export async function loadTelemetry(
     telemetryData = rawData.filter((_, i) => i === 0 || i === rawData.length - 1 || i % 3 === 0);
   }
 
-  const lapTime = Number((currTime + profile.lapTimeBase + lapModifier).toFixed(3));
-  const compound = isQuali ? "SOFT" : targetLap > 35 ? "HARD" : targetLap > 18 ? "MEDIUM" : "SOFT";
+  const lapTime = Number((currTime + profile.lapTimeBase).toFixed(3));
 
   return {
     year,
@@ -464,8 +526,8 @@ export async function loadTelemetry(
     driver: targetDriver,
     lap: targetLap,
     lap_time: lapTime,
-    compound,
-    tyre_life: isQuali ? (targetLap % 3) + 1 : (targetLap % 25) + 1,
+    compound: lapCompound,
+    tyre_life: tyreLife,
     isCompressed: !isQuali,
     samplingMode: isQuali ? "RAW_QUALIFYING_SENSITIVE" : "COMPRESSED_RACE_STINT",
     samplingHz: isQuali ? 50 : 10,
