@@ -436,10 +436,34 @@ export const ALL_SUPPORTED_YEARS: number[] = Array.from(
   (_, i) => 2025 - i
 );
 
+const CONVENTIONAL_SESSIONS = [
+  { name: "Practice 1", code: "FP1" },
+  { name: "Practice 2", code: "FP2" },
+  { name: "Practice 3", code: "FP3" },
+  { name: "Qualifying", code: "Q" },
+  { name: "Race", code: "R" },
+];
+
+const SPRINT_SESSIONS = [
+  { name: "Practice 1", code: "FP1" },
+  { name: "Sprint Qualifying", code: "SQ" },
+  { name: "Sprint", code: "S" },
+  { name: "Qualifying", code: "Q" },
+  { name: "Race", code: "R" },
+];
+
 // Helper to get or synthesise historical season calendar
 export function getHistoricalCalendar(year: number): CalendarRace[] {
-  if (HISTORICAL_CALENDARS[year]) {
-    return HISTORICAL_CALENDARS[year];
+  const rawList = HISTORICAL_CALENDARS[year];
+  if (rawList && rawList.length > 0) {
+    return rawList.map((r) => {
+      const isSprint = r.format === "sprint_qualifying";
+      const standardSessions = isSprint ? SPRINT_SESSIONS : CONVENTIONAL_SESSIONS;
+      return {
+        ...r,
+        sessions: r.sessions && r.sessions.length >= 4 ? r.sessions : standardSessions,
+      };
+    });
   }
 
   // Generate an authentic Grand Prix calendar for any year
@@ -472,11 +496,7 @@ export function getHistoricalCalendar(year: number): CalendarRace[] {
     official_name: `${year} ${ev.event}`,
     date: `${year}-${String(Math.min(12, Math.floor(idx * 0.8) + 3)).padStart(2, "0")}-15T00:00:00`,
     format: "conventional",
-    sessions: [
-      { name: "Practice 1", code: "FP1" },
-      { name: "Qualifying", code: "Q" },
-      { name: "Race", code: "R" },
-    ],
+    sessions: CONVENTIONAL_SESSIONS,
   }));
 }
 

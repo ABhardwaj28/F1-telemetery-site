@@ -10,7 +10,7 @@ import type {
   TelemetryPoint,
   WeatherPoint,
 } from "./types";
-import { ALL_SUPPORTED_YEARS } from "./data/historicalSeasons";
+import { ALL_SUPPORTED_YEARS, getHistoricalCalendar } from "./data/historicalSeasons";
 import { TEAM_COLOURS, TYRE_COLOURS, eventToCircuitSlug, SESSION_NAME } from "./data/loader";
 import {
   loadCalendar,
@@ -95,6 +95,19 @@ function getInitialAppState() {
 // ─── App ──────────────────────────────────────────────────────────────────────
 export default function App() {
   const initial = useMemo(() => getInitialAppState(), []);
+  const initialCalendar = useMemo(() => getHistoricalCalendar(initial.year), [initial.year]);
+  const initialRace = useMemo(() => {
+    if (initial.raceEvent) {
+      const match =
+        initialCalendar.find((r) => r.event.toLowerCase() === initial.raceEvent!.toLowerCase()) ||
+        initialCalendar.find((r) => r.event.toLowerCase().includes(initial.raceEvent!.toLowerCase())) ||
+        initialCalendar.find((r) => initial.raceEvent!.toLowerCase().includes(r.event.toLowerCase()));
+      if (match) return match;
+    }
+    const monaco = initialCalendar.find((r) => r.event.toLowerCase().includes("monaco"));
+    return monaco ?? initialCalendar[0] ?? null;
+  }, [initialCalendar, initial.raceEvent]);
+
   const initialTargetRaceRef = useRef<string | null>(initial.raceEvent);
   const initialTargetDriverRef = useRef<string | null>(initial.driver);
   const initialTargetLapRef = useRef<number | null>(initial.lap);
@@ -104,9 +117,9 @@ export default function App() {
   const [page, setPage] = useState(initial.page);
 
   // ── Selection ──────────────────────────────────────────────────────────
-  const [calendar, setCalendar] = useState<Calendar>([]);
+  const [calendar, setCalendar] = useState<Calendar>(initialCalendar);
   const [selectedYear, setSelectedYear] = useState(initial.year);
-  const [selectedRace, setSelectedRace] = useState<CalendarRace | null>(null);
+  const [selectedRace, setSelectedRace] = useState<CalendarRace | null>(initialRace);
   const [selectedSessionCode, setSelectedSessionCode] = useState(initial.sessionCode);
   const [selectedDriver, setSelectedDriver] = useState(initial.driver);
   const [selectedLap, setSelectedLap] = useState(initial.lap);
