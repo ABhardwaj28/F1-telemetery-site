@@ -410,6 +410,22 @@ export default function App() {
                 onSelectDriver={handleSelectDriver}
               />
             )}
+
+            {/* ── Session Weather & Race Control Overview on Main Page ── */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(380px, 1fr))", gap: 16, marginTop: 16 }}>
+              <WeatherPanel
+                weather={weather}
+                year={selectedYear}
+                event={selectedRace?.event}
+                sessionCode={selectedSessionCode}
+              />
+              <RaceControlPanel
+                messages={raceControl}
+                year={selectedYear}
+                event={selectedRace?.event}
+                sessionCode={selectedSessionCode}
+              />
+            </div>
           </>
         )}
       </>
@@ -418,7 +434,6 @@ export default function App() {
 
   function renderRaceControl() {
     if (sessionLoading) return <div className="loading-box"><div className="loader" /><span>LOADING…</span></div>;
-    if (!raceControl.length) return <div className="module-placeholder"><div className="eyebrow">NO DATA</div><h1>RACE CONTROL</h1><p>Select a session to load race control messages.</p></div>;
     return (
       <>
         <div className="hero-section" style={{ minHeight: 80, padding: "20px 28px" }}>
@@ -427,21 +442,25 @@ export default function App() {
             <h1 style={{ fontSize: 32, margin: "10px 0 0" }}>RACE CONTROL</h1>
           </div>
           <div className="hero-metrics">
-            <div className="metric"><span>MESSAGES</span><strong>{raceControl.length}</strong></div>
+            <div className="metric"><span>DIRECTIVES</span><strong>{raceControl.length}</strong></div>
             <div className="metric">
               <span>FLAGS</span>
               <strong>{raceControl.filter((m) => m.Category === "Flag").length}</strong>
             </div>
           </div>
         </div>
-        <RaceControlPanel messages={raceControl} />
+        <RaceControlPanel
+          messages={raceControl}
+          year={selectedYear}
+          event={selectedRace?.event}
+          sessionCode={selectedSessionCode}
+        />
       </>
     );
   }
 
   function renderWeather() {
     if (sessionLoading) return <div className="loading-box"><div className="loader" /><span>LOADING…</span></div>;
-    if (!weather.length) return <div className="module-placeholder"><div className="eyebrow">NO DATA</div><h1>WEATHER</h1><p>Select a session to load weather data.</p></div>;
     return (
       <>
         <div className="hero-section" style={{ minHeight: 80, padding: "20px 28px" }}>
@@ -459,7 +478,12 @@ export default function App() {
             </div>
           </div>
         </div>
-        <WeatherPanel weather={weather} />
+        <WeatherPanel
+          weather={weather}
+          year={selectedYear}
+          event={selectedRace?.event}
+          sessionCode={selectedSessionCode}
+        />
       </>
     );
   }

@@ -3395,7 +3395,8 @@
       "telemetry_y": -4733.0,
       "telemetry_z": 536.0,
       "speed": 117.9375024,
-      "spatial_error": 17.65695103291686
+      "spatial_error": 17.65695103291686,
+      "name": "Sainte D\u00e9vote"
     },
     {
       "number": 2,
@@ -3407,7 +3408,8 @@
       "telemetry_y": -3780.0,
       "telemetry_z": 842.0,
       "speed": 266.3213304059976,
-      "spatial_error": 56.465067273135936
+      "spatial_error": 56.465067273135936,
+      "name": "Beau Rivage"
     },
     {
       "number": 3,
@@ -3419,7 +3421,8 @@
       "telemetry_y": -3108.0791154702256,
       "telemetry_z": 868.8154191101823,
       "speed": 169.0,
-      "spatial_error": 36.478252923404824
+      "spatial_error": 36.478252923404824,
+      "name": "Massenet"
     },
     {
       "number": 4,
@@ -3431,7 +3434,8 @@
       "telemetry_y": -1959.0,
       "telemetry_z": 893.0,
       "speed": 144.1625024,
-      "spatial_error": 3.0234545354831424
+      "spatial_error": 3.0234545354831424,
+      "name": "Casino Square"
     },
     {
       "number": 5,
@@ -3443,7 +3447,8 @@
       "telemetry_y": -196.98773943255526,
       "telemetry_z": 747.7893556010315,
       "speed": 89.0,
-      "spatial_error": 7.385669988255299
+      "spatial_error": 7.385669988255299,
+      "name": "Mirabeau Haute"
     },
     {
       "number": 6,
@@ -3455,7 +3460,8 @@
       "telemetry_y": -1132.0,
       "telemetry_z": 658.0,
       "speed": 61.482144,
-      "spatial_error": 10.919817665413422
+      "spatial_error": 10.919817665413422,
+      "name": "Grand Hotel Hairpin"
     },
     {
       "number": 7,
@@ -3467,7 +3473,8 @@
       "telemetry_y": -462.8054892598312,
       "telemetry_z": 599.7608796280983,
       "speed": 82.0,
-      "spatial_error": 15.734636928298995
+      "spatial_error": 15.734636928298995,
+      "name": "Mirabeau Bas"
     },
     {
       "number": 8,
@@ -3479,7 +3486,8 @@
       "telemetry_y": -272.90188111296345,
       "telemetry_z": 545.0157063546052,
       "speed": 85.0,
-      "spatial_error": 37.79944907048183
+      "spatial_error": 37.79944907048183,
+      "name": "Portier"
     },
     {
       "number": 9,
@@ -3491,7 +3499,8 @@
       "telemetry_y": -3346.0,
       "telemetry_z": 542.0,
       "speed": 260.8395824,
-      "spatial_error": 40.79387951131624
+      "spatial_error": 40.79387951131624,
+      "name": "Tunnel"
     },
     {
       "number": 10,
@@ -3503,7 +3512,8 @@
       "telemetry_y": -4453.0,
       "telemetry_z": 493.0,
       "speed": 90.1375,
-      "spatial_error": 13.93704110831322
+      "spatial_error": 13.93704110831322,
+      "name": "Nouvelle Chicane (Left)"
     },
     {
       "number": 11,
@@ -3515,7 +3525,8 @@
       "telemetry_y": -4619.0,
       "telemetry_z": 490.0,
       "speed": 86.51499776,
-      "spatial_error": 8.224255259112029
+      "spatial_error": 8.224255259112029,
+      "name": "Nouvelle Chicane (Right)"
     },
     {
       "number": 12,
@@ -3527,7 +3538,8 @@
       "telemetry_y": -4902.934584830482,
       "telemetry_z": 488.6279399548345,
       "speed": 164.0,
-      "spatial_error": 12.368061765362967
+      "spatial_error": 12.368061765362967,
+      "name": "Tabac"
     },
     {
       "number": 13,
@@ -3539,7 +3551,8 @@
       "telemetry_y": -6372.0,
       "telemetry_z": 481.0,
       "speed": 217.88928548571428,
-      "spatial_error": 49.11460172855792
+      "spatial_error": 49.11460172855792,
+      "name": "Louis Chiron (Piscine 1)"
     },
     {
       "number": 14,
@@ -3551,7 +3564,8 @@
       "telemetry_y": -6572.0,
       "telemetry_z": 481.0,
       "speed": 220.85358232594788,
-      "spatial_error": 9.089930266332102
+      "spatial_error": 9.089930266332102,
+      "name": "Piscine (Swimming Pool)"
     },
     {
       "number": 15,
@@ -3563,7 +3577,8 @@
       "telemetry_y": -7850.9575557517255,
       "telemetry_z": 478.9998889753067,
       "speed": 144.0,
-      "spatial_error": 19.482923417948435
+      "spatial_error": 19.482923417948435,
+      "name": "Piscine Chicane"
     },
     {
       "number": 16,
@@ -3575,7 +3590,8 @@
       "telemetry_y": -8049.194932766328,
       "telemetry_z": 478.99502209944535,
       "speed": 128.0,
-      "spatial_error": 6.61854522754618
+      "spatial_error": 6.61854522754618,
+      "name": "Piscine Exit"
     },
     {
       "number": 17,
@@ -3587,7 +3603,8 @@
       "telemetry_y": -8765.0,
       "telemetry_z": 478.0,
       "speed": 172.11785325714285,
-      "spatial_error": 22.56604500181469
+      "spatial_error": 22.56604500181469,
+      "name": "La Rascasse"
     },
     {
       "number": 18,
@@ -3599,7 +3616,8 @@
       "telemetry_y": -9586.316176062057,
       "telemetry_z": 486.6108628674516,
       "speed": 73.0,
-      "spatial_error": 16.634822806623603
+      "spatial_error": 16.634822806623603,
+      "name": "Anthony Nogh\u00e8s"
     },
     {
       "number": 19,
@@ -3611,7 +3629,8 @@
       "telemetry_y": -9705.0,
       "telemetry_z": 520.0,
       "speed": 80.4781256,
-      "spatial_error": 1.2771294556960329
+      "spatial_error": 1.2771294556960329,
+      "name": "Anthony Nogh\u00e8s Exit"
     }
   ],
   "source": {

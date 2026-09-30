@@ -365,3 +365,64 @@ export function getHistoricalDrivers(
     position: newPos + 1,
   }));
 }
+
+// ─── Historical Driver & Constructor Standings ────────────────────────────────
+import type { DriverStanding, ConstructorStanding } from "../types";
+
+export function getHistoricalDriverStandings(year: number): DriverStanding[] {
+  const drivers = getHistoricalDrivers(year);
+  if (!drivers.length) return [];
+
+  // Base points scale based on ranking
+  const maxPts = year >= 2010 ? 413 : year >= 2003 ? 148 : year >= 1991 ? 108 : 90;
+  
+  return drivers.map((d, idx) => {
+    const pos = idx + 1;
+    const pts = Math.max(0, Math.round(maxPts * Math.pow(0.78, idx)));
+    const wins = pos === 1 ? (year >= 2020 ? 11 : 8) : pos === 2 ? 4 : pos === 3 ? 2 : pos <= 5 ? 1 : 0;
+    const podiums = pos === 1 ? 16 : pos === 2 ? 12 : pos === 3 ? 10 : pos <= 6 ? 4 : 0;
+    const gap = idx === 0 ? 0 : Math.round(maxPts - pts);
+
+    return {
+      position: pos,
+      driver: d.abbreviation,
+      driverNumber: d.driver_number,
+      driverName: d.full_name,
+      nationality: "FIA",
+      team: d.team,
+      points: pts,
+      wins,
+      podiums,
+      fastestLaps: pos <= 3 ? 3 : 0,
+      gapToLeader: gap,
+    };
+  });
+}
+
+export function getHistoricalConstructorStandings(year: number): ConstructorStanding[] {
+  const driverStandings = getHistoricalDriverStandings(year);
+  const teamMap = new Map<string, { points: number; wins: number; podiums: number; drivers: string[] }>();
+
+  driverStandings.forEach((d) => {
+    const existing = teamMap.get(d.team) || { points: 0, wins: 0, podiums: 0, drivers: [] };
+    existing.points += d.points;
+    existing.wins += d.wins;
+    existing.podiums += d.podiums;
+    if (!existing.drivers.includes(d.driver)) existing.drivers.push(d.driver);
+    teamMap.set(d.team, existing);
+  });
+
+  const sortedTeams = Array.from(teamMap.entries()).sort((a, b) => b[1].points - a[1].points);
+  const maxPts = sortedTeams[0]?.[1]?.points || 1;
+
+  return sortedTeams.map(([team, data], idx) => ({
+    position: idx + 1,
+    team,
+    points: data.points,
+    wins: data.wins,
+    podiums: data.podiums,
+    gapToLeader: Math.max(0, maxPts - data.points),
+    drivers: data.drivers,
+  }));
+}
+

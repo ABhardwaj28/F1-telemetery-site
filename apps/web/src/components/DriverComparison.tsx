@@ -408,7 +408,7 @@ export default function DriverComparison({
             <div
               style={{
                 fontSize: 14,
-                color: "#777",
+                color: "#dedee0",
                 fontWeight: 800,
                 fontFamily: "IBM Plex Mono, monospace",
               }}
@@ -454,10 +454,10 @@ export default function DriverComparison({
                     className="f1-select"
                     value={driverB}
                     onChange={(e) => onSelectDriverB(e.target.value)}
-                    style={{ borderColor: colorB, background: "#111", minWidth: 130 }}
+                    style={{ borderColor: colorB, background: "#111", color: "#fff", minWidth: 130 }}
                   >
                     {drivers.map((d) => (
-                      <option key={d.abbreviation} value={d.abbreviation}>
+                      <option key={d.abbreviation} value={d.abbreviation} style={{ background: "#111", color: "#fff" }}>
                         {d.abbreviation} ({d.team})
                       </option>
                     ))}
@@ -466,15 +466,16 @@ export default function DriverComparison({
                     className="f1-select"
                     value={lapB}
                     onChange={(e) => onSelectLapB(Number(e.target.value))}
+                    style={{ background: "#111", color: "#fff" }}
                   >
                     {availableLapsB.length > 0 ? (
                       availableLapsB.map((l) => (
-                        <option key={l.LapNumber} value={l.LapNumber}>
+                        <option key={l.LapNumber} value={l.LapNumber} style={{ background: "#111", color: "#fff" }}>
                           Lap {l.LapNumber} {l.LapTime ? `(${formatLapTime(l.LapTime)})` : ""}
                         </option>
                       ))
                     ) : (
-                      <option value={lapB}>Lap {lapB}</option>
+                      <option value={lapB} style={{ background: "#111", color: "#fff" }}>Lap {lapB}</option>
                     )}
                   </select>
                 </div>
@@ -490,7 +491,7 @@ export default function DriverComparison({
                 onClick={() => setLayoutMode("overlay")}
                 style={{
                   background: layoutMode === "overlay" ? "#282834" : "#111116",
-                  color: layoutMode === "overlay" ? "#fff" : "#777",
+                  color: layoutMode === "overlay" ? "#ffffff" : "#a0a0ab",
                   border: "none",
                   padding: "6px 12px",
                   fontSize: 10,
@@ -505,7 +506,7 @@ export default function DriverComparison({
                 onClick={() => setLayoutMode("split")}
                 style={{
                   background: layoutMode === "split" ? "#282834" : "#111116",
-                  color: layoutMode === "split" ? "#fff" : "#777",
+                  color: layoutMode === "split" ? "#ffffff" : "#a0a0ab",
                   border: "none",
                   borderLeft: "1px solid #2a2a35",
                   padding: "6px 12px",
@@ -524,7 +525,7 @@ export default function DriverComparison({
               onClick={() => setIsPlaying(!isPlaying)}
               style={{
                 background: isPlaying ? "#e10600" : "#1a1a22",
-                color: "#fff",
+                color: "#ffffff",
                 border: "1px solid #333340",
                 padding: "6px 14px",
                 borderRadius: 4,
@@ -545,24 +546,24 @@ export default function DriverComparison({
               value={playbackSpeed}
               onChange={(e) => setPlaybackSpeed(Number(e.target.value))}
               className="f1-select"
-              style={{ padding: "4px 8px", fontSize: 10 }}
+              style={{ padding: "4px 8px", fontSize: 10, background: "#111", color: "#fff" }}
             >
-              <option value={0.5}>0.5x</option>
-              <option value={1}>1.0x Realtime</option>
-              <option value={2}>2.0x Fast</option>
-              <option value={4}>4.0x Ultra</option>
+              <option value={0.5} style={{ background: "#111", color: "#fff" }}>0.5x</option>
+              <option value={1} style={{ background: "#111", color: "#fff" }}>1.0x Realtime</option>
+              <option value={2} style={{ background: "#111", color: "#fff" }}>2.0x Fast</option>
+              <option value={4} style={{ background: "#111", color: "#fff" }}>4.0x Ultra</option>
             </select>
 
             {/* Sensitivity Zoom */}
             <div style={{ display: "flex", alignItems: "center", gap: 4, background: "#111116", border: "1px solid #2a2a35", borderRadius: 4, padding: "2px 6px" }}>
-              <span style={{ fontSize: 9, color: "#777", fontFamily: "IBM Plex Mono, monospace", fontWeight: 700 }}>ZOOM:</span>
+              <span style={{ fontSize: 9, color: "#ffffff", fontFamily: "IBM Plex Mono, monospace", fontWeight: 700 }}>ZOOM:</span>
               {[1, 2, 3, 5].map((s) => (
                 <button
                   key={s}
                   onClick={() => setSensitivityMultiplier(s)}
                   style={{
                     background: sensitivityMultiplier === s ? "#00E5FF" : "transparent",
-                    color: sensitivityMultiplier === s ? "#000" : "#888",
+                    color: sensitivityMultiplier === s ? "#000000" : "#ffffff",
                     border: "none",
                     borderRadius: 2,
                     padding: "2px 6px",
@@ -585,7 +586,7 @@ export default function DriverComparison({
                   onClick={() => setVisibleChannel(ch)}
                   style={{
                     background: visibleChannel === ch ? "#e10600" : "#131318",
-                    color: visibleChannel === ch ? "#fff" : "#888894",
+                    color: visibleChannel === ch ? "#ffffff" : "#dedee6",
                     border: "1px solid #252530",
                     padding: "6px 10px",
                     borderRadius: 4,
@@ -924,13 +925,13 @@ export default function DriverComparison({
                       y1={y}
                       x2={W - PAD.right}
                       y2={y}
-                      stroke="#181822"
+                      stroke="#222230"
                       strokeDasharray="3 3"
                     />
                     <text
                       x={PAD.left - 8}
                       y={y + 3}
-                      fill="#555562"
+                      fill="#b0b0c2"
                       fontSize="9"
                       textAnchor="end"
                       fontFamily="IBM Plex Mono, monospace"
@@ -951,17 +952,17 @@ export default function DriverComparison({
                       y1={PAD.top}
                       x2={x}
                       y2={H_SPEED - PAD.bottom}
-                      stroke="#22222c"
+                      stroke="#333342"
                       strokeWidth="1"
                     />
                     <text
                       x={x}
                       y={PAD.top - 6}
-                      fill="#777785"
+                      fill="#ffffff"
                       fontSize="9"
                       textAnchor="middle"
                       fontFamily="IBM Plex Mono, monospace"
-                      fontWeight="600"
+                      fontWeight="700"
                     >
                       T{t.number}
                     </text>
@@ -1019,10 +1020,10 @@ export default function DriverComparison({
               <text
                 x={PAD.left + 8}
                 y={PAD.top + 14}
-                fill="#888"
+                fill="#ffffff"
                 fontSize="9"
                 fontFamily="IBM Plex Mono, monospace"
-                fontWeight="600"
+                fontWeight="700"
               >
                 SPEED (KM/H) · SOLID: {driverA} | DASHED: {driverB}
               </text>
@@ -1119,14 +1120,15 @@ export default function DriverComparison({
                 y1={scaleDeltaY(0)}
                 x2={W - PAD.right}
                 y2={scaleDeltaY(0)}
-                stroke="#444452"
+                stroke="#666678"
                 strokeWidth="1"
               />
               <text
                 x={PAD.left - 8}
                 y={scaleDeltaY(0) + 3}
-                fill="#888892"
+                fill="#ffffff"
                 fontSize="9"
+                fontWeight="700"
                 textAnchor="end"
                 fontFamily="IBM Plex Mono, monospace"
               >
@@ -1135,7 +1137,7 @@ export default function DriverComparison({
               <text
                 x={PAD.left - 8}
                 y={scaleDeltaY(1) + 3}
-                fill="#555562"
+                fill="#b0b0c2"
                 fontSize="8"
                 textAnchor="end"
                 fontFamily="IBM Plex Mono, monospace"
@@ -1145,7 +1147,7 @@ export default function DriverComparison({
               <text
                 x={PAD.left - 8}
                 y={scaleDeltaY(-1) + 3}
-                fill="#555562"
+                fill="#b0b0c2"
                 fontSize="8"
                 textAnchor="end"
                 fontFamily="IBM Plex Mono, monospace"
@@ -1159,10 +1161,10 @@ export default function DriverComparison({
               <text
                 x={PAD.left + 8}
                 y={PAD.top + 14}
-                fill="#888"
+                fill="#ffffff"
                 fontSize="9"
                 fontFamily="IBM Plex Mono, monospace"
-                fontWeight="600"
+                fontWeight="700"
               >
                 TIME DELTA (Δt = {driverA} - {driverB})
               </text>
@@ -1192,13 +1194,13 @@ export default function DriverComparison({
                 y1={scaleThrottleY(100)}
                 x2={W - PAD.right}
                 y2={scaleThrottleY(100)}
-                stroke="#181822"
+                stroke="#222230"
                 strokeDasharray="3 3"
               />
               <text
                 x={PAD.left - 8}
                 y={scaleThrottleY(100) + 3}
-                fill="#555"
+                fill="#b0b0c2"
                 fontSize="8"
                 textAnchor="end"
                 fontFamily="IBM Plex Mono, monospace"
@@ -1208,7 +1210,7 @@ export default function DriverComparison({
               <text
                 x={PAD.left - 8}
                 y={scaleThrottleY(0) + 3}
-                fill="#555"
+                fill="#b0b0c2"
                 fontSize="8"
                 textAnchor="end"
                 fontFamily="IBM Plex Mono, monospace"
@@ -1223,10 +1225,10 @@ export default function DriverComparison({
               <text
                 x={PAD.left + 8}
                 y={PAD.top + 14}
-                fill="#888"
+                fill="#ffffff"
                 fontSize="9"
                 fontFamily="IBM Plex Mono, monospace"
-                fontWeight="600"
+                fontWeight="700"
               >
                 THROTTLE % (SOLID: {driverA} | DASHED: {driverB})
               </text>
@@ -1254,7 +1256,7 @@ export default function DriverComparison({
               <text
                 x={PAD.left - 8}
                 y={scaleGearY(8) + 3}
-                fill="#555"
+                fill="#b0b0c2"
                 fontSize="8"
                 textAnchor="end"
                 fontFamily="IBM Plex Mono, monospace"
@@ -1264,7 +1266,7 @@ export default function DriverComparison({
               <text
                 x={PAD.left - 8}
                 y={scaleGearY(1) + 3}
-                fill="#555"
+                fill="#b0b0c2"
                 fontSize="8"
                 textAnchor="end"
                 fontFamily="IBM Plex Mono, monospace"
@@ -1279,10 +1281,10 @@ export default function DriverComparison({
               <text
                 x={PAD.left + 8}
                 y={PAD.top + 14}
-                fill="#888"
+                fill="#ffffff"
                 fontSize="9"
                 fontFamily="IBM Plex Mono, monospace"
-                fontWeight="600"
+                fontWeight="700"
               >
                 GEAR SELECTION
               </text>
@@ -1320,7 +1322,7 @@ export default function DriverComparison({
                 opacity="0.96"
                 filter="drop-shadow(0 4px 12px rgba(0,0,0,0.7))"
               />
-              <text x="12" y="16" fill="#888" fontSize="9" fontFamily="IBM Plex Mono, monospace">
+              <text x="12" y="16" fill="#dedee8" fontSize="9" fontFamily="IBM Plex Mono, monospace" fontWeight="600">
                 DISTANCE: {cursorDist.toFixed(0)}m / {trackLength.toFixed(0)}m
               </text>
               <text
