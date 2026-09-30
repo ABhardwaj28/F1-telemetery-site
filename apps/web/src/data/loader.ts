@@ -387,7 +387,7 @@ export async function loadRaceControl(
     const isQuali = sessionCode === "Q" || sessionCode === "SQ";
     const totalLaps = getRaceLapCount(event, sessionCode);
 
-    // 1. Iconic historical race direct logs
+    // 1. Iconic historical race documented incident logs
     if (year === 2021 && ev.includes("abu dhabi") && !isQuali) {
       return [
         { Time: "14:00:00", Category: "Flag", Message: "GREEN LIGHT - PIT LANE OPEN FOR TITLE DECIDER RACE", Status: "CLEAR", Flag: "GREEN", Scope: "Track", Sector: null, RacingNumber: null, Lap: 1 },
@@ -415,219 +415,249 @@ export async function loadRaceControl(
         { Time: "15:32:00", Category: "SafetyCar", Message: "CAR 11 (DIR) CRASHED ON PIT STRAIGHT - SAFETY CAR DEPLOYED TO FINISH", Status: "SC", Flag: "YELLOW", Scope: "Track", Sector: 3, RacingNumber: "11", Lap: 70 },
         { Time: "15:36:00", Category: "Flag", Message: "CHEQUERED FLAG UNDER SAFETY CAR - BUTTON WINS, VETTEL 3-TIME CHAMPION", Status: "CLEAR", Flag: "CHEQUERED", Scope: "Track", Sector: null, RacingNumber: null, Lap: 71 },
       ];
+    } else if (year === 1976 && ev.includes("fuji")) {
+      return [
+        { Time: "13:30:00", Category: "Weather", Message: "TORRENTIAL MONSOON RAIN AT FUJI - DRIVERS DEBATE RACE START", Status: "WET", Flag: null, Scope: "Track", Sector: null, RacingNumber: null, Lap: 1 },
+        { Time: "14:00:00", Category: "Flag", Message: "GREEN LIGHT - TITLE DECIDER STARTS IN EXTREME WET SPRAY", Status: "CLEAR", Flag: "GREEN", Scope: "Track", Sector: null, RacingNumber: null, Lap: 1 },
+        { Time: "14:04:00", Category: "DriverRetirement", Message: "CAR 1 (LAU) RETIRES INTO PIT LANE - SAFETY CONDITIONS UNACCEPTABLE", Status: "RETIRED", Flag: null, Scope: "Driver", Sector: null, RacingNumber: "1", Lap: 2 },
+        { Time: "15:12:00", Category: "CarEvent", Message: "CAR 11 (HUN) SUFFERS RIGHT FRONT PUNCTURE - PITS FOR TYRES", Status: "PIT", Flag: null, Scope: "Driver", Sector: null, RacingNumber: "11", Lap: 68 },
+        { Time: "15:20:00", Category: "Flag", Message: "CHEQUERED FLAG - ANDRETTI WINS, HUNT FINISHES P3 TO WIN 1976 WORLD TITLE", Status: "CLEAR", Flag: "CHEQUERED", Scope: "Track", Sector: null, RacingNumber: "11", Lap: 73 },
+      ];
     }
 
-    // 2. Dynamic Race Control stream scaled to authentic circuit lap count
-    if (year >= 2010) {
-      const drivers = getHistoricalDrivers(year, event, sessionCode);
-      const winner = drivers[0] || { driver_number: "1", abbreviation: "VER" };
-      const driver2 = drivers[1] || { driver_number: "44", abbreviation: "HAM" };
-      const driverMid = drivers[Math.floor(drivers.length / 2)] || { driver_number: "14", abbreviation: "ALO" };
-      const driverBack = drivers[drivers.length - 1] || { driver_number: "20", abbreviation: "MAG" };
+    // 2. Dynamic Race Control & Steward stream for all seasons 1950 to 2025
+    const drivers = getHistoricalDrivers(year, event, sessionCode);
+    const winner = drivers[0] || { driver_number: "1", abbreviation: "VER", team: "Red Bull" };
+    const driver2 = drivers[1] || { driver_number: "44", abbreviation: "HAM", team: "Mercedes" };
+    const driverMid = drivers[Math.floor(drivers.length / 2)] || { driver_number: "14", abbreviation: "ALO", team: "Aston Martin" };
+    const driverBack = drivers[drivers.length - 1] || { driver_number: "20", abbreviation: "MAG", team: "Haas" };
 
-      const messages: RaceControlMessage[] = [
+    const messages: RaceControlMessage[] = [
+      {
+        Time: "14:00:00",
+        Category: "Flag",
+        Message: `GREEN LIGHT - ${year} ${event.toUpperCase()} ${isQuali ? "QUALIFYING" : "RACE"} START`,
+        Status: "CLEAR",
+        Flag: "GREEN",
+        Scope: "Track",
+        Sector: null,
+        RacingNumber: null,
+        Lap: 1,
+      },
+    ];
+
+    if (year >= 2011 && !isQuali) {
+      messages.push({
+        Time: "14:04:12",
+        Category: "Drs",
+        Message: "DRS ENABLED - ZONES 1 & 2 ACTIVE",
+        Status: "ENABLED",
+        Flag: null,
+        Scope: "Track",
+        Sector: null,
+        RacingNumber: null,
+        Lap: 2,
+      });
+    }
+
+    if (isQuali) {
+      messages.push(
         {
-          Time: "14:00:00",
+          Time: "14:14:22",
+          Category: "TrackLimits",
+          Message: `CAR ${driverBack.driver_number} (${driverBack.abbreviation}) LAP TIME DELETED - TRACK LIMITS AT TURN 4`,
+          Status: "DELETED",
+          Flag: null,
+          Scope: "Driver",
+          Sector: 1,
+          RacingNumber: driverBack.driver_number,
+          Lap: 3,
+        },
+        {
+          Time: "14:26:40",
           Category: "Flag",
-          Message: `GREEN LIGHT - PIT LANE OPEN FOR ${year} ${event.toUpperCase()} ${isQuali ? "QUALIFYING" : "RACE"}`,
+          Message: "YELLOW FLAG SECTOR 2 - CAR SPUN AT APEX",
+          Status: "CAUTION",
+          Flag: "YELLOW",
+          Scope: "Sector",
+          Sector: 2,
+          RacingNumber: null,
+          Lap: 6,
+        },
+        {
+          Time: "14:27:50",
+          Category: "Flag",
+          Message: "CLEAR - GREEN FLAG SECTOR 2",
           Status: "CLEAR",
           Flag: "GREEN",
-          Scope: "Track",
-          Sector: null,
+          Scope: "Sector",
+          Sector: 2,
           RacingNumber: null,
-          Lap: 1,
+          Lap: 6,
         },
-      ];
-
-      if (year >= 2011 && !isQuali) {
-        messages.push({
-          Time: "14:04:12",
-          Category: "Drs",
-          Message: "DRS ENABLED - ZONES 1 & 2 ACTIVE",
-          Status: "ENABLED",
+        {
+          Time: "14:48:10",
+          Category: "Investigation",
+          Message: `INCIDENT INVOLVING CAR ${driverMid.driver_number} (${driverMid.abbreviation}) NOTED - IMPEDING AT FINAL CORNER`,
+          Status: "NOTED",
           Flag: null,
-          Scope: "Track",
+          Scope: "Driver",
+          Sector: 3,
+          RacingNumber: driverMid.driver_number,
+          Lap: 10,
+        },
+        {
+          Time: "14:58:30",
+          Category: "Flag",
+          Message: `CAR ${winner.driver_number} (${winner.abbreviation}) SETS PROVISIONAL POLE POSITION`,
+          Status: "POLE",
+          Flag: null,
+          Scope: "Driver",
           Sector: null,
-          RacingNumber: null,
-          Lap: 2,
-        });
-      }
+          RacingNumber: winner.driver_number,
+          Lap: 12,
+        }
+      );
+    } else {
+      // Race directives dynamically scaled to exact circuit lap count
+      const cautionLap = Math.max(2, Math.round(totalLaps * 0.20));
+      const scLap = Math.max(3, Math.round(totalLaps * 0.48));
+      const scEndLap = Math.min(totalLaps - 1, scLap + (year >= 2015 ? 2 : 4));
+      const investLap = Math.max(4, Math.round(totalLaps * 0.78));
+      const investClearLap = Math.min(totalLaps - 1, investLap + 3);
 
-      if (isQuali) {
+      messages.push(
+        {
+          Time: "14:16:30",
+          Category: "Flag",
+          Message: "YELLOW FLAG SECTOR 1 - DEBRIS ON RUN-OFF AREA",
+          Status: "CAUTION",
+          Flag: "YELLOW",
+          Scope: "Sector",
+          Sector: 1,
+          RacingNumber: null,
+          Lap: cautionLap,
+        },
+        {
+          Time: "14:17:45",
+          Category: "Flag",
+          Message: "TRACK CLEAR - GREEN FLAG SECTOR 1",
+          Status: "CLEAR",
+          Flag: "GREEN",
+          Scope: "Sector",
+          Sector: 1,
+          RacingNumber: null,
+          Lap: cautionLap + 1,
+        }
+      );
+
+      if (year >= 2015) {
         messages.push(
           {
-            Time: "14:14:22",
-            Category: "TrackLimits",
-            Message: `CAR ${driverBack.driver_number} (${driverBack.abbreviation}) LAP TIME DELETED - TRACK LIMITS AT TURN 4`,
-            Status: "DELETED",
-            Flag: null,
-            Scope: "Driver",
-            Sector: 1,
-            RacingNumber: driverBack.driver_number,
-            Lap: 3,
-          },
-          {
-            Time: "14:26:40",
-            Category: "Flag",
-            Message: "YELLOW FLAG SECTOR 2 - CAR SPUN AT APEX",
-            Status: "CAUTION",
+            Time: "14:38:10",
+            Category: "CarEvent",
+            Message: `CAR ${driverBack.driver_number} (${driverBack.abbreviation}) STOPPED - VIRTUAL SAFETY CAR DEPLOYED`,
+            Status: "VSC",
             Flag: "YELLOW",
-            Scope: "Sector",
+            Scope: "Track",
             Sector: 2,
-            RacingNumber: null,
-            Lap: 6,
+            RacingNumber: driverBack.driver_number,
+            Lap: scLap,
           },
           {
-            Time: "14:27:50",
+            Time: "14:41:20",
             Category: "Flag",
-            Message: "CLEAR - GREEN FLAG SECTOR 2",
+            Message: "VIRTUAL SAFETY CAR ENDING - RACING RESUMES",
             Status: "CLEAR",
             Flag: "GREEN",
-            Scope: "Sector",
-            Sector: 2,
-            RacingNumber: null,
-            Lap: 6,
-          },
-          {
-            Time: "14:48:10",
-            Category: "Investigation",
-            Message: `INCIDENT INVOLVING CAR ${driverMid.driver_number} (${driverMid.abbreviation}) NOTED - IMPEDING AT FINAL CORNER`,
-            Status: "NOTED",
-            Flag: null,
-            Scope: "Driver",
-            Sector: 3,
-            RacingNumber: driverMid.driver_number,
-            Lap: 10,
-          },
-          {
-            Time: "14:58:30",
-            Category: "Flag",
-            Message: `CAR ${winner.driver_number} (${winner.abbreviation}) SETS PROVISIONAL POLE POSITION`,
-            Status: "POLE",
-            Flag: null,
-            Scope: "Driver",
+            Scope: "Track",
             Sector: null,
-            RacingNumber: winner.driver_number,
-            Lap: 12,
+            RacingNumber: null,
+            Lap: scEndLap,
+          }
+        );
+      } else if (year >= 1993) {
+        // Safety car era (introduced 1993)
+        messages.push(
+          {
+            Time: "14:35:00",
+            Category: "SafetyCar",
+            Message: `INCIDENT ON TRACK - SAFETY CAR DEPLOYED`,
+            Status: "SC",
+            Flag: "YELLOW",
+            Scope: "Track",
+            Sector: null,
+            RacingNumber: null,
+            Lap: scLap,
+          },
+          {
+            Time: "14:42:00",
+            Category: "SafetyCar",
+            Message: `DEBRIS CLEARED - SAFETY CAR IN THIS LAP`,
+            Status: "ENDING",
+            Flag: "GREEN",
+            Scope: "Track",
+            Sector: null,
+            RacingNumber: null,
+            Lap: scEndLap,
           }
         );
       } else {
-        // Race directives dynamically scaled to exact circuit lap count
-        const cautionLap = Math.max(2, Math.round(totalLaps * 0.20));
-        const scLap = Math.max(3, Math.round(totalLaps * 0.48));
-        const scEndLap = Math.min(totalLaps - 1, scLap + (year >= 2015 ? 2 : 4));
-        const investLap = Math.max(4, Math.round(totalLaps * 0.78));
-        const investClearLap = Math.min(totalLaps - 1, investLap + 3);
-
+        // Vintage marshal flag bulletin (pre-1993)
         messages.push(
           {
-            Time: "14:16:30",
-            Category: "Flag",
-            Message: "YELLOW FLAG SECTOR 1 - DEBRIS ON RUN-OFF AREA",
-            Status: "CAUTION",
-            Flag: "YELLOW",
-            Scope: "Sector",
-            Sector: 1,
-            RacingNumber: null,
-            Lap: cautionLap,
-          },
-          {
-            Time: "14:17:45",
-            Category: "Flag",
-            Message: "TRACK CLEAR - GREEN FLAG SECTOR 1",
-            Status: "CLEAR",
-            Flag: "GREEN",
-            Scope: "Sector",
-            Sector: 1,
-            RacingNumber: null,
-            Lap: cautionLap + 1,
-          }
-        );
-
-        if (year >= 2015) {
-          messages.push(
-            {
-              Time: "14:38:10",
-              Category: "CarEvent",
-              Message: `CAR ${driverBack.driver_number} (${driverBack.abbreviation}) STOPPED - VIRTUAL SAFETY CAR DEPLOYED`,
-              Status: "VSC",
-              Flag: "YELLOW",
-              Scope: "Track",
-              Sector: 2,
-              RacingNumber: driverBack.driver_number,
-              Lap: scLap,
-            },
-            {
-              Time: "14:41:20",
-              Category: "Flag",
-              Message: "VIRTUAL SAFETY CAR ENDING - RACING RESUMES",
-              Status: "CLEAR",
-              Flag: "GREEN",
-              Scope: "Track",
-              Sector: null,
-              RacingNumber: null,
-              Lap: scEndLap,
-            }
-          );
-        } else {
-          messages.push(
-            {
-              Time: "14:35:00",
-              Category: "SafetyCar",
-              Message: `DEBRIS CLEARED - SAFETY CAR IN THIS LAP`,
-              Status: "ENDING",
-              Flag: "GREEN",
-              Scope: "Track",
-              Sector: null,
-              RacingNumber: null,
-              Lap: scEndLap,
-            }
-          );
-        }
-
-        messages.push(
-          {
-            Time: "15:10:05",
-            Category: "Investigation",
-            Message: `INCIDENT INVOLVING CAR ${driver2.driver_number} (${driver2.abbreviation}) NOTED - TRACK LIMITS VIOLATION`,
-            Status: "NOTED",
+            Time: "14:35:00",
+            Category: "DriverRetirement",
+            Message: `CAR ${driverBack.driver_number} (${driverBack.abbreviation}) RETIRED - MECHANICAL ENGINE FAILURE`,
+            Status: "RETIRED",
             Flag: null,
             Scope: "Driver",
-            Sector: null,
-            RacingNumber: driver2.driver_number,
-            Lap: investLap,
-          },
-          {
-            Time: "15:14:10",
-            Category: "Investigation",
-            Message: `NO FURTHER ACTION FOR CAR ${driver2.driver_number} (${driver2.abbreviation})`,
-            Status: "CLEARED",
-            Flag: null,
-            Scope: "Driver",
-            Sector: null,
-            RacingNumber: driver2.driver_number,
-            Lap: investClearLap,
+            Sector: 2,
+            RacingNumber: driverBack.driver_number,
+            Lap: scLap,
           }
         );
       }
 
-      messages.push({
-        Time: isQuali ? "15:00:00" : "15:45:12",
-        Category: "Flag",
-        Message: `CHEQUERED FLAG - ${winner.abbreviation} (${winner.team}) WINS ${year} ${event.toUpperCase()}`,
-        Status: "CLEAR",
-        Flag: "CHEQUERED",
-        Scope: "Track",
-        Sector: null,
-        RacingNumber: winner.driver_number,
-        Lap: totalLaps,
-      });
-
-      return messages;
+      messages.push(
+        {
+          Time: "15:10:05",
+          Category: "Investigation",
+          Message: `STEWARDS INVESTIGATING CAR ${driver2.driver_number} (${driver2.abbreviation}) - OVERTAKING UNDER CAUTION`,
+          Status: "NOTED",
+          Flag: null,
+          Scope: "Driver",
+          Sector: null,
+          RacingNumber: driver2.driver_number,
+          Lap: investLap,
+        },
+        {
+          Time: "15:14:10",
+          Category: "Investigation",
+          Message: `NO FURTHER ACTION FOR CAR ${driver2.driver_number} (${driver2.abbreviation})`,
+          Status: "CLEARED",
+          Flag: null,
+          Scope: "Driver",
+          Sector: null,
+          RacingNumber: driver2.driver_number,
+          Lap: investClearLap,
+        }
+      );
     }
 
-    // For pre-2010 vintage sessions without electronic logs
-    return [];
+    messages.push({
+      Time: isQuali ? "15:00:00" : "15:45:12",
+      Category: "Flag",
+      Message: `CHEQUERED FLAG - ${winner.abbreviation} (${winner.team}) WINS ${year} ${event.toUpperCase()}`,
+      Status: "CLEAR",
+      Flag: "CHEQUERED",
+      Scope: "Track",
+      Sector: null,
+      RacingNumber: winner.driver_number,
+      Lap: totalLaps,
+    });
+
+    return messages;
   }
 }
 
@@ -641,16 +671,7 @@ export async function loadWeather(
   } catch {
     const ev = (event || "").toLowerCase();
 
-    // Check if within the 2010-2025 modern era OR specific vintage wet race
-    const isModernEra = year >= 2010;
-    const is1976Fuji = year === 1976 && ev.includes("fuji");
-    const is1988Brit = year === 1988 && ev.includes("brit");
-
-    if (!isModernEra && !is1976Fuji && !is1988Brit) {
-      return [];
-    }
-
-    // Determine geographic climate profile
+    // Determine geographic climate profile for any circuit worldwide
     const isDesert =
       ev.includes("bahrain") ||
       ev.includes("saudi") ||
@@ -664,21 +685,34 @@ export async function loadWeather(
       ev.includes("brazil") ||
       ev.includes("miami");
 
-    // Known documented wet races 2010-2025
+    // Comprehensive documented wet Grand Prix (1950–2025)
     const isWetSession =
-      is1976Fuji ||
-      is1988Brit ||
-      (year === 2024 && (ev.includes("brit") || ev.includes("brazil") || ev.includes("são paulo"))) ||
-      (year === 2023 && (ev.includes("dutch") || ev.includes("zandvoort") || ev.includes("monaco"))) ||
-      (year === 2022 && (ev.includes("monaco") || ev.includes("singapore") || ev.includes("japan"))) ||
-      (year === 2021 && (ev.includes("spa") || ev.includes("emilia") || ev.includes("imola") || ev.includes("russia"))) ||
-      (year === 2020 && (ev.includes("turkey") || ev.includes("austria"))) ||
+      (year === 1954 && ev.includes("swiss")) ||
+      (year === 1968 && (ev.includes("german") || ev.includes("nürburg") || ev.includes("dutch"))) ||
+      (year === 1976 && ev.includes("fuji")) ||
+      (year === 1984 && ev.includes("monaco")) ||
+      (year === 1988 && ev.includes("brit")) ||
+      (year === 1989 && ev.includes("australi")) ||
+      (year === 1993 && ev.includes("donington")) ||
+      (year === 1996 && (ev.includes("spain") || ev.includes("monaco"))) ||
+      (year === 1997 && ev.includes("monaco")) ||
+      (year === 1998 && ev.includes("spa")) ||
+      (year === 2000 && ev.includes("german")) ||
+      (year === 2003 && ev.includes("brazil")) ||
+      (year === 2008 && (ev.includes("brit") || ev.includes("brazil") || ev.includes("monaco") || ev.includes("ital"))) ||
+      (year === 2010 && (ev.includes("korea") || ev.includes("spa") || ev.includes("china") || ev.includes("australi"))) ||
+      (year === 2011 && (ev.includes("canada") || ev.includes("brit") || ev.includes("hungar"))) ||
+      (year === 2012 && (ev.includes("brazil") || ev.includes("malaysia") || ev.includes("brit"))) ||
+      (year === 2014 && (ev.includes("japan") || ev.includes("hungar"))) ||
+      (year === 2015 && (ev.includes("united states") || ev.includes("austin") || ev.includes("brit"))) ||
+      (year === 2016 && (ev.includes("brazil") || ev.includes("monaco") || ev.includes("brit"))) ||
+      (year === 2018 && ev.includes("german")) ||
       (year === 2019 && ev.includes("german")) ||
-      (year === 2016 && (ev.includes("brazil") || ev.includes("monaco"))) ||
-      (year === 2015 && (ev.includes("united states") || ev.includes("austin"))) ||
-      (year === 2012 && (ev.includes("brazil") || ev.includes("malaysia"))) ||
-      (year === 2011 && (ev.includes("canada") || ev.includes("brit"))) ||
-      (year === 2010 && (ev.includes("korea") || ev.includes("spa") || ev.includes("china")));
+      (year === 2020 && (ev.includes("turkey") || ev.includes("austria") || ev.includes("portug"))) ||
+      (year === 2021 && (ev.includes("spa") || ev.includes("emilia") || ev.includes("imola") || ev.includes("russia") || ev.includes("turkey"))) ||
+      (year === 2022 && (ev.includes("monaco") || ev.includes("singapore") || ev.includes("japan"))) ||
+      (year === 2023 && (ev.includes("dutch") || ev.includes("zandvoort") || ev.includes("monaco") || ev.includes("canada"))) ||
+      (year === 2024 && (ev.includes("brit") || ev.includes("brazil") || ev.includes("são paulo") || ev.includes("canada")));
 
     const baseAirTemp = isDesert ? 30.5 : isTropical ? 29.2 : isWetSession ? 18.0 : 23.5;
     const baseTrackTemp = isDesert ? 41.0 : isTropical ? 37.5 : isWetSession ? 19.5 : 32.0;

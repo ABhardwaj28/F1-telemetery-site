@@ -378,10 +378,10 @@ export default function DriverComparison({
                     className="f1-select"
                     value={driverA}
                     onChange={(e) => onSelectDriverA(e.target.value)}
-                    style={{ borderColor: colorA, background: "#111", minWidth: 130 }}
+                    style={{ borderColor: colorA, background: "#111", color: "#ffffff", minWidth: 130 }}
                   >
                     {drivers.map((d) => (
-                      <option key={d.abbreviation} value={d.abbreviation}>
+                      <option key={d.abbreviation} value={d.abbreviation} style={{ background: "#111", color: "#ffffff" }}>
                         {d.abbreviation} ({d.team})
                       </option>
                     ))}
@@ -390,7 +390,7 @@ export default function DriverComparison({
                     className="f1-select"
                     value={lapA}
                     onChange={(e) => onSelectLapA(Number(e.target.value))}
-                    style={{ background: "#111", color: "#fff" }}
+                    style={{ background: "#111", color: "#ffffff" }}
                   >
                     {availableLapsA.length > 0 ? (
                       availableLapsA.map((l) => (
@@ -571,8 +571,8 @@ export default function DriverComparison({
                   key={s}
                   onClick={() => setSensitivityMultiplier(s)}
                   style={{
-                    background: sensitivityMultiplier === s ? "#00E5FF" : "transparent",
-                    color: sensitivityMultiplier === s ? "#000000" : "#ffffff",
+                    background: sensitivityMultiplier === s ? "#e10600" : "transparent",
+                    color: "#ffffff",
                     border: "none",
                     borderRadius: 2,
                     padding: "2px 6px",
