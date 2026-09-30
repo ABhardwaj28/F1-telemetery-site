@@ -43,6 +43,7 @@ export default function DriverComparison({
   const [cursorDist, setCursorDist] = useState<number | null>(null);
   const [visibleChannel, setVisibleChannel] = useState<"all" | "speed" | "inputs" | "delta">("all");
   const [layoutMode, setLayoutMode] = useState<"overlay" | "split">("overlay");
+  const [sensitivityMultiplier, setSensitivityMultiplier] = useState<number>(2);
   const [isPlaying, setIsPlaying] = useState(false);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
 
@@ -163,8 +164,8 @@ export default function DriverComparison({
     [maxSpeed, H_SPEED]
   );
 
-  // Delta scale
-  const maxDelta = 1.5;
+  // Delta scale with dynamic sensitivity
+  const maxDelta = Math.max(0.2, 1.2 / sensitivityMultiplier);
   const scaleDeltaY = (d: number) => {
     const clamped = Math.max(-maxDelta, Math.min(maxDelta, d));
     const midY = (H_DELTA - PAD.top - PAD.bottom) / 2 + PAD.top;
@@ -551,6 +552,30 @@ export default function DriverComparison({
               <option value={2}>2.0x Fast</option>
               <option value={4}>4.0x Ultra</option>
             </select>
+
+            {/* Sensitivity Zoom */}
+            <div style={{ display: "flex", alignItems: "center", gap: 4, background: "#111116", border: "1px solid #2a2a35", borderRadius: 4, padding: "2px 6px" }}>
+              <span style={{ fontSize: 9, color: "#777", fontFamily: "IBM Plex Mono, monospace", fontWeight: 700 }}>ZOOM:</span>
+              {[1, 2, 3, 5].map((s) => (
+                <button
+                  key={s}
+                  onClick={() => setSensitivityMultiplier(s)}
+                  style={{
+                    background: sensitivityMultiplier === s ? "#00E5FF" : "transparent",
+                    color: sensitivityMultiplier === s ? "#000" : "#888",
+                    border: "none",
+                    borderRadius: 2,
+                    padding: "2px 6px",
+                    fontSize: 9,
+                    fontFamily: "IBM Plex Mono, monospace",
+                    cursor: "pointer",
+                    fontWeight: 800,
+                  }}
+                >
+                  {s}x
+                </button>
+              ))}
+            </div>
 
             {/* Channels Filter */}
             <div style={{ display: "flex", gap: 6 }}>

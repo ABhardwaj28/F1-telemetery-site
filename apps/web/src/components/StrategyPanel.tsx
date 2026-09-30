@@ -11,6 +11,13 @@ interface StrategyPanelProps {
 export default function StrategyPanel({ drivers, laps, sessionCode }: StrategyPanelProps) {
   const [selectedDriver, setSelectedDriver] = useState<string>(drivers[0]?.abbreviation ?? "NOR");
 
+  // Keep selected driver synced with current session drivers
+  useMemo(() => {
+    if (drivers.length && !drivers.some((d) => d.abbreviation === selectedDriver)) {
+      setSelectedDriver(drivers[0]?.abbreviation ?? "NOR");
+    }
+  }, [drivers, selectedDriver]);
+
   // Calculate stints per driver
   const driverStints = useMemo(() => {
     const map = new Map<
