@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type {
   Calendar,
   CalendarRace,
@@ -45,19 +45,69 @@ const NAV = [
   { label: "Historical F1", icon: "📖" },
 ];
 
+// ─── Initial State from URL / Storage ─────────────────────────────────────────
+function getInitialAppState() {
+  if (typeof window === "undefined") {
+    return {
+      page: "Race Explorer",
+      year: 2025,
+      raceEvent: null as string | null,
+      sessionCode: "R",
+      driver: "NOR",
+      lap: 1,
+      driverB: "VER",
+      lapB: 1,
+    };
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  let localData: any = {};
+  try {
+    const raw = localStorage.getItem("f1_app_state");
+    if (raw) localData = JSON.parse(raw);
+  } catch {}
+
+  const validPages = [
+    "Race Explorer",
+    "Driver Comparison",
+    "Strategy & Laps",
+    "Race Control",
+    "Weather",
+    "Championship",
+    "Historical F1",
+  ];
+  const rawPage = params.get("tab") || localData.page || "Race Explorer";
+  const page = validPages.includes(rawPage) ? rawPage : "Race Explorer";
+
+  const rawYear = params.get("year") ? Number(params.get("year")) : localData.year;
+  const year = rawYear && ALL_SUPPORTED_YEARS.includes(rawYear) ? rawYear : 2025;
+
+  const raceEvent = params.get("race") || localData.raceEvent || null;
+  const sessionCode = params.get("session") || localData.sessionCode || "R";
+  const driver = params.get("driver") || localData.driver || "NOR";
+  const lap = params.get("lap") ? Number(params.get("lap")) : (localData.lap || 1);
+  const driverB = params.get("driverB") || localData.driverB || "VER";
+  const lapB = params.get("lapB") ? Number(params.get("lapB")) : (localData.lapB || 1);
+
+  return { page, year, raceEvent, sessionCode, driver, lap, driverB, lapB };
+}
+
 // ─── App ──────────────────────────────────────────────────────────────────────
 export default function App() {
-  const [page, setPage] = useState("Race Explorer");
+  const initial = useMemo(() => getInitialAppState(), []);
+  const initialTargetRaceRef = useRef<string | null>(initial.raceEvent);
+
+  const [page, setPage] = useState(initial.page);
 
   // ── Selection ──────────────────────────────────────────────────────────
   const [calendar, setCalendar] = useState<Calendar>([]);
-  const [selectedYear, setSelectedYear] = useState(2025);
+  const [selectedYear, setSelectedYear] = useState(initial.year);
   const [selectedRace, setSelectedRace] = useState<CalendarRace | null>(null);
-  const [selectedSessionCode, setSelectedSessionCode] = useState("R");
-  const [selectedDriver, setSelectedDriver] = useState("NOR");
-  const [selectedLap, setSelectedLap] = useState(1);
-  const [selectedDriverB, setSelectedDriverB] = useState("VER");
-  const [selectedLapB, setSelectedLapB] = useState(1);
+  const [selectedSessionCode, setSelectedSessionCode] = useState(initial.sessionCode);
+  const [selectedDriver, setSelectedDriver] = useState(initial.driver);
+  const [selectedLap, setSelectedLap] = useState(initial.lap);
+  const [selectedDriverB, setSelectedDriverB] = useState(initial.driverB);
+  const [selectedLapB, setSelectedLapB] = useState(initial.lapB);
   const [cursorIndex, setCursorIndex] = useState(0);
 
   // ── Session data ───────────────────────────────────────────────────────
@@ -78,6 +128,47 @@ export default function App() {
   const [telLoading, setTelLoading] = useState(false);
   const [sessionError, setSessionError] = useState<string | null>(null);
 
+  // ── Sync URL & LocalStorage on every state update ──────────────────────
+  useEffect(() => {
+    const params = new URLSearchParams();
+    params.set("tab", page);
+    params.set("year", String(selectedYear));
+    if (selectedRace?.event) params.set("race", selectedRace.event);
+    params.set("session", selectedSessionCode);
+    params.set("driver", selectedDriver);
+    params.set("lap", String(selectedLap));
+    params.set("driverB", selectedDriverB);
+    params.set("lapB", String(selectedLapB));
+
+    const newUrl = `${window.location.pathname}?${params.toString()}`;
+    window.history.replaceState(null, "", newUrl);
+
+    try {
+      localStorage.setItem(
+        "f1_app_state",
+        JSON.stringify({
+          page,
+          year: selectedYear,
+          raceEvent: selectedRace?.event || null,
+          sessionCode: selectedSessionCode,
+          driver: selectedDriver,
+          lap: selectedLap,
+          driverB: selectedDriverB,
+          lapB: selectedLapB,
+        })
+      );
+    } catch {}
+  }, [
+    page,
+    selectedYear,
+    selectedRace,
+    selectedSessionCode,
+    selectedDriver,
+    selectedLap,
+    selectedDriverB,
+    selectedLapB,
+  ]);
+
   // ── Load calendar when selectedYear changes ───────────────────────────
   useEffect(() => {
     let cancelled = false;
@@ -87,13 +178,21 @@ export default function App() {
       .then((cal) => {
         if (cancelled) return;
         setCalendar(cal);
-        // Find matching race by event name or fallback to first
+
         setSelectedRace((prevRace) => {
           if (!cal || cal.length === 0) return null;
-          const prevName = prevRace?.event?.toLowerCase();
-          const match = prevName ? cal.find((r) => r.event.toLowerCase() === prevName) : null;
+          const targetName = initialTargetRaceRef.current || prevRace?.event;
+          if (initialTargetRaceRef.current) {
+            initialTargetRaceRef.current = null; // consume once
+          }
+          if (targetName) {
+            const match =
+              cal.find((r) => r.event.toLowerCase() === targetName.toLowerCase()) ||
+              cal.find((r) => r.event.toLowerCase().includes(targetName.toLowerCase()));
+            if (match) return match;
+          }
           const monaco = cal.find((r) => r.event.toLowerCase().includes("monaco"));
-          return match ?? monaco ?? cal[0] ?? null;
+          return monaco ?? cal[0] ?? null;
         });
         setCalLoading(false);
       })
@@ -129,11 +228,11 @@ export default function App() {
 
         // Auto-select valid driver for Driver A and Driver B if not in current roster
         if (dList.length > 0) {
-          setSelectedDriver((currA) => {
+          setSelectedDriver((currA: string) => {
             const hasA = dList.some((d) => d.abbreviation === currA);
             return hasA ? currA : dList[0].abbreviation;
           });
-          setSelectedDriverB((currB) => {
+          setSelectedDriverB((currB: string) => {
             const hasB = dList.some((d) => d.abbreviation === currB);
             return hasB ? currB : (dList[1]?.abbreviation ?? dList[0].abbreviation);
           });
