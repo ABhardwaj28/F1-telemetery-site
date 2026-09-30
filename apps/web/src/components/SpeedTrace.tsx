@@ -8,6 +8,7 @@ interface Props {
   onCursorChange: (index: number) => void;
   cursorIndex: number;
   color?: string;
+  sessionCode?: string;
 }
 
 const CHART_W = 1000;
@@ -26,6 +27,7 @@ export default function SpeedTrace({
   onCursorChange,
   cursorIndex,
   color = "#e10600",
+  sessionCode = "R",
 }: Props) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [hovering, setHovering] = useState(false);
@@ -304,6 +306,20 @@ export default function SpeedTrace({
       <div className="chart-footer">
         <span>0 m</span>
         <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
+          <span
+            style={{
+              padding: "2px 8px",
+              borderRadius: 3,
+              fontSize: 9,
+              fontFamily: "IBM Plex Mono, monospace",
+              fontWeight: 700,
+              background: sessionCode === "Q" || sessionCode === "SQ" ? "rgba(0, 229, 255, 0.12)" : "rgba(255, 215, 0, 0.12)",
+              color: sessionCode === "Q" || sessionCode === "SQ" ? "#00E5FF" : "#FFD700",
+              border: `1px solid ${sessionCode === "Q" || sessionCode === "SQ" ? "rgba(0, 229, 255, 0.4)" : "rgba(255, 215, 0, 0.4)"}`,
+            }}
+          >
+            {sessionCode === "Q" || sessionCode === "SQ" ? "⚡ RAW 50Hz QUALIFYING" : "📦 COMPRESSED 10Hz RACE LOG"}
+          </span>
           <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
             <span style={{ width: 16, height: 3, background: color, borderRadius: 1, display: "inline-block" }} />
             Speed

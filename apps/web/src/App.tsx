@@ -10,6 +10,7 @@ import type {
   TelemetryPoint,
   WeatherPoint,
 } from "./types";
+import { ALL_SUPPORTED_YEARS } from "./data/historicalSeasons";
 import { TEAM_COLOURS, TYRE_COLOURS, TELEMETRY_CIRCUITS, eventToCircuitSlug, SESSION_NAME } from "./data/loader";
 import {
   loadCalendar,
@@ -128,7 +129,7 @@ export default function App() {
     }
   }, [selectedRace]);
 
-  // ── Load telemetry when driver / lap changes ───────────────────────────
+  // ── Load telemetry when driver / lap / session changes ─────────────────
   useEffect(() => {
     if (!selectedRace || !hasTelemetry) {
       setTelemetry(null);
@@ -136,12 +137,12 @@ export default function App() {
     }
     const slug = eventToCircuitSlug(selectedRace.event);
     setTelLoading(true);
-    loadTelemetry(selectedYear, slug, selectedDriver, selectedLap).then((t) => {
+    loadTelemetry(selectedYear, slug, selectedDriver, selectedLap, selectedSessionCode).then((t) => {
       setTelemetry(t);
       setCursorIndex(0);
       setTelLoading(false);
     });
-  }, [selectedRace, selectedDriver, selectedLap, hasTelemetry, selectedYear]);
+  }, [selectedRace, selectedDriver, selectedLap, hasTelemetry, selectedYear, selectedSessionCode]);
 
   // ── Load telemetry for Driver B ───────────────────────────────────────
   useEffect(() => {
@@ -150,10 +151,10 @@ export default function App() {
       return;
     }
     const slug = eventToCircuitSlug(selectedRace.event);
-    loadTelemetry(selectedYear, slug, selectedDriverB, selectedLapB)
+    loadTelemetry(selectedYear, slug, selectedDriverB, selectedLapB, selectedSessionCode)
       .then((t) => setTelemetryB(t))
       .catch(() => setTelemetryB(null));
-  }, [selectedRace, selectedDriverB, selectedLapB, hasTelemetry, selectedYear]);
+  }, [selectedRace, selectedDriverB, selectedLapB, hasTelemetry, selectedYear, selectedSessionCode]);
 
   // ── Whenever race changes, reset driver to first in session ───────────
   const prevRaceRef = useRef<string | null>(null);
@@ -166,11 +167,17 @@ export default function App() {
     }
   }, [selectedRace]);
 
-  // ── When drivers load, auto-select first or keep NOR if available ──────
+  // ── When drivers load, auto-select valid drivers for Driver A and Driver B ──────
   useEffect(() => {
     if (!drivers.length) return;
-    const hasNor = drivers.some((d) => d.abbreviation === selectedDriver);
-    if (!hasNor) setSelectedDriver(drivers[0]?.abbreviation ?? "");
+    const hasCurrentA = drivers.some((d) => d.abbreviation === selectedDriver);
+    if (!hasCurrentA) {
+      setSelectedDriver(drivers[0]?.abbreviation ?? "");
+    }
+    const hasCurrentB = drivers.some((d) => d.abbreviation === selectedDriverB);
+    if (!hasCurrentB) {
+      setSelectedDriverB(drivers[1]?.abbreviation ?? drivers[0]?.abbreviation ?? "");
+    }
   }, [drivers]);
 
   // ── Derived ────────────────────────────────────────────────────────────
@@ -334,6 +341,7 @@ export default function App() {
                       onCursorChange={handleCursorChange}
                       cursorIndex={cursorIndex}
                       color={teamCol}
+                      sessionCode={selectedSessionCode}
                     />
                   ) : (
                     <div className="empty-state">NO TELEMETRY FOR LAP {selectedLap}</div>
@@ -574,13 +582,18 @@ export default function App() {
             <select
               value={selectedYear}
               onChange={(e) => {
-                setSelectedYear(Number(e.target.value));
+                const yr = Number(e.target.value);
+                setSelectedYear(yr);
+                setSelectedLap(1);
+                setSelectedLapB(1);
               }}
               style={selStyle}
             >
-              <option value={2025}>2025</option>
-              <option value={2024}>2024</option>
-              <option value={2023}>2023</option>
+              {ALL_SUPPORTED_YEARS.map((yr) => (
+                <option key={yr} value={yr}>
+                  {yr}
+                </option>
+              ))}
             </select>
 
             {/* Race / GP */}

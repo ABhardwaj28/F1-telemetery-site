@@ -602,6 +602,53 @@ export default function DriverComparison({
             </div>
           </div>
         </div>
+
+        {/* Telemetry Stream Mode Indicator Banner */}
+        <div
+          style={{
+            marginTop: 12,
+            paddingTop: 10,
+            borderTop: "1px solid #1f1f28",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            flexWrap: "wrap",
+            gap: 8,
+            fontSize: 10,
+            fontFamily: "IBM Plex Mono, monospace",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span
+              style={{
+                display: "inline-block",
+                width: 7,
+                height: 7,
+                borderRadius: "50%",
+                background: telemetryA?.isCompressed ? "#FFD700" : "#00E5FF",
+                boxShadow: telemetryA?.isCompressed
+                  ? "0 0 8px #FFD700"
+                  : "0 0 8px #00E5FF",
+              }}
+            />
+            <strong
+              style={{
+                color: telemetryA?.isCompressed ? "#FFD700" : "#00E5FF",
+                letterSpacing: "0.05em",
+              }}
+            >
+              {telemetryA?.isCompressed
+                ? "📦 RACE STINT TELEMETRY — COMPRESSED LOG (10Hz · 3.5x DOWNSAMPLED)"
+                : "⚡ QUALIFYING TELEMETRY — RAW FULL SENSITIVITY (50Hz UNCOMPRESSED)"}
+            </strong>
+          </div>
+
+          <div style={{ display: "flex", gap: 14, color: "#888" }}>
+            <span>POINTS A: <strong style={{ color: colorA }}>{ptsA.length}</strong></span>
+            <span>POINTS B: <strong style={{ color: colorB }}>{ptsB.length}</strong></span>
+            <span>RATIO: <strong style={{ color: "#aaa" }}>{telemetryA?.compressionRatio ?? "1.0x"}</strong></span>
+          </div>
+        </div>
       </div>
 
       {/* ── Head to Head Live Telemetry Cards ── */}

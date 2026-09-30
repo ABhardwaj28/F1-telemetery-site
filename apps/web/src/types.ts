@@ -110,6 +110,10 @@ export interface LapTelemetry {
   lap_time: number;
   compound: string;
   tyre_life: number;
+  isCompressed?: boolean;
+  samplingMode?: "RAW_QUALIFYING_SENSITIVE" | "COMPRESSED_RACE_STINT";
+  samplingHz?: number;
+  compressionRatio?: string;
   telemetry: {
     points: number;
     data: TelemetryPoint[];
