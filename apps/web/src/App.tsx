@@ -61,6 +61,23 @@ function getInitialAppState() {
   }
 
   const params = new URLSearchParams(window.location.search);
+  const hasQueryParams = window.location.search.length > 1;
+
+  // Clean homepage visit (e.g. from GitHub repo URL / description):
+  // Always load the primary Race Explorer dashboard
+  if (!hasQueryParams) {
+    return {
+      page: "Race Explorer",
+      year: 2025,
+      raceEvent: null as string | null,
+      sessionCode: "R",
+      driver: "NOR",
+      lap: 1,
+      driverB: "VER",
+      lapB: 1,
+    };
+  }
+
   let localData: any = {};
   try {
     const raw = localStorage.getItem("f1_app_state");
