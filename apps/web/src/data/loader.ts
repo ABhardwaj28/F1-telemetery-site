@@ -22,6 +22,7 @@ import type {
   RaceControlMessage,
   SessionDriver,
   SessionLap,
+  TrackPoint,
   WeatherPoint,
 } from "../types";
 import { eventToSlug, SESSION_FILE } from "../types";
@@ -243,6 +244,35 @@ function getDriverProfile(driver: string): DriverProfile {
   };
 }
 
+// ─── High-Density Spatial Track Densifier for Raw 50Hz Qualifying ──────────────
+
+function densifyTrackForQuali(track: TrackPoint[], stepMeters = 1.2): TrackPoint[] {
+  if (track.length < 2) return track;
+  const dense: TrackPoint[] = [];
+
+  for (let i = 0; i < track.length - 1; i++) {
+    const p1 = track[i];
+    const p2 = track[i + 1];
+    dense.push(p1);
+
+    const segmentDist = p2.distance - p1.distance;
+    if (segmentDist > stepMeters) {
+      const steps = Math.floor(segmentDist / stepMeters);
+      for (let s = 1; s <= steps; s++) {
+        const frac = s / (steps + 1);
+        dense.push({
+          distance: Number((p1.distance + frac * segmentDist).toFixed(2)),
+          x: p1.x + frac * (p2.x - p1.x),
+          y: p1.y + frac * (p2.y - p1.y),
+          z: p1.z + frac * (p2.z - p1.z),
+        });
+      }
+    }
+  }
+  dense.push(track[track.length - 1]);
+  return dense;
+}
+
 // ─── Telemetry ────────────────────────────────────────────────────────────────
 
 export async function loadTelemetry(
@@ -265,6 +295,10 @@ export async function loadTelemetry(
 
   const turns = circ.turns ?? [];
 
+  // In Qualifying: Generate high-density 50Hz raw stream (3500-5000+ points at 1.2m intervals)
+  // In Race: Use standard base track points with stint decimation
+  const activeTrack = isQuali ? densifyTrackForQuali(circ.track, 1.2) : circ.track;
+
   // Seed offset for driver micro-variations and lap dynamics
   const seed = (targetDriver.charCodeAt(0) * 7 + (targetDriver.charCodeAt(1) || 0) * 3 + targetLap * 11) % 100;
   const seedOffset = (seed - 50) / 100; // -0.5 to +0.5
@@ -279,8 +313,8 @@ export async function loadTelemetry(
   let currTime = 0;
   const rawData: any[] = [];
 
-  for (let idx = 0; idx < circ.track.length; idx++) {
-    const p = circ.track[idx];
+  for (let idx = 0; idx < activeTrack.length; idx++) {
+    const p = activeTrack[idx];
     const dist = p.distance;
 
     // Nearest corner
@@ -304,20 +338,20 @@ export async function loadTelemetry(
     // Quali vs Race Dynamics:
     // In Quali: Maximum grip, ultra-sharp apex speeds (+8% to +15% carrying speed)
     // In Race: Fuel heavy, tyre-saving apex speeds (more conservative)
-    const apexSensitivity = isQuali ? 1.05 : 0.97;
-    const driverApexSpeed = turnBaseSpeed * profile.apexSpeedFactor * apexSensitivity + seedOffset * (isQuali ? 2.2 : 0.8) - lapModifier * 1.2;
+    const apexSensitivity = isQuali ? 1.055 : 0.97;
+    const driverApexSpeed = turnBaseSpeed * profile.apexSpeedFactor * apexSensitivity + seedOffset * (isQuali ? 2.5 : 0.8) - lapModifier * 1.2;
 
     // Top speed on straights
     const baseTopSpeed = circuitSlug === "monza" ? 352 : circuitSlug === "spa" || circuitSlug === "las_vegas" || circuitSlug === "baku" ? 342 : circuitSlug === "monaco" ? 288 : 322;
     // Quali engine "party mode" gives extra straight-line punch
-    const engineModeDelta = isQuali ? 8.0 : -4.0;
-    const targetTopSpeed = baseTopSpeed + profile.topSpeedDelta + engineModeDelta + seedOffset * 2.5;
+    const engineModeDelta = isQuali ? 9.5 : -4.0;
+    const targetTopSpeed = baseTopSpeed + profile.topSpeedDelta + engineModeDelta + seedOffset * 2.8;
 
     // Braking threshold:
     // Quali: Ultra-late threshold braking spike right on the limit
     // Race: Earlier braking (+18m earlier) with lift-and-coast before brake hit
     const brakingDist = isQuali
-      ? (70 + (targetTopSpeed - driverApexSpeed) * 0.42 + profile.brakePointOffset)
+      ? (68 + (targetTopSpeed - driverApexSpeed) * 0.40 + profile.brakePointOffset)
       : (88 + (targetTopSpeed - driverApexSpeed) * 0.48 + profile.brakePointOffset + 16);
 
     let speed: number;
@@ -328,7 +362,7 @@ export async function loadTelemetry(
     if (distToTurn < 16) {
       // Apex clipping zone
       speed = driverApexSpeed + (distToTurn / 16) * (isQuali ? 8 : 4);
-      throttle = isQuali ? Math.round(28 * profile.throttleAggression) : 15;
+      throttle = isQuali ? Math.round(32 * profile.throttleAggression) : 15;
       brake = false;
     } else if (isApproaching && distToTurn <= brakingDist) {
       // Braking zone
@@ -345,10 +379,12 @@ export async function loadTelemetry(
     } else if (isExiting && distToTurn <= 130) {
       // Acceleration out of corner
       const exitProgress = Math.min(1, (distToTurn - 16) / 114);
-      speed = driverApexSpeed + Math.pow(exitProgress, isQuali ? 0.72 : 0.88) * (targetTopSpeed - driverApexSpeed);
-      // Sharp 100% throttle pickup in Quali vs gradual ramp in Race to save tyres
+      speed = driverApexSpeed + Math.pow(exitProgress, isQuali ? 0.70 : 0.88) * (targetTopSpeed - driverApexSpeed);
+      // Sharp 100% throttle pickup in Quali with realistic micro traction modulation
       if (isQuali) {
-        throttle = exitProgress > 0.35 ? 100 : Math.min(100, Math.round((35 + exitProgress * 85) * profile.throttleAggression));
+        const baseThrottle = exitProgress > 0.30 ? 100 : (38 + exitProgress * 85) * profile.throttleAggression;
+        const tractionMod = exitProgress < 0.35 ? Math.sin(dist * 1.8 + seed) * 4 : 0;
+        throttle = Math.max(0, Math.min(100, Math.round(baseThrottle + tractionMod)));
       } else {
         throttle = Math.min(100, Math.round((20 + exitProgress * 80) * 0.95));
       }
@@ -363,13 +399,10 @@ export async function loadTelemetry(
       }
     }
 
-    // Micro-jitter in Quali to simulate high-frequency 50Hz driver steering/throttle corrections
+    // High-frequency sensor micro-variations in Quali (50Hz raw telemetry)
     if (isQuali) {
-      const microJitter = Math.sin(dist * 0.35 + seed) * 0.4;
+      const microJitter = Math.sin(dist * 0.45 + seed) * 0.35 + Math.cos(dist * 1.2) * 0.15;
       speed = Math.max(50, speed + microJitter);
-      if (throttle > 20 && throttle < 95) {
-        throttle = Math.max(0, Math.min(100, throttle + Math.round(Math.sin(dist * 0.8) * 3)));
-      }
     }
 
     // Gear selection
@@ -389,7 +422,7 @@ export async function loadTelemetry(
     const rpm = Math.round(9200 + ((speed % 38) / 38) * (maxRpm - 9200));
 
     // Time integration dt = ds / v
-    const prevDist = idx > 0 ? circ.track[idx - 1].distance : 0;
+    const prevDist = idx > 0 ? activeTrack[idx - 1].distance : 0;
     const ds = Math.max(0.5, dist - prevDist);
     const speedMs = Math.max(speed, 45) / 3.6;
     const dt = ds / speedMs;
@@ -411,7 +444,7 @@ export async function loadTelemetry(
   }
 
   // ── Apply Telemetry Compression / Decimation for Race data ──
-  // In Quali: 100% uncompressed raw 50Hz stream
+  // In Quali: 100% uncompressed raw 50Hz stream (3,500 - 5,000+ points)
   // In Race: Compressed 10Hz telemetry log (3.5x downsampled with smooth moving window)
   let telemetryData: any[];
   if (isQuali) {
@@ -436,7 +469,7 @@ export async function loadTelemetry(
     isCompressed: !isQuali,
     samplingMode: isQuali ? "RAW_QUALIFYING_SENSITIVE" : "COMPRESSED_RACE_STINT",
     samplingHz: isQuali ? 50 : 10,
-    compressionRatio: isQuali ? "1.0x (Raw Uncompressed 50Hz Stream)" : "3.5x (Lossy Downsampled Stint Log)",
+    compressionRatio: isQuali ? `1.0x (${telemetryData.length} Raw Points · 50Hz Uncompressed)` : `3.5x (${telemetryData.length} Points · Downsampled)`,
     telemetry: {
       points: telemetryData.length,
       data: telemetryData,
