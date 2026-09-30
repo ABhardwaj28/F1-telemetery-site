@@ -96,6 +96,10 @@ function getInitialAppState() {
 export default function App() {
   const initial = useMemo(() => getInitialAppState(), []);
   const initialTargetRaceRef = useRef<string | null>(initial.raceEvent);
+  const initialTargetDriverRef = useRef<string | null>(initial.driver);
+  const initialTargetLapRef = useRef<number | null>(initial.lap);
+  const initialTargetDriverBRef = useRef<string | null>(initial.driverB);
+  const initialTargetLapBRef = useRef<number | null>(initial.lapB);
 
   const [page, setPage] = useState(initial.page);
 
@@ -128,12 +132,14 @@ export default function App() {
   const [telLoading, setTelLoading] = useState(false);
   const [sessionError, setSessionError] = useState<string | null>(null);
 
-  // ── Sync URL & LocalStorage on every state update ──────────────────────
+  // ── Sync URL & LocalStorage on state updates (only after initial load) ───
   useEffect(() => {
+    if (calLoading || !selectedRace) return;
+
     const params = new URLSearchParams();
     params.set("tab", page);
     params.set("year", String(selectedYear));
-    if (selectedRace?.event) params.set("race", selectedRace.event);
+    params.set("race", selectedRace.event);
     params.set("session", selectedSessionCode);
     params.set("driver", selectedDriver);
     params.set("lap", String(selectedLap));
@@ -149,7 +155,7 @@ export default function App() {
         JSON.stringify({
           page,
           year: selectedYear,
-          raceEvent: selectedRace?.event || null,
+          raceEvent: selectedRace.event,
           sessionCode: selectedSessionCode,
           driver: selectedDriver,
           lap: selectedLap,
@@ -167,6 +173,7 @@ export default function App() {
     selectedLap,
     selectedDriverB,
     selectedLapB,
+    calLoading,
   ]);
 
   // ── Load calendar when selectedYear changes ───────────────────────────
@@ -188,7 +195,8 @@ export default function App() {
           if (targetName) {
             const match =
               cal.find((r) => r.event.toLowerCase() === targetName.toLowerCase()) ||
-              cal.find((r) => r.event.toLowerCase().includes(targetName.toLowerCase()));
+              cal.find((r) => r.event.toLowerCase().includes(targetName.toLowerCase())) ||
+              cal.find((r) => targetName.toLowerCase().includes(r.event.toLowerCase()));
             if (match) return match;
           }
           const monaco = cal.find((r) => r.event.toLowerCase().includes("monaco"));
@@ -226,20 +234,39 @@ export default function App() {
         const dList = dr.value;
         setDrivers(dList);
 
-        // Auto-select valid driver for Driver A and Driver B if not in current roster
         if (dList.length > 0) {
+          const targetA = initialTargetDriverRef.current;
+          if (initialTargetDriverRef.current) initialTargetDriverRef.current = null;
+
+          const targetB = initialTargetDriverBRef.current;
+          if (initialTargetDriverBRef.current) initialTargetDriverBRef.current = null;
+
           setSelectedDriver((currA: string) => {
-            const hasA = dList.some((d) => d.abbreviation === currA);
-            return hasA ? currA : dList[0].abbreviation;
+            const desired = targetA || currA;
+            const hasA = dList.some((d) => d.abbreviation === desired);
+            return hasA ? desired : dList[0].abbreviation;
           });
+
           setSelectedDriverB((currB: string) => {
-            const hasB = dList.some((d) => d.abbreviation === currB);
-            return hasB ? currB : (dList[1]?.abbreviation ?? dList[0].abbreviation);
+            const desired = targetB || currB;
+            const hasB = dList.some((d) => d.abbreviation === desired);
+            return hasB ? desired : (dList[1]?.abbreviation ?? dList[0].abbreviation);
           });
         }
       }
 
-      if (lp.status === "fulfilled") setSessionLaps(lp.value);
+      if (lp.status === "fulfilled") {
+        setSessionLaps(lp.value);
+        if (initialTargetLapRef.current) {
+          setSelectedLap(initialTargetLapRef.current);
+          initialTargetLapRef.current = null;
+        }
+        if (initialTargetLapBRef.current) {
+          setSelectedLapB(initialTargetLapBRef.current);
+          initialTargetLapBRef.current = null;
+        }
+      }
+
       if (rc.status === "fulfilled") setRaceControl(rc.value);
       if (wx.status === "fulfilled") setWeather(wx.value);
       if (dr.status === "rejected") setSessionError("Session data not available.");
