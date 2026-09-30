@@ -27,7 +27,7 @@ import type {
 } from "../types";
 import { eventToSlug, SESSION_FILE } from "../types";
 
-const BASE = "/data";
+const BASE = `${(import.meta.env.BASE_URL || "/").replace(/\/$/, "")}/data`;
 
 async function json<T>(url: string): Promise<T> {
   const res = await fetch(url);
