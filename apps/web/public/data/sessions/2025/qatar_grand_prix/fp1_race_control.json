@@ -1,0 +1,112 @@
+[
+  {
+    "Time": "2025-11-28T13:30:00",
+    "Category": "Flag",
+    "Message": "GREEN LIGHT - PIT EXIT OPEN",
+    "Status": null,
+    "Flag": "GREEN",
+    "Scope": "Track",
+    "Sector": null,
+    "RacingNumber": null,
+    "Lap": null
+  },
+  {
+    "Time": "2025-11-28T13:52:29",
+    "Category": "Flag",
+    "Message": "YELLOW IN TRACK SECTOR 7",
+    "Status": null,
+    "Flag": "YELLOW",
+    "Scope": "Sector",
+    "Sector": 7.0,
+    "RacingNumber": null,
+    "Lap": null
+  },
+  {
+    "Time": "2025-11-28T13:52:30",
+    "Category": "Flag",
+    "Message": "CLEAR IN TRACK SECTOR 7",
+    "Status": null,
+    "Flag": "CLEAR",
+    "Scope": "Sector",
+    "Sector": 7.0,
+    "RacingNumber": null,
+    "Lap": null
+  },
+  {
+    "Time": "2025-11-28T14:23:46",
+    "Category": "Flag",
+    "Message": "DOUBLE YELLOW IN TRACK SECTOR 6",
+    "Status": null,
+    "Flag": "DOUBLE YELLOW",
+    "Scope": "Sector",
+    "Sector": 6.0,
+    "RacingNumber": null,
+    "Lap": null
+  },
+  {
+    "Time": "2025-11-28T14:23:48",
+    "Category": "Flag",
+    "Message": "YELLOW IN TRACK SECTOR 5",
+    "Status": null,
+    "Flag": "YELLOW",
+    "Scope": "Sector",
+    "Sector": 5.0,
+    "RacingNumber": null,
+    "Lap": null
+  },
+  {
+    "Time": "2025-11-28T14:23:51",
+    "Category": "Flag",
+    "Message": "CLEAR IN TRACK SECTOR 6",
+    "Status": null,
+    "Flag": "CLEAR",
+    "Scope": "Sector",
+    "Sector": 6.0,
+    "RacingNumber": null,
+    "Lap": null
+  },
+  {
+    "Time": "2025-11-28T14:23:52",
+    "Category": "Flag",
+    "Message": "DOUBLE YELLOW IN TRACK SECTOR 5",
+    "Status": null,
+    "Flag": "DOUBLE YELLOW",
+    "Scope": "Sector",
+    "Sector": 5.0,
+    "RacingNumber": null,
+    "Lap": null
+  },
+  {
+    "Time": "2025-11-28T14:23:53",
+    "Category": "Flag",
+    "Message": "CLEAR IN TRACK SECTOR 5",
+    "Status": null,
+    "Flag": "CLEAR",
+    "Scope": "Sector",
+    "Sector": 5.0,
+    "RacingNumber": null,
+    "Lap": null
+  },
+  {
+    "Time": "2025-11-28T14:30:00",
+    "Category": "Flag",
+    "Message": "CHEQUERED FLAG",
+    "Status": null,
+    "Flag": "CHEQUERED",
+    "Scope": "Track",
+    "Sector": null,
+    "RacingNumber": null,
+    "Lap": null
+  },
+  {
+    "Time": "2025-11-28T14:30:10",
+    "Category": "Other",
+    "Message": "FIRST CAR TO TAKE THE FLAG - CAR 31 (OCO)",
+    "Status": null,
+    "Flag": null,
+    "Scope": null,
+    "Sector": null,
+    "RacingNumber": null,
+    "Lap": null
+  }
+]

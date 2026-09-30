@@ -1,0 +1,167 @@
+[
+  {
+    "Time": "2025-07-04T11:15:19",
+    "Category": "Other",
+    "Message": "RISK OF RAIN FOR F1 FIRST PRACTICE SESSION IS 0%",
+    "Status": null,
+    "Flag": null,
+    "Scope": null,
+    "Sector": null,
+    "RacingNumber": null,
+    "Lap": null
+  },
+  {
+    "Time": "2025-07-04T11:17:30",
+    "Category": "Other",
+    "Message": "PINK HEAD PADDING MATERIAL MUST BE USED",
+    "Status": null,
+    "Flag": null,
+    "Scope": null,
+    "Sector": null,
+    "RacingNumber": null,
+    "Lap": null
+  },
+  {
+    "Time": "2025-07-04T11:24:03",
+    "Category": "Flag",
+    "Message": "CLEAR IN TRACK SECTOR 16",
+    "Status": null,
+    "Flag": "CLEAR",
+    "Scope": "Sector",
+    "Sector": 16.0,
+    "RacingNumber": null,
+    "Lap": null
+  },
+  {
+    "Time": "2025-07-04T11:24:04",
+    "Category": "Flag",
+    "Message": "CLEAR IN TRACK SECTOR 1",
+    "Status": null,
+    "Flag": "CLEAR",
+    "Scope": "Sector",
+    "Sector": 1.0,
+    "RacingNumber": null,
+    "Lap": null
+  },
+  {
+    "Time": "2025-07-04T11:24:06",
+    "Category": "Flag",
+    "Message": "CLEAR IN TRACK SECTOR 17",
+    "Status": null,
+    "Flag": "CLEAR",
+    "Scope": "Sector",
+    "Sector": 17.0,
+    "RacingNumber": null,
+    "Lap": null
+  },
+  {
+    "Time": "2025-07-04T11:30:00",
+    "Category": "Flag",
+    "Message": "GREEN LIGHT - PIT EXIT OPEN",
+    "Status": null,
+    "Flag": "GREEN",
+    "Scope": "Track",
+    "Sector": null,
+    "RacingNumber": null,
+    "Lap": null
+  },
+  {
+    "Time": "2025-07-04T12:08:03",
+    "Category": "Flag",
+    "Message": "YELLOW IN TRACK SECTOR 10",
+    "Status": null,
+    "Flag": "YELLOW",
+    "Scope": "Sector",
+    "Sector": 10.0,
+    "RacingNumber": null,
+    "Lap": null
+  },
+  {
+    "Time": "2025-07-04T12:08:20",
+    "Category": "Flag",
+    "Message": "CLEAR IN TRACK SECTOR 10",
+    "Status": null,
+    "Flag": "CLEAR",
+    "Scope": "Sector",
+    "Sector": 10.0,
+    "RacingNumber": null,
+    "Lap": null
+  },
+  {
+    "Time": "2025-07-04T12:30:00",
+    "Category": "Flag",
+    "Message": "CHEQUERED FLAG",
+    "Status": null,
+    "Flag": "CHEQUERED",
+    "Scope": "Track",
+    "Sector": null,
+    "RacingNumber": null,
+    "Lap": null
+  },
+  {
+    "Time": "2025-07-04T12:30:05",
+    "Category": "Other",
+    "Message": "FIRST CAR TO TAKE THE FLAG - CAR 14 (ALO)",
+    "Status": null,
+    "Flag": null,
+    "Scope": null,
+    "Sector": null,
+    "RacingNumber": null,
+    "Lap": null
+  },
+  {
+    "Time": "2025-07-04T12:38:05",
+    "Category": "Flag",
+    "Message": "YELLOW IN TRACK SECTOR 10",
+    "Status": null,
+    "Flag": "YELLOW",
+    "Scope": "Sector",
+    "Sector": 10.0,
+    "RacingNumber": null,
+    "Lap": null
+  },
+  {
+    "Time": "2025-07-04T12:38:34",
+    "Category": "Flag",
+    "Message": "YELLOW IN TRACK SECTOR 2",
+    "Status": null,
+    "Flag": "YELLOW",
+    "Scope": "Sector",
+    "Sector": 2.0,
+    "RacingNumber": null,
+    "Lap": null
+  },
+  {
+    "Time": "2025-07-04T12:38:38",
+    "Category": "Flag",
+    "Message": "YELLOW IN TRACK SECTOR 7",
+    "Status": null,
+    "Flag": "YELLOW",
+    "Scope": "Sector",
+    "Sector": 7.0,
+    "RacingNumber": null,
+    "Lap": null
+  },
+  {
+    "Time": "2025-07-04T12:38:39",
+    "Category": "Other",
+    "Message": "DRS DISABLED IN ZONE 1",
+    "Status": null,
+    "Flag": null,
+    "Scope": null,
+    "Sector": null,
+    "RacingNumber": null,
+    "Lap": null
+  },
+  {
+    "Time": "2025-07-04T12:38:47",
+    "Category": "Flag",
+    "Message": "DOUBLE YELLOW IN TRACK SECTOR 8",
+    "Status": null,
+    "Flag": "DOUBLE YELLOW",
+    "Scope": "Sector",
+    "Sector": 8.0,
+    "RacingNumber": null,
+    "Lap": null
+  }
+]

@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "f1-data-lab"
+version = "0.1.0"
+description = "Historical Formula 1 data ingestion and delivery platform"
+requires-python = ">=3.10"
+dependencies = [
+  "fastapi>=0.115,<1.0",
+  "uvicorn[standard]>=0.30,<1.0",
+  "requests>=2.31,<3.0",
+  "fastf1>=3.8,<4.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=9.0,<10.0",
+  "httpx2>=2.0,<3.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["apps/api", "packages/data-model", "pipelines/fastf1", "pipelines/jolpica"]
+include = ["f1_api*", "f1_data_model*", "f1_fastf1*", "f1_jolpica*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

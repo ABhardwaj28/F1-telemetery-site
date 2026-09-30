@@ -1,0 +1,21 @@
+.DS_Store
+.env
+.env.*
+!.env.example
+
+# Python environments and generated caches
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# JavaScript build artifacts
+node_modules/
+dist/
+.vite/
+
+# Data produced locally by FastF1; canonical exports live in data/
+cache/
+*.ff1pkl
+*.sqlite
+var/

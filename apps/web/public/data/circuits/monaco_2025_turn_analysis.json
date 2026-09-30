@@ -1,0 +1,274 @@
+{
+  "circuit": "Monaco",
+  "source": "/Users/apoorvabhardwaj/f1/F1 Project /data/telemetry/2025/monaco/NOR/lap_055.json",
+  "telemetry_points": 563,
+  "braking_zones": [
+    {
+      "start_distance": 95.63777777777777,
+      "end_distance": 183.64126531596122,
+      "minimum_speed": 117.9375024
+    },
+    {
+      "start_distance": 632.4105555555556,
+      "end_distance": 723.6049875001266,
+      "minimum_speed": 175.99643062857143
+    },
+    {
+      "start_distance": 827.4975,
+      "end_distance": 861.2220622212184,
+      "minimum_speed": 149.01428662857143
+    },
+    {
+      "start_distance": 1021.0683333333332,
+      "end_distance": 1108.2297176677175,
+      "minimum_speed": 80.7750016
+    },
+    {
+      "start_distance": 1180.8083333333332,
+      "end_distance": 1222.7652777777778,
+      "minimum_speed": 57.0
+    },
+    {
+      "start_distance": 1281.165277777778,
+      "end_distance": 1299.3164808967076,
+      "minimum_speed": 83.91111111111111
+    },
+    {
+      "start_distance": 1356.5033333333333,
+      "end_distance": 1384.0652890475335,
+      "minimum_speed": 90.2694456888889
+    },
+    {
+      "start_distance": 1951.8680555555559,
+      "end_distance": 2056.819166666667,
+      "minimum_speed": 89.0
+    },
+    {
+      "start_distance": 2066.8302777777785,
+      "end_distance": 2079.256582345119,
+      "minimum_speed": 71.35357348571428
+    },
+    {
+      "start_distance": 2274.35027777778,
+      "end_distance": 2324.197919754953,
+      "minimum_speed": 169.89583466666667
+    },
+    {
+      "start_distance": 2585.4552777777803,
+      "end_distance": 2658.4325469045216,
+      "minimum_speed": 138.13166261935297
+    },
+    {
+      "start_distance": 2675.3288888888915,
+      "end_distance": 2681.564898450456,
+      "minimum_speed": 120.95
+    },
+    {
+      "start_distance": 2797.0622222222237,
+      "end_distance": 2872.103737473676,
+      "minimum_speed": 71.8
+    },
+    {
+      "start_distance": 2938.8919444444473,
+      "end_distance": 2948.9392448671492,
+      "minimum_speed": 87.1625024
+    }
+  ],
+  "candidate_apexes": [
+    {
+      "distance": 197.6575,
+      "speed": 111.0,
+      "x": -7284.6981527533,
+      "y": -4651.3262415143,
+      "z": 538.1256107996943,
+      "braking_start": 95.63777777777777,
+      "braking_end": 183.64126531596122
+    },
+    {
+      "distance": 772.0308333333334,
+      "speed": 158.0,
+      "x": -2282.9938725682805,
+      "y": -2765.597604376048,
+      "z": 874.5620131265059,
+      "braking_start": 632.4105555555556,
+      "braking_end": 723.6049875001266
+    },
+    {
+      "distance": 875.9641666666665,
+      "speed": 140.0,
+      "x": -2747.84974443953,
+      "y": -1916.0593716769495,
+      "z": 893.0108345468625,
+      "braking_start": 827.4975,
+      "braking_end": 861.2220622212184
+    },
+    {
+      "distance": 1121.4127777777776,
+      "speed": 74.0,
+      "x": -1245.496678330846,
+      "y": -344.07597964742774,
+      "z": 725.4974100729153,
+      "braking_start": 1021.0683333333332,
+      "braking_end": 1108.2297176677175
+    },
+    {
+      "distance": 1238.0430555555556,
+      "speed": 43.0,
+      "x": -742.2951747348187,
+      "y": -983.4410964900571,
+      "z": 644.8610414189138,
+      "braking_start": 1021.0683333333332,
+      "braking_end": 1108.2297176677175
+    },
+    {
+      "distance": 1402.058888888889,
+      "speed": 79.0,
+      "x": -209.75188490321992,
+      "y": -355.5076770005249,
+      "z": 545.00121098984,
+      "braking_start": 1281.165277777778,
+      "braking_end": 1299.3164808967076
+    },
+    {
+      "distance": 1689.2909969804089,
+      "speed": 254.0,
+      "x": -846.0,
+      "y": -3035.0,
+      "z": 542.0,
+      "braking_start": null,
+      "braking_end": null
+    },
+    {
+      "distance": 1880.5574962179517,
+      "speed": 278.0,
+      "x": -2451.0,
+      "y": -4001.0,
+      "z": 542.0,
+      "braking_start": null,
+      "braking_end": null
+    },
+    {
+      "distance": 2083.8636111111123,
+      "speed": 66.0,
+      "x": -4367.0056413917055,
+      "y": -4647.965283482335,
+      "z": 489.9999315935285,
+      "braking_start": 1951.8680555555559,
+      "braking_end": 2056.819166666667
+    },
+    {
+      "distance": 2353.7936111111135,
+      "speed": 163.0,
+      "x": -6918.4551384147635,
+      "y": -5015.056447084157,
+      "z": 486.87496605058226,
+      "braking_start": 2274.35027777778,
+      "braking_end": 2324.197919754953
+    },
+    {
+      "distance": 2485.271388888891,
+      "speed": 217.0,
+      "x": -7200.059211129881,
+      "y": -6248.239365358131,
+      "z": 482.0197926629576,
+      "braking_start": null,
+      "braking_end": null
+    },
+    {
+      "distance": 2689.7622222222244,
+      "speed": 117.0,
+      "x": -6895.8993402785845,
+      "y": -8207.643303064408,
+      "z": 478.6200298706721,
+      "braking_start": 2585.4552777777803,
+      "braking_end": 2658.4325469045216
+    },
+    {
+      "distance": 2888.8252777777802,
+      "speed": 63.0,
+      "x": -6052.132874436972,
+      "y": -9726.240761717645,
+      "z": 491.9183070418346,
+      "braking_start": 2797.0622222222237,
+      "braking_end": 2872.103737473676
+    }
+  ],
+  "official_turns": [
+    {
+      "number": 1,
+      "name": "Sainte Devote"
+    },
+    {
+      "number": 2,
+      "name": "Beau Rivage"
+    },
+    {
+      "number": 3,
+      "name": "Massenet"
+    },
+    {
+      "number": 4,
+      "name": "Casino"
+    },
+    {
+      "number": 5,
+      "name": "Mirabeau Haute"
+    },
+    {
+      "number": 6,
+      "name": "Fairmont Hairpin"
+    },
+    {
+      "number": 7,
+      "name": "Mirabeau Bas"
+    },
+    {
+      "number": 8,
+      "name": "Portier"
+    },
+    {
+      "number": 9,
+      "name": "Tunnel"
+    },
+    {
+      "number": 10,
+      "name": "Nouvelle Chicane"
+    },
+    {
+      "number": 11,
+      "name": "Tabac"
+    },
+    {
+      "number": 12,
+      "name": "Louis Chiron"
+    },
+    {
+      "number": 13,
+      "name": "Piscine"
+    },
+    {
+      "number": 14,
+      "name": "Piscine"
+    },
+    {
+      "number": 15,
+      "name": "La Rascasse"
+    },
+    {
+      "number": 16,
+      "name": "Anthony Noghes"
+    },
+    {
+      "number": 17,
+      "name": "Anthony Noghes"
+    },
+    {
+      "number": 18,
+      "name": "Anthony Noghes"
+    },
+    {
+      "number": 19,
+      "name": "Anthony Noghes"
+    }
+  ]
+}

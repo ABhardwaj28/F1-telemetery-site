@@ -1,0 +1,83 @@
+{
+  "circuit": "Monaco",
+  "length_km": 3.337,
+  "turn_count": 19,
+  "turns": [
+    {
+      "number": 1,
+      "name": "Sainte Devote"
+    },
+    {
+      "number": 2,
+      "name": "Beau Rivage"
+    },
+    {
+      "number": 3,
+      "name": "Massenet"
+    },
+    {
+      "number": 4,
+      "name": "Casino"
+    },
+    {
+      "number": 5,
+      "name": "Mirabeau Haute"
+    },
+    {
+      "number": 6,
+      "name": "Fairmont"
+    },
+    {
+      "number": 7,
+      "name": "Mirabeau Bas"
+    },
+    {
+      "number": 8,
+      "name": "Portier"
+    },
+    {
+      "number": 9,
+      "name": "Tunnel"
+    },
+    {
+      "number": 10,
+      "name": "Nouvelle Chicane"
+    },
+    {
+      "number": 11,
+      "name": "Nouvelle Chicane"
+    },
+    {
+      "number": 12,
+      "name": "Tabac"
+    },
+    {
+      "number": 13,
+      "name": "Louis Chiron"
+    },
+    {
+      "number": 14,
+      "name": "Louis Chiron"
+    },
+    {
+      "number": 15,
+      "name": "Piscine"
+    },
+    {
+      "number": 16,
+      "name": "Piscine"
+    },
+    {
+      "number": 17,
+      "name": "Rascasse"
+    },
+    {
+      "number": 18,
+      "name": "Rascasse"
+    },
+    {
+      "number": 19,
+      "name": "Anthony Noghes"
+    }
+  ]
+}

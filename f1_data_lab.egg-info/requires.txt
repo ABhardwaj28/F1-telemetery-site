@@ -1,0 +1,8 @@
+fastapi<1.0,>=0.115
+uvicorn[standard]<1.0,>=0.30
+requests<3.0,>=2.31
+fastf1<4.0,>=3.8
+
+[dev]
+pytest<10.0,>=9.0
+httpx2<3.0,>=2.0

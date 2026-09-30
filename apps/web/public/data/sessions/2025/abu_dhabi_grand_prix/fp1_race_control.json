@@ -1,0 +1,167 @@
+[
+  {
+    "Time": "2025-12-05T09:16:40",
+    "Category": "Other",
+    "Message": "RISK OF RAIN FOR F1 FIRST PRACTICE SESSION IS 10%",
+    "Status": null,
+    "Flag": null,
+    "Scope": null,
+    "Sector": null,
+    "RacingNumber": null,
+    "Lap": null
+  },
+  {
+    "Time": "2025-12-05T09:22:17",
+    "Category": "Flag",
+    "Message": "CLEAR IN TRACK SECTOR 4",
+    "Status": null,
+    "Flag": "CLEAR",
+    "Scope": "Sector",
+    "Sector": 4.0,
+    "RacingNumber": null,
+    "Lap": null
+  },
+  {
+    "Time": "2025-12-05T09:30:00",
+    "Category": "Flag",
+    "Message": "GREEN LIGHT - PIT EXIT OPEN",
+    "Status": null,
+    "Flag": "GREEN",
+    "Scope": "Track",
+    "Sector": null,
+    "RacingNumber": null,
+    "Lap": null
+  },
+  {
+    "Time": "2025-12-05T09:35:27",
+    "Category": "Other",
+    "Message": "TURN 11 INCIDENT INVOLVING CARS 46 (BRO) AND 6 (HAD) NOTED - IMPEDING",
+    "Status": null,
+    "Flag": null,
+    "Scope": null,
+    "Sector": null,
+    "RacingNumber": null,
+    "Lap": null
+  },
+  {
+    "Time": "2025-12-05T09:36:28",
+    "Category": "Flag",
+    "Message": "YELLOW IN TRACK SECTOR 28",
+    "Status": null,
+    "Flag": "YELLOW",
+    "Scope": "Sector",
+    "Sector": 28.0,
+    "RacingNumber": null,
+    "Lap": null
+  },
+  {
+    "Time": "2025-12-05T09:36:29",
+    "Category": "Flag",
+    "Message": "DOUBLE YELLOW IN TRACK SECTOR 28",
+    "Status": null,
+    "Flag": "DOUBLE YELLOW",
+    "Scope": "Sector",
+    "Sector": 28.0,
+    "RacingNumber": null,
+    "Lap": null
+  },
+  {
+    "Time": "2025-12-05T09:36:31",
+    "Category": "Flag",
+    "Message": "CLEAR IN TRACK SECTOR 28",
+    "Status": null,
+    "Flag": "CLEAR",
+    "Scope": "Sector",
+    "Sector": 28.0,
+    "RacingNumber": null,
+    "Lap": null
+  },
+  {
+    "Time": "2025-12-05T09:36:49",
+    "Category": "Other",
+    "Message": "CAR 63 (RUS) TIME 1:27.168 DELETED - TRACK LIMITS AT TURN 1 LAP 3 13:34:18",
+    "Status": null,
+    "Flag": null,
+    "Scope": null,
+    "Sector": null,
+    "RacingNumber": null,
+    "Lap": null
+  },
+  {
+    "Time": "2025-12-05T09:37:29",
+    "Category": "Other",
+    "Message": "CAR 63 (RUS) TIME 1:27.168 WILL BE REINSTATED",
+    "Status": null,
+    "Flag": null,
+    "Scope": null,
+    "Sector": null,
+    "RacingNumber": null,
+    "Lap": null
+  },
+  {
+    "Time": "2025-12-05T09:38:30",
+    "Category": "Other",
+    "Message": "FIA STEWARDS: TURN 11 INCIDENT INVOLVING CARS 46 (BRO) AND 6 (HAD) REVIEWED NO FURTHER INVESTIGATION - IMPEDING",
+    "Status": null,
+    "Flag": null,
+    "Scope": null,
+    "Sector": null,
+    "RacingNumber": null,
+    "Lap": null
+  },
+  {
+    "Time": "2025-12-05T10:08:34",
+    "Category": "Other",
+    "Message": "TRACK SURFACE SLIPPERY IN TRACK SECTOR 2",
+    "Status": null,
+    "Flag": null,
+    "Scope": null,
+    "Sector": null,
+    "RacingNumber": null,
+    "Lap": null
+  },
+  {
+    "Time": "2025-12-05T10:16:51",
+    "Category": "Flag",
+    "Message": "CLEAR IN TRACK SECTOR 2",
+    "Status": null,
+    "Flag": "CLEAR",
+    "Scope": "Sector",
+    "Sector": 2.0,
+    "RacingNumber": null,
+    "Lap": null
+  },
+  {
+    "Time": "2025-12-05T10:30:00",
+    "Category": "Flag",
+    "Message": "CHEQUERED FLAG",
+    "Status": null,
+    "Flag": "CHEQUERED",
+    "Scope": "Track",
+    "Sector": null,
+    "RacingNumber": null,
+    "Lap": null
+  },
+  {
+    "Time": "2025-12-05T10:30:12",
+    "Category": "Other",
+    "Message": "FIRST CAR TO TAKE THE FLAG - CAR 27 (HUL)",
+    "Status": null,
+    "Flag": null,
+    "Scope": null,
+    "Sector": null,
+    "RacingNumber": null,
+    "Lap": null
+  },
+  {
+    "Time": "2025-12-05T10:45:06",
+    "Category": "Other",
+    "Message": "RISK OF RAIN FOR F2 QUALIFYING SESSION IS 0%",
+    "Status": null,
+    "Flag": null,
+    "Scope": null,
+    "Sector": null,
+    "RacingNumber": null,
+    "Lap": null
+  }
+]

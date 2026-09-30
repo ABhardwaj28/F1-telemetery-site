@@ -1,0 +1,12 @@
+Metadata-Version: 2.4
+Name: f1-data-lab
+Version: 0.1.0
+Summary: Historical Formula 1 data ingestion and delivery platform
+Requires-Python: >=3.10
+Requires-Dist: fastapi<1.0,>=0.115
+Requires-Dist: uvicorn[standard]<1.0,>=0.30
+Requires-Dist: requests<3.0,>=2.31
+Requires-Dist: fastf1<4.0,>=3.8
+Provides-Extra: dev
+Requires-Dist: pytest<10.0,>=9.0; extra == "dev"
+Requires-Dist: httpx2<3.0,>=2.0; extra == "dev"
