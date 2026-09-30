@@ -42,13 +42,14 @@ export default function DriverComparison({
 }: DriverComparisonProps) {
   const [cursorDist, setCursorDist] = useState<number | null>(null);
   const [visibleChannel, setVisibleChannel] = useState<"all" | "speed" | "inputs" | "delta">("all");
+  const [layoutMode, setLayoutMode] = useState<"overlay" | "split">("overlay");
   const [isPlaying, setIsPlaying] = useState(false);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
 
   const teamA = drivers.find((d) => d.abbreviation === driverA)?.team ?? "";
   const teamB = drivers.find((d) => d.abbreviation === driverB)?.team ?? "";
 
-  // Vibrant high contrast colors
+  // Vibrant high-contrast distinct colors
   const colorA = TEAM_COLOURS[teamA] ?? "#FF8000";
   const rawColorB = TEAM_COLOURS[teamB] ?? "#00E5FF";
   const colorB =
@@ -77,7 +78,6 @@ export default function DriverComparison({
     const animate = (time: number) => {
       if (lastTimeRef.current != null) {
         const deltaSec = (time - lastTimeRef.current) / 1000;
-        // Average speed around 230 km/h = ~64 m/s
         const moveDist = 68 * deltaSec * playbackSpeed;
         setCursorDist((prev) => {
           const current = prev ?? 0;
@@ -126,18 +126,25 @@ export default function DriverComparison({
 
   // SVG dimensions
   const W = 960;
-  const H_SPEED = 240;
-  const H_DELTA = 95;
-  const H_THROTTLE = 95;
-  const H_GEAR = 75;
-  const PAD = { top: 22, right: 30, bottom: 22, left: 60 };
+  const H_SPEED = layoutMode === "split" ? 170 : 240;
+  const H_SPEED_SPLIT_TOTAL = 350;
+  const H_DELTA = 90;
+  const H_THROTTLE = 90;
+  const H_GEAR = 70;
+  const PAD = { top: 20, right: 30, bottom: 20, left: 60 };
 
   const totalHeight = useMemo(() => {
+    if (layoutMode === "split") {
+      if (visibleChannel === "speed") return H_SPEED_SPLIT_TOTAL;
+      if (visibleChannel === "delta") return H_DELTA;
+      if (visibleChannel === "inputs") return H_THROTTLE + H_GEAR;
+      return H_SPEED_SPLIT_TOTAL + H_DELTA + H_THROTTLE + H_GEAR;
+    }
     if (visibleChannel === "speed") return H_SPEED;
     if (visibleChannel === "delta") return H_DELTA;
     if (visibleChannel === "inputs") return H_THROTTLE + H_GEAR;
     return H_SPEED + H_DELTA + H_THROTTLE + H_GEAR;
-  }, [visibleChannel]);
+  }, [visibleChannel, layoutMode, H_SPEED, H_SPEED_SPLIT_TOTAL]);
 
   const maxSpeed = useMemo(() => {
     const sA = ptsA.map((p) => p.Speed);
@@ -151,9 +158,9 @@ export default function DriverComparison({
     [trackLength]
   );
   const scaleSpeedY = useCallback(
-    (speed: number) =>
-      H_SPEED - PAD.bottom - (speed / maxSpeed) * (H_SPEED - PAD.top - PAD.bottom),
-    [maxSpeed]
+    (speed: number, height: number = H_SPEED) =>
+      height - PAD.bottom - (speed / maxSpeed) * (height - PAD.top - PAD.bottom),
+    [maxSpeed, H_SPEED]
   );
 
   // Delta scale
@@ -169,7 +176,7 @@ export default function DriverComparison({
   const scaleGearY = (g: number) =>
     H_GEAR - PAD.bottom - (g / 8) * (H_GEAR - PAD.top - PAD.bottom);
 
-  // Speed paths
+  // Speed paths (thin, high-precision)
   const speedPathA = useMemo(() => {
     if (!ptsA.length) return "";
     return ptsA
@@ -186,6 +193,27 @@ export default function DriverComparison({
       .map(
         (p, i) =>
           `${i === 0 ? "M" : "L"} ${scaleX(p.Distance).toFixed(1)} ${scaleSpeedY(p.Speed).toFixed(1)}`
+      )
+      .join(" ");
+  }, [ptsB, scaleX, scaleSpeedY]);
+
+  // Split view paths
+  const speedPathSplitA = useMemo(() => {
+    if (!ptsA.length) return "";
+    return ptsA
+      .map(
+        (p, i) =>
+          `${i === 0 ? "M" : "L"} ${scaleX(p.Distance).toFixed(1)} ${scaleSpeedY(p.Speed, 160).toFixed(1)}`
+      )
+      .join(" ");
+  }, [ptsA, scaleX, scaleSpeedY]);
+
+  const speedPathSplitB = useMemo(() => {
+    if (!ptsB.length) return "";
+    return ptsB
+      .map(
+        (p, i) =>
+          `${i === 0 ? "M" : "L"} ${scaleX(p.Distance).toFixed(1)} ${scaleSpeedY(p.Speed, 160).toFixed(1)}`
       )
       .join(" ");
   }, [ptsB, scaleX, scaleSpeedY]);
@@ -336,9 +364,13 @@ export default function DriverComparison({
                     color: colorA,
                     letterSpacing: "0.08em",
                     fontWeight: 700,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
                   }}
                 >
-                  DRIVER A ({driverA})
+                  <span style={{ width: 14, height: 2, background: colorA, display: "inline-block" }} />
+                  DRIVER A ({driverA}) — SOLID
                 </div>
                 <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
                   <select
@@ -401,9 +433,20 @@ export default function DriverComparison({
                     color: colorB,
                     letterSpacing: "0.08em",
                     fontWeight: 700,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
                   }}
                 >
-                  DRIVER B ({driverB})
+                  <span
+                    style={{
+                      width: 14,
+                      height: 2,
+                      borderTop: `2px dashed ${colorB}`,
+                      display: "inline-block",
+                    }}
+                  />
+                  DRIVER B ({driverB}) — DASHED
                 </div>
                 <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
                   <select
@@ -438,8 +481,43 @@ export default function DriverComparison({
             </div>
           </div>
 
-          {/* Simultaneous Playback Controls & Channel Filter */}
+          {/* Controls: Overlay vs Split, Simultaneous Playback, Channels */}
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+            {/* View Mode: Overlay vs Split */}
+            <div style={{ display: "flex", border: "1px solid #2a2a35", borderRadius: 4, overflow: "hidden" }}>
+              <button
+                onClick={() => setLayoutMode("overlay")}
+                style={{
+                  background: layoutMode === "overlay" ? "#282834" : "#111116",
+                  color: layoutMode === "overlay" ? "#fff" : "#777",
+                  border: "none",
+                  padding: "6px 12px",
+                  fontSize: 10,
+                  fontFamily: "IBM Plex Mono, monospace",
+                  cursor: "pointer",
+                  fontWeight: 600,
+                }}
+              >
+                OVERLAY
+              </button>
+              <button
+                onClick={() => setLayoutMode("split")}
+                style={{
+                  background: layoutMode === "split" ? "#282834" : "#111116",
+                  color: layoutMode === "split" ? "#fff" : "#777",
+                  border: "none",
+                  borderLeft: "1px solid #2a2a35",
+                  padding: "6px 12px",
+                  fontSize: 10,
+                  fontFamily: "IBM Plex Mono, monospace",
+                  cursor: "pointer",
+                  fontWeight: 600,
+                }}
+              >
+                SPLIT TRACKS
+              </button>
+            </div>
+
             {/* Play/Pause */}
             <button
               onClick={() => setIsPlaying(!isPlaying)}
@@ -447,9 +525,9 @@ export default function DriverComparison({
                 background: isPlaying ? "#e10600" : "#1a1a22",
                 color: "#fff",
                 border: "1px solid #333340",
-                padding: "7px 16px",
+                padding: "6px 14px",
                 borderRadius: 4,
-                fontSize: 11,
+                fontSize: 10,
                 fontFamily: "IBM Plex Mono, monospace",
                 cursor: "pointer",
                 fontWeight: 700,
@@ -458,7 +536,7 @@ export default function DriverComparison({
                 gap: 6,
               }}
             >
-              {isPlaying ? "⏸ PAUSE" : "▶ SIMULTANEOUS PLAY"}
+              {isPlaying ? "⏸ PAUSE" : "▶ PLAY"}
             </button>
 
             {/* Speed Multiplier */}
@@ -484,7 +562,7 @@ export default function DriverComparison({
                     background: visibleChannel === ch ? "#e10600" : "#131318",
                     color: visibleChannel === ch ? "#fff" : "#888894",
                     border: "1px solid #252530",
-                    padding: "6px 12px",
+                    padding: "6px 10px",
                     borderRadius: 4,
                     fontSize: 10,
                     fontFamily: "IBM Plex Mono, monospace",
@@ -677,57 +755,60 @@ export default function DriverComparison({
         </div>
       </div>
 
-      {/* ── Multi-Channel Overlaid SVG Graphs ── */}
+      {/* ── Multi-Channel Overlaid / Split SVG Graphs ── */}
       <div className="panel" style={{ padding: "20px 24px" }}>
         <div
           className="panel-title"
           style={{ marginBottom: 14, display: "flex", justifyContent: "space-between", alignItems: "center" }}
         >
           <div>
-            <h2>SIMULTANEOUS DUAL-DRIVER TELEMETRY TRACES</h2>
-            <span>BOTH DRIVERS OVERLAID ON SAME DISTANCE AXIS · REAL SPEED & TIME DELTAS</span>
+            <h2>{layoutMode === "overlay" ? "OVERLAID TELEMETRY TRACES" : "SEPARATE SYNCHRONIZED TRACKS"}</h2>
+            <span>
+              {layoutMode === "overlay"
+                ? "DISTINCT THIN SOLID (DRIVER A) & THIN DASHED (DRIVER B) TRACES"
+                : "DEDICATED SYNCHRONIZED LANES FOR DRIVER A & DRIVER B"}
+            </span>
           </div>
           <div style={{ display: "flex", gap: 20, alignItems: "center" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <div
                 style={{
-                  width: 18,
-                  height: 4,
+                  width: 20,
+                  height: 2.5,
                   background: colorA,
-                  borderRadius: 2,
-                  boxShadow: `0 0 8px ${colorA}`,
+                  borderRadius: 1,
+                  boxShadow: `0 0 6px ${colorA}`,
                 }}
               />
               <span
                 style={{
-                  fontSize: 12,
+                  fontSize: 11,
                   fontFamily: "IBM Plex Mono, monospace",
                   color: colorA,
                   fontWeight: 700,
                 }}
               >
-                {driverA} (Lap {lapA})
+                {driverA} (Solid)
               </span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <div
                 style={{
-                  width: 18,
-                  height: 4,
-                  background: colorB,
-                  borderRadius: 2,
-                  boxShadow: `0 0 8px ${colorB}`,
+                  width: 20,
+                  height: 2.5,
+                  borderTop: `2px dashed ${colorB}`,
+                  boxShadow: `0 0 6px ${colorB}`,
                 }}
               />
               <span
                 style={{
-                  fontSize: 12,
+                  fontSize: 11,
                   fontFamily: "IBM Plex Mono, monospace",
                   color: colorB,
                   fontWeight: 700,
                 }}
               >
-                {driverB} (Lap {lapB})
+                {driverB} (Dashed)
               </span>
             </div>
           </div>
@@ -742,15 +823,15 @@ export default function DriverComparison({
         >
           <defs>
             <filter id="glowA">
-              <feDropShadow dx="0" dy="0" stdDeviation="2" floodColor={colorA} floodOpacity="0.4" />
+              <feDropShadow dx="0" dy="0" stdDeviation="1.5" floodColor={colorA} floodOpacity="0.5" />
             </filter>
             <filter id="glowB">
-              <feDropShadow dx="0" dy="0" stdDeviation="2" floodColor={colorB} floodOpacity="0.4" />
+              <feDropShadow dx="0" dy="0" stdDeviation="1.5" floodColor={colorB} floodOpacity="0.5" />
             </filter>
           </defs>
 
-          {/* ── 1. SPEED CHANNEL ── */}
-          {(visibleChannel === "all" || visibleChannel === "speed") && (
+          {/* ── 1. SPEED CHANNEL (OVERLAY MODE) ── */}
+          {layoutMode === "overlay" && (visibleChannel === "all" || visibleChannel === "speed") && (
             <g>
               <rect
                 x={PAD.left}
@@ -762,7 +843,7 @@ export default function DriverComparison({
               />
 
               {/* Y-axis speed labels */}
-              {[100, 150, 200, 250, 300, 350].filter(s => s <= maxSpeed).map((s) => {
+              {[100, 150, 200, 250, 300, 350].filter((s) => s <= maxSpeed).map((s) => {
                 const y = scaleSpeedY(s);
                 return (
                   <g key={s}>
@@ -816,42 +897,47 @@ export default function DriverComparison({
                 );
               })}
 
-              {/* Speed Traces — BOTH SIMULTANEOUS */}
+              {/* Driver A: Crisp Thin Solid Line */}
               <path
                 d={speedPathA}
                 fill="none"
                 stroke={colorA}
-                strokeWidth="2.8"
+                strokeWidth="1.8"
                 strokeLinecap="round"
-                opacity="0.95"
+                strokeLinejoin="round"
                 filter="url(#glowA)"
               />
+
+              {/* Driver B: Crisp Thin Dashed Line */}
               <path
                 d={speedPathB}
                 fill="none"
                 stroke={colorB}
-                strokeWidth="2.8"
+                strokeWidth="1.8"
+                strokeDasharray="6 3"
                 strokeLinecap="round"
-                opacity="0.95"
+                strokeLinejoin="round"
                 filter="url(#glowB)"
               />
 
-              {/* Live ghost dots on curves */}
+              {/* Live ghost markers on curves */}
               {cursorPointA && (
                 <circle
                   cx={scaleX(cursorPointA.Distance)}
                   cy={scaleSpeedY(cursorPointA.Speed)}
-                  r={5}
+                  r={4.5}
                   fill={colorA}
                   stroke="#fff"
                   strokeWidth="1.5"
                 />
               )}
               {cursorPointB && (
-                <circle
-                  cx={scaleX(cursorPointB.Distance)}
-                  cy={scaleSpeedY(cursorPointB.Speed)}
-                  r={5}
+                <rect
+                  x={scaleX(cursorPointB.Distance) - 4}
+                  y={scaleSpeedY(cursorPointB.Speed) - 4}
+                  width={8}
+                  height={8}
+                  transform={`rotate(45, ${scaleX(cursorPointB.Distance)}, ${scaleSpeedY(cursorPointB.Speed)})`}
                   fill={colorB}
                   stroke="#fff"
                   strokeWidth="1.5"
@@ -866,14 +952,86 @@ export default function DriverComparison({
                 fontFamily="IBM Plex Mono, monospace"
                 fontWeight="600"
               >
-                SPEED (KM/H)
+                SPEED (KM/H) · SOLID: {driverA} | DASHED: {driverB}
               </text>
+            </g>
+          )}
+
+          {/* ── 1. SPEED CHANNEL (SPLIT DUAL TRACKS MODE) ── */}
+          {layoutMode === "split" && (visibleChannel === "all" || visibleChannel === "speed") && (
+            <g>
+              {/* Panel Driver A */}
+              <rect
+                x={PAD.left}
+                y={PAD.top}
+                width={W - PAD.left - PAD.right}
+                height={130}
+                fill="#0a0a0d"
+                stroke="#1c1c24"
+              />
+              <path
+                d={speedPathSplitA}
+                fill="none"
+                stroke={colorA}
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                filter="url(#glowA)"
+              />
+              {cursorPointA && (
+                <circle
+                  cx={scaleX(cursorPointA.Distance)}
+                  cy={scaleSpeedY(cursorPointA.Speed, 160)}
+                  r={4.5}
+                  fill={colorA}
+                  stroke="#fff"
+                  strokeWidth="1.5"
+                />
+              )}
+              <text x={PAD.left + 8} y={PAD.top + 14} fill={colorA} fontSize="10" fontFamily="IBM Plex Mono, monospace" fontWeight="700">
+                {driverA} SPEED ({cursorPointA?.Speed.toFixed(0)} KM/H)
+              </text>
+
+              {/* Panel Driver B */}
+              <g transform="translate(0, 150)">
+                <rect
+                  x={PAD.left}
+                  y={PAD.top}
+                  width={W - PAD.left - PAD.right}
+                  height={130}
+                  fill="#0a0a0d"
+                  stroke="#1c1c24"
+                />
+                <path
+                  d={speedPathSplitB}
+                  fill="none"
+                  stroke={colorB}
+                  strokeWidth="1.8"
+                  strokeDasharray="6 3"
+                  strokeLinecap="round"
+                  filter="url(#glowB)"
+                />
+                {cursorPointB && (
+                  <rect
+                    x={scaleX(cursorPointB.Distance) - 4}
+                    y={scaleSpeedY(cursorPointB.Speed, 160) - 4}
+                    width={8}
+                    height={8}
+                    transform={`rotate(45, ${scaleX(cursorPointB.Distance)}, ${scaleSpeedY(cursorPointB.Speed, 160)})`}
+                    fill={colorB}
+                    stroke="#fff"
+                    strokeWidth="1.5"
+                  />
+                )}
+                <text x={PAD.left + 8} y={PAD.top + 14} fill={colorB} fontSize="10" fontFamily="IBM Plex Mono, monospace" fontWeight="700">
+                  {driverB} SPEED ({cursorPointB?.Speed.toFixed(0)} KM/H)
+                </text>
+              </g>
             </g>
           )}
 
           {/* ── 2. DELTA TIME CHANNEL ── */}
           {(visibleChannel === "all" || visibleChannel === "delta") && (
-            <g transform={`translate(0, ${visibleChannel === "all" ? H_SPEED : 0})`}>
+            <g transform={`translate(0, ${visibleChannel === "all" ? (layoutMode === "split" ? H_SPEED_SPLIT_TOTAL : H_SPEED) : 0})`}>
               <rect
                 x={PAD.left}
                 y={PAD.top}
@@ -924,7 +1082,7 @@ export default function DriverComparison({
               </text>
 
               {/* Delta line */}
-              <path d={deltaPath} fill="none" stroke="#f5c518" strokeWidth="2.2" />
+              <path d={deltaPath} fill="none" stroke="#f5c518" strokeWidth="1.8" />
 
               <text
                 x={PAD.left + 8}
@@ -941,7 +1099,13 @@ export default function DriverComparison({
 
           {/* ── 3. THROTTLE & BRAKE CHANNEL ── */}
           {(visibleChannel === "all" || visibleChannel === "inputs") && (
-            <g transform={`translate(0, ${visibleChannel === "all" ? H_SPEED + H_DELTA : 0})`}>
+            <g
+              transform={`translate(0, ${
+                visibleChannel === "all"
+                  ? (layoutMode === "split" ? H_SPEED_SPLIT_TOTAL : H_SPEED) + H_DELTA
+                  : 0
+              })`}
+            >
               <rect
                 x={PAD.left}
                 y={PAD.top}
@@ -980,9 +1144,9 @@ export default function DriverComparison({
                 0%
               </text>
 
-              {/* Throttle traces */}
-              <path d={throttlePathA} fill="none" stroke={colorA} strokeWidth="2" opacity="0.9" />
-              <path d={throttlePathB} fill="none" stroke={colorB} strokeWidth="2" opacity="0.9" />
+              {/* Throttle traces: Solid A vs Dashed B */}
+              <path d={throttlePathA} fill="none" stroke={colorA} strokeWidth="1.6" opacity="0.9" />
+              <path d={throttlePathB} fill="none" stroke={colorB} strokeWidth="1.6" strokeDasharray="5 2.5" opacity="0.9" />
 
               <text
                 x={PAD.left + 8}
@@ -992,7 +1156,7 @@ export default function DriverComparison({
                 fontFamily="IBM Plex Mono, monospace"
                 fontWeight="600"
               >
-                THROTTLE %
+                THROTTLE % (SOLID: {driverA} | DASHED: {driverB})
               </text>
             </g>
           )}
@@ -1000,7 +1164,11 @@ export default function DriverComparison({
           {/* ── 4. GEAR CHANNEL ── */}
           {(visibleChannel === "all" || visibleChannel === "inputs") && (
             <g
-              transform={`translate(0, ${visibleChannel === "all" ? H_SPEED + H_DELTA + H_THROTTLE : H_THROTTLE})`}
+              transform={`translate(0, ${
+                visibleChannel === "all"
+                  ? (layoutMode === "split" ? H_SPEED_SPLIT_TOTAL : H_SPEED) + H_DELTA + H_THROTTLE
+                  : H_THROTTLE
+              })`}
             >
               <rect
                 x={PAD.left}
@@ -1032,9 +1200,9 @@ export default function DriverComparison({
                 G1
               </text>
 
-              {/* Gear traces */}
-              <path d={gearPathA} fill="none" stroke={colorA} strokeWidth="2" />
-              <path d={gearPathB} fill="none" stroke={colorB} strokeWidth="2" />
+              {/* Gear traces: Solid A vs Dashed B */}
+              <path d={gearPathA} fill="none" stroke={colorA} strokeWidth="1.6" />
+              <path d={gearPathB} fill="none" stroke={colorB} strokeWidth="1.6" strokeDasharray="5 2.5" />
 
               <text
                 x={PAD.left + 8}
@@ -1057,16 +1225,19 @@ export default function DriverComparison({
               x2={scaleX(cursorDist)}
               y2={totalHeight - PAD.bottom}
               stroke="#ffffff"
-              strokeWidth="1.8"
-              strokeDasharray="4 4"
-              opacity="0.9"
+              strokeWidth="1.5"
+              strokeDasharray="3 3"
+              opacity="0.85"
             />
           )}
 
           {/* ── Tooltip Bubble ── */}
           {cursorDist !== null && cursorPointA && cursorPointB && (
             <g
-              transform={`translate(${Math.min(W - 200, Math.max(PAD.left + 10, scaleX(cursorDist) - 95))}, ${PAD.top + 10})`}
+              transform={`translate(${Math.min(
+                W - 200,
+                Math.max(PAD.left + 10, scaleX(cursorDist) - 95)
+              )}, ${PAD.top + 10})`}
             >
               <rect
                 width="190"
@@ -1088,7 +1259,7 @@ export default function DriverComparison({
                 fontWeight="700"
                 fontFamily="IBM Plex Mono, monospace"
               >
-                {driverA}: {cursorPointA.Speed.toFixed(0)} km/h · G{cursorPointA.nGear} · {cursorPointA.Throttle.toFixed(0)}% TH
+                — {driverA}: {cursorPointA.Speed.toFixed(0)} km/h · G{cursorPointA.nGear} · {cursorPointA.Throttle.toFixed(0)}% TH
               </text>
               <text
                 x="12"
@@ -1098,7 +1269,7 @@ export default function DriverComparison({
                 fontWeight="700"
                 fontFamily="IBM Plex Mono, monospace"
               >
-                {driverB}: {cursorPointB.Speed.toFixed(0)} km/h · G{cursorPointB.nGear} · {cursorPointB.Throttle.toFixed(0)}% TH
+                - - {driverB}: {cursorPointB.Speed.toFixed(0)} km/h · G{cursorPointB.nGear} · {cursorPointB.Throttle.toFixed(0)}% TH
               </text>
             </g>
           )}
@@ -1132,8 +1303,8 @@ export default function DriverComparison({
               >
                 <th style={{ padding: "8px 16px" }}>CORNER</th>
                 <th style={{ padding: "8px 16px" }}>DISTANCE</th>
-                <th style={{ padding: "8px 16px", color: colorA }}>{driverA} APEX</th>
-                <th style={{ padding: "8px 16px", color: colorB }}>{driverB} APEX</th>
+                <th style={{ padding: "8px 16px", color: colorA }}>{driverA} (SOLID) APEX</th>
+                <th style={{ padding: "8px 16px", color: colorB }}>{driverB} (DASHED) APEX</th>
                 <th style={{ padding: "8px 16px" }}>DELTA</th>
                 <th style={{ padding: "8px 16px" }}>ADVANTAGE</th>
               </tr>
