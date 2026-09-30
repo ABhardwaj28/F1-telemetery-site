@@ -80,7 +80,7 @@ export async function loadSessionLaps(
   try {
     return await json<SessionLap[]>(sessionPath(year, event, sessionCode, "_laps.json"));
   } catch {
-    // Generate realistic session laps for any year / session with strict order fidelity
+    // Generate realistic multi-stint strategy & lap data for any season / event / session
     const drivers = getHistoricalDrivers(year, event, sessionCode);
     const isQuali = sessionCode === "Q" || sessionCode === "SQ" || sessionCode === "Qualifying";
     const totalLaps = isQuali ? 12 : 57;
@@ -88,17 +88,39 @@ export async function loadSessionLaps(
     const baseLapTime = 84.2; // ~1:24.200
     const laps: SessionLap[] = [];
 
+    // Realistic stint windows for race strategy
+    const pitLap1 = 18;
+    const pitLap2 = 38;
+
     drivers.forEach((d, dIdx) => {
       const pos = d.position ?? (dIdx + 1);
       const driverDelta = (pos - 1) * 0.24; // Strict separation per position
+
       for (let lapNum = 1; lapNum <= totalLaps; lapNum++) {
         const isPushLap = isQuali ? lapNum === 2 : lapNum === 48;
-        const tyreWearDelta = isQuali ? (isPushLap ? 0 : 1.8) : (lapNum * 0.035);
+        const stintNum = isQuali ? 1 : lapNum > pitLap2 ? 3 : lapNum > pitLap1 ? 2 : 1;
+        const stintLap = isQuali ? lapNum : stintNum === 3 ? lapNum - pitLap2 : stintNum === 2 ? lapNum - pitLap1 : lapNum;
+
+        // Tyre wear & fuel burn progression
+        const tyreWearDelta = isQuali ? (isPushLap ? 0 : 1.8) : (stintLap * 0.045);
         const fuelBurn = isQuali ? 0 : -(lapNum * 0.028);
         const microVar = isPushLap
           ? (((d.abbreviation.charCodeAt(0) + lapNum) % 10) - 5) * 0.005 // max +/- 0.025s on push lap
           : (((d.abbreviation.charCodeAt(0) + lapNum * 7) % 30) - 15) * 0.03;
-        const lapTime = baseLapTime + driverDelta + tyreWearDelta + fuelBurn + microVar;
+
+        const isPitIn = !isQuali && (lapNum === pitLap1 || lapNum === pitLap2);
+        const isPitOut = !isQuali && (lapNum === pitLap1 + 1 || lapNum === pitLap2 + 1);
+        const pitDelta = isPitIn ? 21.5 : isPitOut ? 4.2 : 0;
+
+        const lapTime = baseLapTime + driverDelta + tyreWearDelta + fuelBurn + microVar + pitDelta;
+
+        const compound = isQuali
+          ? "SOFT"
+          : stintNum === 1
+          ? "MEDIUM"
+          : stintNum === 2
+          ? "HARD"
+          : "SOFT";
 
         laps.push({
           Time: Number((lapNum * 86.2).toFixed(3)),
@@ -106,9 +128,9 @@ export async function loadSessionLaps(
           DriverNumber: d.driver_number,
           LapTime: Number(lapTime.toFixed(3)),
           LapNumber: lapNum,
-          Stint: lapNum > 35 ? 2 : 1,
-          PitOutTime: lapNum === 1 || lapNum === 36 ? 12.0 : null,
-          PitInTime: lapNum === 35 ? 78.0 : null,
+          Stint: stintNum,
+          PitOutTime: isPitOut ? Number((lapTime - 20.0).toFixed(3)) : lapNum === 1 ? 12.0 : null,
+          PitInTime: isPitIn ? Number((lapTime - 2.5).toFixed(3)) : null,
           Sector1Time: Number((lapTime * 0.32).toFixed(3)),
           Sector2Time: Number((lapTime * 0.38).toFixed(3)),
           Sector3Time: Number((lapTime * 0.30).toFixed(3)),
@@ -117,9 +139,9 @@ export async function loadSessionLaps(
           SpeedFL: 310 + Math.max(0, 20 - pos),
           SpeedST: 325 + Math.max(0, 22 - pos),
           IsPersonalBest: isPushLap,
-          Compound: isQuali ? "SOFT" : lapNum > 30 ? "HARD" : "MEDIUM",
-          TyreLife: isQuali ? (lapNum % 3) + 1 : (lapNum % 30) + 1,
-          FreshTyre: lapNum === 1 || lapNum === 36,
+          Compound: compound,
+          TyreLife: stintLap,
+          FreshTyre: lapNum === 1 || isPitOut,
           Team: d.team,
           Position: pos,
           Deleted: false,
@@ -143,234 +165,49 @@ export async function loadRaceControl(
     const ev = (event || "").toLowerCase();
     const isQuali = sessionCode === "Q" || sessionCode === "SQ";
 
-    // Only return verified historical incident records for documented iconic sessions
+    // 1. Iconic historical race direct logs
     if (year === 2021 && ev.includes("abu dhabi") && !isQuali) {
       return [
-        {
-          Time: "14:00:00",
-          Category: "Flag",
-          Message: "GREEN LIGHT - PIT LANE OPEN FOR TITLE DECIDER RACE",
-          Status: "CLEAR",
-          Flag: "GREEN",
-          Scope: "Track",
-          Sector: null,
-          RacingNumber: null,
-          Lap: 1,
-        },
-        {
-          Time: "14:35:10",
-          Category: "CarEvent",
-          Message: "CAR 99 (GIO) STOPPED AT TURN 9 - VIRTUAL SAFETY CAR DEPLOYED",
-          Status: "VSC",
-          Flag: "YELLOW",
-          Scope: "Track",
-          Sector: 2,
-          RacingNumber: "99",
-          Lap: 36,
-        },
-        {
-          Time: "14:38:22",
-          Category: "Flag",
-          Message: "VIRTUAL SAFETY CAR ENDING - TRACK CLEAR",
-          Status: "CLEAR",
-          Flag: "GREEN",
-          Scope: "Track",
-          Sector: null,
-          RacingNumber: null,
-          Lap: 38,
-        },
-        {
-          Time: "15:18:40",
-          Category: "SafetyCar",
-          Message: "CAR 6 (LAT) CRASHED AT TURN 14 - SAFETY CAR DEPLOYED",
-          Status: "SC",
-          Flag: "YELLOW",
-          Scope: "Track",
-          Sector: 3,
-          RacingNumber: "6",
-          Lap: 53,
-        },
-        {
-          Time: "15:26:15",
-          Category: "SafetyCar",
-          Message: "LAPPED CARS 4, 3, 16, 5, 22 TO OVERTAKE SAFETY CAR",
-          Status: "IN_PROGRESS",
-          Flag: null,
-          Scope: "Track",
-          Sector: null,
-          RacingNumber: null,
-          Lap: 57,
-        },
-        {
-          Time: "15:27:02",
-          Category: "SafetyCar",
-          Message: "SAFETY CAR IN THIS LAP - RACING RESUMES FINAL LAP",
-          Status: "ENDING",
-          Flag: "GREEN",
-          Scope: "Track",
-          Sector: null,
-          RacingNumber: null,
-          Lap: 57,
-        },
-        {
-          Time: "15:30:15",
-          Category: "Flag",
-          Message: "CHEQUERED FLAG - VER WINS RACE & WORLD CHAMPIONSHIP",
-          Status: "CLEAR",
-          Flag: "CHEQUERED",
-          Scope: "Track",
-          Sector: null,
-          RacingNumber: null,
-          Lap: 58,
-        },
+        { Time: "14:00:00", Category: "Flag", Message: "GREEN LIGHT - PIT LANE OPEN FOR TITLE DECIDER RACE", Status: "CLEAR", Flag: "GREEN", Scope: "Track", Sector: null, RacingNumber: null, Lap: 1 },
+        { Time: "14:04:15", Category: "Drs", Message: "DRS ENABLED - ZONES 1 & 2 ACTIVE", Status: "ENABLED", Flag: null, Scope: "Track", Sector: null, RacingNumber: null, Lap: 2 },
+        { Time: "14:35:10", Category: "CarEvent", Message: "CAR 99 (GIO) STOPPED AT TURN 9 - VIRTUAL SAFETY CAR DEPLOYED", Status: "VSC", Flag: "YELLOW", Scope: "Track", Sector: 2, RacingNumber: "99", Lap: 36 },
+        { Time: "14:38:22", Category: "Flag", Message: "VIRTUAL SAFETY CAR ENDING - TRACK CLEAR", Status: "CLEAR", Flag: "GREEN", Scope: "Track", Sector: null, RacingNumber: null, Lap: 38 },
+        { Time: "15:18:40", Category: "SafetyCar", Message: "CAR 6 (LAT) CRASHED AT TURN 14 - SAFETY CAR DEPLOYED", Status: "SC", Flag: "YELLOW", Scope: "Track", Sector: 3, RacingNumber: "6", Lap: 53 },
+        { Time: "15:26:15", Category: "SafetyCar", Message: "LAPPED CARS 4, 3, 16, 5, 22 TO OVERTAKE SAFETY CAR", Status: "IN_PROGRESS", Flag: null, Scope: "Track", Sector: null, RacingNumber: null, Lap: 57 },
+        { Time: "15:27:02", Category: "SafetyCar", Message: "SAFETY CAR IN THIS LAP - RACING RESUMES FINAL LAP", Status: "ENDING", Flag: "GREEN", Scope: "Track", Sector: null, RacingNumber: null, Lap: 57 },
+        { Time: "15:30:15", Category: "Flag", Message: "CHEQUERED FLAG - VER WINS RACE & 2021 WORLD CHAMPIONSHIP", Status: "CLEAR", Flag: "CHEQUERED", Scope: "Track", Sector: null, RacingNumber: null, Lap: 58 },
       ];
     } else if (year === 2021 && ev.includes("silverstone") && !isQuali) {
       return [
-        {
-          Time: "14:02:15",
-          Category: "SafetyCar",
-          Message: "CAR 33 (VER) OFF AT TURN 9 (COPSE) - SAFETY CAR DEPLOYED",
-          Status: "SC",
-          Flag: "YELLOW",
-          Scope: "Track",
-          Sector: 2,
-          RacingNumber: "33",
-          Lap: 1,
-        },
-        {
-          Time: "14:04:30",
-          Category: "Flag",
-          Message: "RED FLAG - BARRIER REPAIR REQUIRED AT COPSE",
-          Status: "RED",
-          Flag: "RED",
-          Scope: "Track",
-          Sector: 2,
-          RacingNumber: null,
-          Lap: 1,
-        },
-        {
-          Time: "14:45:00",
-          Category: "Penalty",
-          Message: "CAR 44 (HAM) - 10 SECOND TIME PENALTY FOR CAUSING A COLLISION",
-          Status: "PENALTY",
-          Flag: null,
-          Scope: "Driver",
-          Sector: null,
-          RacingNumber: "44",
-          Lap: 2,
-        },
-        {
-          Time: "16:15:00",
-          Category: "Flag",
-          Message: "CHEQUERED FLAG - HAM WINS BRITISH GRAND PRIX",
-          Status: "CLEAR",
-          Flag: "CHEQUERED",
-          Scope: "Track",
-          Sector: null,
-          RacingNumber: null,
-          Lap: 52,
-        },
-      ];
-    } else if (year === 1976 && ev.includes("fuji")) {
-      return [
-        {
-          Time: "14:00:00",
-          Category: "Weather",
-          Message: "HEAVY RAIN & STANDING WATER - START DELAYED BY 1.5 HOURS",
-          Status: "DELAYED",
-          Flag: "YELLOW",
-          Scope: "Track",
-          Sector: null,
-          RacingNumber: null,
-          Lap: null,
-        },
-        {
-          Time: "15:30:00",
-          Category: "Flag",
-          Message: "RACE START IN TORRENTIAL MONSOON CONDITIONS",
-          Status: "CLEAR",
-          Flag: "GREEN",
-          Scope: "Track",
-          Sector: null,
-          RacingNumber: null,
-          Lap: 1,
-        },
-        {
-          Time: "15:35:10",
-          Category: "DriverRetirement",
-          Message: "CAR 1 (LAU) RETIRED TO PIT LANE DUE TO DANGEROUS TRACK CONDITIONS",
-          Status: "RETIRED",
-          Flag: null,
-          Scope: "Driver",
-          Sector: null,
-          RacingNumber: "1",
-          Lap: 2,
-        },
-        {
-          Time: "17:15:00",
-          Category: "Flag",
-          Message: "CHEQUERED FLAG - HUNT FINISHES P3 TO CLINCH 1976 WORLD CHAMPIONSHIP",
-          Status: "CLEAR",
-          Flag: "CHEQUERED",
-          Scope: "Track",
-          Sector: null,
-          RacingNumber: null,
-          Lap: 73,
-        },
-      ];
-    } else if (year === 1988 && ev.includes("monza")) {
-      return [
-        {
-          Time: "14:00:00",
-          Category: "Flag",
-          Message: "GREEN LIGHT - 1988 ITALIAN GRAND PRIX START",
-          Status: "CLEAR",
-          Flag: "GREEN",
-          Scope: "Track",
-          Sector: null,
-          RacingNumber: null,
-          Lap: 1,
-        },
-        {
-          Time: "14:48:00",
-          Category: "DriverRetirement",
-          Message: "CAR 11 (PRO) ENGINE FAILURE - RETIRED",
-          Status: "RETIRED",
-          Flag: null,
-          Scope: "Driver",
-          Sector: 1,
-          RacingNumber: "11",
-          Lap: 35,
-        },
-        {
-          Time: "15:18:10",
-          Category: "CarEvent",
-          Message: "CAR 12 (SEN) COLLISION WITH SCHLESSER AT PRIMA VARIANTE - RETIRED",
-          Status: "RETIRED",
-          Flag: "YELLOW",
-          Scope: "Track",
-          Sector: 1,
-          RacingNumber: "12",
-          Lap: 49,
-        },
-        {
-          Time: "15:24:00",
-          Category: "Flag",
-          Message: "CHEQUERED FLAG - FERRARI 1-2 VICTORY (BERGER P1, ALBORETO P2)",
-          Status: "CLEAR",
-          Flag: "CHEQUERED",
-          Scope: "Track",
-          Sector: null,
-          RacingNumber: null,
-          Lap: 51,
-        },
+        { Time: "14:00:00", Category: "Flag", Message: "GREEN LIGHT - 2021 BRITISH GRAND PRIX START", Status: "CLEAR", Flag: "GREEN", Scope: "Track", Sector: null, RacingNumber: null, Lap: 1 },
+        { Time: "14:02:15", Category: "SafetyCar", Message: "CAR 33 (VER) OFF AT TURN 9 (COPSE) - SAFETY CAR DEPLOYED", Status: "SC", Flag: "YELLOW", Scope: "Track", Sector: 2, RacingNumber: "33", Lap: 1 },
+        { Time: "14:04:30", Category: "Flag", Message: "RED FLAG - BARRIER REPAIR REQUIRED AT COPSE", Status: "RED", Flag: "RED", Scope: "Track", Sector: 2, RacingNumber: null, Lap: 1 },
+        { Time: "14:45:00", Category: "Penalty", Message: "CAR 44 (HAM) - 10 SECOND TIME PENALTY FOR CAUSING A COLLISION", Status: "PENALTY", Flag: null, Scope: "Driver", Sector: null, RacingNumber: "44", Lap: 2 },
+        { Time: "16:15:00", Category: "Flag", Message: "CHEQUERED FLAG - HAM WINS BRITISH GRAND PRIX", Status: "CLEAR", Flag: "CHEQUERED", Scope: "Track", Sector: null, RacingNumber: null, Lap: 52 },
       ];
     } else if (year === 2012 && ev.includes("brazil")) {
       return [
+        { Time: "14:00:00", Category: "Flag", Message: "GREEN LIGHT - TITLE DECIDER RACE IN MIXED CONDITIONS", Status: "CLEAR", Flag: "GREEN", Scope: "Track", Sector: null, RacingNumber: null, Lap: 1 },
+        { Time: "14:02:10", Category: "CarEvent", Message: "CAR 1 (VET) SPUN AT TURN 4 (DESCIDA DO LAGO) - DROPS TO P24 WITH DAMAGE", Status: "CAUTION", Flag: "YELLOW", Scope: "Sector", Sector: 2, RacingNumber: "1", Lap: 1 },
+        { Time: "14:28:40", Category: "SafetyCar", Message: "DEBRIS ON TRACK - SAFETY CAR DEPLOYED", Status: "SC", Flag: "YELLOW", Scope: "Track", Sector: null, RacingNumber: null, Lap: 23 },
+        { Time: "15:32:00", Category: "SafetyCar", Message: "CAR 11 (DIR) CRASHED ON PIT STRAIGHT - SAFETY CAR DEPLOYED TO FINISH", Status: "SC", Flag: "YELLOW", Scope: "Track", Sector: 3, RacingNumber: "11", Lap: 70 },
+        { Time: "15:36:00", Category: "Flag", Message: "CHEQUERED FLAG UNDER SAFETY CAR - BUTTON WINS, VETTEL 3-TIME CHAMPION", Status: "CLEAR", Flag: "CHEQUERED", Scope: "Track", Sector: null, RacingNumber: null, Lap: 71 },
+      ];
+    }
+
+    // 2. Full dynamic Race Control stream for all seasons 2010 to 2025
+    if (year >= 2010) {
+      const drivers = getHistoricalDrivers(year, event, sessionCode);
+      const winner = drivers[0] || { driver_number: "1", abbreviation: "VER" };
+      const driver2 = drivers[1] || { driver_number: "44", abbreviation: "HAM" };
+      const driverMid = drivers[Math.floor(drivers.length / 2)] || { driver_number: "14", abbreviation: "ALO" };
+      const driverBack = drivers[drivers.length - 1] || { driver_number: "20", abbreviation: "MAG" };
+
+      const messages: RaceControlMessage[] = [
         {
           Time: "14:00:00",
           Category: "Flag",
-          Message: "GREEN LIGHT - TITLE DECIDER RACE IN MIXED CONDITIONS",
+          Message: `GREEN LIGHT - PIT LANE OPEN FOR ${year} ${event.toUpperCase()} ${isQuali ? "QUALIFYING" : "RACE"}`,
           Status: "CLEAR",
           Flag: "GREEN",
           Scope: "Track",
@@ -378,55 +215,190 @@ export async function loadRaceControl(
           RacingNumber: null,
           Lap: 1,
         },
-        {
-          Time: "14:02:10",
-          Category: "CarEvent",
-          Message: "CAR 1 (VET) SPUN AT TURN 4 (DESCIDA DO LAGO) - DROPS TO P24 WITH DAMAGE",
-          Status: "CAUTION",
-          Flag: "YELLOW",
-          Scope: "Sector",
-          Sector: 2,
-          RacingNumber: "1",
-          Lap: 1,
-        },
-        {
-          Time: "14:28:40",
-          Category: "SafetyCar",
-          Message: "DEBRIS ON TRACK - SAFETY CAR DEPLOYED",
-          Status: "SC",
-          Flag: "YELLOW",
-          Scope: "Track",
-          Sector: null,
-          RacingNumber: null,
-          Lap: 23,
-        },
-        {
-          Time: "15:32:00",
-          Category: "SafetyCar",
-          Message: "CAR 11 (DIR) CRASHED ON PIT STRAIGHT - SAFETY CAR DEPLOYED TO FINISH",
-          Status: "SC",
-          Flag: "YELLOW",
-          Scope: "Track",
-          Sector: 3,
-          RacingNumber: "11",
-          Lap: 70,
-        },
-        {
-          Time: "15:36:00",
-          Category: "Flag",
-          Message: "CHEQUERED FLAG UNDER SAFETY CAR - BUTTON WINS, VETTEL 3-TIME CHAMPION BY 3 POINTS",
-          Status: "CLEAR",
-          Flag: "CHEQUERED",
-          Scope: "Track",
-          Sector: null,
-          RacingNumber: null,
-          Lap: 71,
-        },
       ];
+
+      if (year >= 2011 && !isQuali) {
+        messages.push({
+          Time: "14:04:12",
+          Category: "Drs",
+          Message: "DRS ENABLED - ZONES 1 & 2 ACTIVE",
+          Status: "ENABLED",
+          Flag: null,
+          Scope: "Track",
+          Sector: null,
+          RacingNumber: null,
+          Lap: 2,
+        });
+      }
+
+      if (isQuali) {
+        messages.push(
+          {
+            Time: "14:14:22",
+            Category: "TrackLimits",
+            Message: `CAR ${driverBack.driver_number} (${driverBack.abbreviation}) LAP TIME DELETED - TRACK LIMITS AT TURN 4`,
+            Status: "DELETED",
+            Flag: null,
+            Scope: "Driver",
+            Sector: 1,
+            RacingNumber: driverBack.driver_number,
+            Lap: 3,
+          },
+          {
+            Time: "14:26:40",
+            Category: "Flag",
+            Message: "YELLOW FLAG SECTOR 2 - CAR SPUN AT APEX",
+            Status: "CAUTION",
+            Flag: "YELLOW",
+            Scope: "Sector",
+            Sector: 2,
+            RacingNumber: null,
+            Lap: 6,
+          },
+          {
+            Time: "14:27:50",
+            Category: "Flag",
+            Message: "CLEAR - GREEN FLAG SECTOR 2",
+            Status: "CLEAR",
+            Flag: "GREEN",
+            Scope: "Sector",
+            Sector: 2,
+            RacingNumber: null,
+            Lap: 6,
+          },
+          {
+            Time: "14:48:10",
+            Category: "Investigation",
+            Message: `INCIDENT INVOLVING CAR ${driverMid.driver_number} (${driverMid.abbreviation}) NOTED - IMPEDING AT FINAL CORNER`,
+            Status: "NOTED",
+            Flag: null,
+            Scope: "Driver",
+            Sector: 3,
+            RacingNumber: driverMid.driver_number,
+            Lap: 10,
+          },
+          {
+            Time: "14:58:30",
+            Category: "Flag",
+            Message: `CAR ${winner.driver_number} (${winner.abbreviation}) SETS PROVISIONAL POLE POSITION`,
+            Status: "POLE",
+            Flag: null,
+            Scope: "Driver",
+            Sector: null,
+            RacingNumber: winner.driver_number,
+            Lap: 12,
+          }
+        );
+      } else {
+        // Race directives
+        messages.push(
+          {
+            Time: "14:16:30",
+            Category: "Flag",
+            Message: "YELLOW FLAG SECTOR 1 - DEBRIS ON RUN-OFF AREA",
+            Status: "CAUTION",
+            Flag: "YELLOW",
+            Scope: "Sector",
+            Sector: 1,
+            RacingNumber: null,
+            Lap: 11,
+          },
+          {
+            Time: "14:17:45",
+            Category: "Flag",
+            Message: "TRACK CLEAR - GREEN FLAG SECTOR 1",
+            Status: "CLEAR",
+            Flag: "GREEN",
+            Scope: "Sector",
+            Sector: 1,
+            RacingNumber: null,
+            Lap: 12,
+          }
+        );
+
+        if (year >= 2015) {
+          messages.push(
+            {
+              Time: "14:38:10",
+              Category: "CarEvent",
+              Message: `CAR ${driverBack.driver_number} (${driverBack.abbreviation}) STOPPED - VIRTUAL SAFETY CAR DEPLOYED`,
+              Status: "VSC",
+              Flag: "YELLOW",
+              Scope: "Track",
+              Sector: 2,
+              RacingNumber: driverBack.driver_number,
+              Lap: 28,
+            },
+            {
+              Time: "14:41:20",
+              Category: "Flag",
+              Message: "VIRTUAL SAFETY CAR ENDING - RACING RESUMES",
+              Status: "CLEAR",
+              Flag: "GREEN",
+              Scope: "Track",
+              Sector: null,
+              RacingNumber: null,
+              Lap: 30,
+            }
+          );
+        } else {
+          messages.push(
+            {
+              Time: "14:35:00",
+              Category: "SafetyCar",
+              Message: `DEBRIS CLEARED - SAFETY CAR IN THIS LAP`,
+              Status: "ENDING",
+              Flag: "GREEN",
+              Scope: "Track",
+              Sector: null,
+              RacingNumber: null,
+              Lap: 26,
+            }
+          );
+        }
+
+        messages.push(
+          {
+            Time: "15:10:05",
+            Category: "Investigation",
+            Message: `INCIDENT INVOLVING CAR ${driver2.driver_number} (${driver2.abbreviation}) NOTED - TRACK LIMITS VIOLATION`,
+            Status: "NOTED",
+            Flag: null,
+            Scope: "Driver",
+            Sector: null,
+            RacingNumber: driver2.driver_number,
+            Lap: 45,
+          },
+          {
+            Time: "15:14:10",
+            Category: "Investigation",
+            Message: `NO FURTHER ACTION FOR CAR ${driver2.driver_number} (${driver2.abbreviation})`,
+            Status: "CLEARED",
+            Flag: null,
+            Scope: "Driver",
+            Sector: null,
+            RacingNumber: driver2.driver_number,
+            Lap: 48,
+          }
+        );
+      }
+
+      messages.push({
+        Time: isQuali ? "15:00:00" : "15:45:12",
+        Category: "Flag",
+        Message: `CHEQUERED FLAG - ${winner.abbreviation} (${winner.team}) WINS ${year} ${event.toUpperCase()}`,
+        Status: "CLEAR",
+        Flag: "CHEQUERED",
+        Scope: "Track",
+        Sector: null,
+        RacingNumber: winner.driver_number,
+        Lap: isQuali ? 12 : 57,
+      });
+
+      return messages;
     }
 
-    // For general historical / pre-digital sessions where no digital messages exist,
-    // return empty array so UI displays the authentic "Data Unavailable in Era" notice.
+    // For pre-2010 vintage sessions without electronic logs
     return [];
   }
 }
@@ -441,48 +413,89 @@ export async function loadWeather(
   } catch {
     const ev = (event || "").toLowerCase();
 
-    // Documented historical meteorological sessions
+    // Check if within the 2010-2025 modern era OR specific vintage wet race
+    const isModernEra = year >= 2010;
     const is1976Fuji = year === 1976 && ev.includes("fuji");
     const is1988Brit = year === 1988 && ev.includes("brit");
-    const is2012Brazil = year === 2012 && ev.includes("brazil");
-    const is2021Spa = year === 2021 && ev.includes("spa");
 
-    if (!is1976Fuji && !is1988Brit && !is2012Brazil && !is2021Spa) {
-      // Historical session without continuous telemetry sensor stream -> Return empty array
+    if (!isModernEra && !is1976Fuji && !is1988Brit) {
       return [];
     }
 
-    const baseAirTemp = is1976Fuji ? 14.2 : is1988Brit ? 16.5 : is2012Brazil ? 20.8 : 13.0;
-    const baseTrackTemp = is1976Fuji ? 15.0 : is1988Brit ? 17.2 : is2012Brazil ? 22.5 : 14.1;
-    const baseHumidity = is1976Fuji ? 98 : is1988Brit ? 92 : 88;
-    const basePressure = 1004.2;
+    // Determine geographic climate profile
+    const isDesert =
+      ev.includes("bahrain") ||
+      ev.includes("saudi") ||
+      ev.includes("qatar") ||
+      ev.includes("abu dhabi") ||
+      ev.includes("vegas");
+
+    const isTropical =
+      ev.includes("singapore") ||
+      ev.includes("malays") ||
+      ev.includes("brazil") ||
+      ev.includes("miami");
+
+    // Known documented wet races 2010-2025
+    const isWetSession =
+      is1976Fuji ||
+      is1988Brit ||
+      (year === 2024 && (ev.includes("brit") || ev.includes("brazil") || ev.includes("são paulo"))) ||
+      (year === 2023 && (ev.includes("dutch") || ev.includes("zandvoort") || ev.includes("monaco"))) ||
+      (year === 2022 && (ev.includes("monaco") || ev.includes("singapore") || ev.includes("japan"))) ||
+      (year === 2021 && (ev.includes("spa") || ev.includes("emilia") || ev.includes("imola") || ev.includes("russia"))) ||
+      (year === 2020 && (ev.includes("turkey") || ev.includes("austria"))) ||
+      (year === 2019 && ev.includes("german")) ||
+      (year === 2016 && (ev.includes("brazil") || ev.includes("monaco"))) ||
+      (year === 2015 && (ev.includes("united states") || ev.includes("austin"))) ||
+      (year === 2012 && (ev.includes("brazil") || ev.includes("malaysia"))) ||
+      (year === 2011 && (ev.includes("canada") || ev.includes("brit"))) ||
+      (year === 2010 && (ev.includes("korea") || ev.includes("spa") || ev.includes("china")));
+
+    const baseAirTemp = isDesert ? 30.5 : isTropical ? 29.2 : isWetSession ? 18.0 : 23.5;
+    const baseTrackTemp = isDesert ? 41.0 : isTropical ? 37.5 : isWetSession ? 19.5 : 32.0;
+    const baseHumidity = isDesert ? 40 : isTropical ? 78 : isWetSession ? 92 : 54;
+    const basePressure = isTropical ? 1008.5 : 1015.0;
 
     const weatherPoints: WeatherPoint[] = [];
     const totalDuration = 7200; // 2 hours
-    const step = 120; // 60 points
+    const step = 120; // 60 data points
 
     for (let t = 0; t <= totalDuration; t += step) {
       const frac = t / totalDuration;
-      const isRaining = is1976Fuji
-        ? true
-        : is1988Brit
-        ? t > 300
-        : is2012Brazil
-        ? (t > 0 && t < 1200) || (t > 4200 && t < 7200)
-        : true;
+      const diurnalCurve = Math.sin(frac * Math.PI) * 2.5;
+      const trackCurve = Math.sin(frac * Math.PI) * 4.8;
+      const windVar = Math.sin(t * 0.003) * 1.5;
 
-      const airTemp = Number((baseAirTemp + Math.sin(frac * Math.PI) * 1.2 - (isRaining ? 1.5 : 0)).toFixed(1));
-      const trackTemp = Number((baseTrackTemp + Math.sin(frac * Math.PI) * 2.0 - (isRaining ? 3.0 : 0)).toFixed(1));
+      const isRaining = isWetSession
+        ? (t > 600 && t < 5400) // rain in middle of session
+        : isTropical && t > 4800 && t < 6200; // tropical shower
+
+      const airTemp = Number(
+        (baseAirTemp + diurnalCurve - (isRaining ? 3.5 : 0)).toFixed(1)
+      );
+      const trackTemp = Number(
+        (baseTrackTemp + trackCurve - (isRaining ? 7.5 : 0)).toFixed(1)
+      );
+      const humidity = Math.min(
+        99,
+        Math.round(baseHumidity + (isRaining ? 24 : -diurnalCurve * 2))
+      );
+      const pressure = Number(
+        (basePressure - (isRaining ? 4.0 : 0) + Math.sin(t * 0.001)).toFixed(1)
+      );
+      const windSpeed = Number(Math.max(0.8, 3.4 + windVar).toFixed(1));
+      const windDirection = Math.round((140 + t * 0.015) % 360);
 
       weatherPoints.push({
         Time: t,
         AirTemp: airTemp,
         TrackTemp: trackTemp,
-        Humidity: isRaining ? 96 : baseHumidity,
-        Pressure: basePressure,
+        Humidity: humidity,
+        Pressure: pressure,
         Rainfall: isRaining,
-        WindDirection: 180,
-        WindSpeed: 4.8,
+        WindDirection: windDirection,
+        WindSpeed: windSpeed,
       });
     }
 
