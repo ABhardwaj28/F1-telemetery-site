@@ -72,8 +72,8 @@ export default function LiveReadout({ point, lapTime, compound, tyreLife, lap, t
     },
     {
       label: "DRS",
-      value: point ? (point.DRS >= 10 ? "OPEN" : "CLOSED") : "—",
-      accent: point ? point.DRS >= 10 : false,
+      value: point ? (point.DRS > 0 ? "OPEN" : "CLOSED") : "—",
+      accent: point ? point.DRS > 0 : false,
       accentColor: "#34d399",
     },
     {

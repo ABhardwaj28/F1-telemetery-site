@@ -390,15 +390,20 @@ export default function DriverComparison({
                     className="f1-select"
                     value={lapA}
                     onChange={(e) => onSelectLapA(Number(e.target.value))}
+                    style={{ background: "#111", color: "#fff" }}
                   >
                     {availableLapsA.length > 0 ? (
                       availableLapsA.map((l) => (
-                        <option key={l.LapNumber} value={l.LapNumber}>
+                        <option key={l.LapNumber} value={l.LapNumber} style={{ background: "#111", color: "#fff" }}>
                           Lap {l.LapNumber} {l.LapTime ? `(${formatLapTime(l.LapTime)})` : ""}
                         </option>
                       ))
                     ) : (
-                      <option value={lapA}>Lap {lapA}</option>
+                      Array.from({ length: 57 }, (_, i) => i + 1).map((n) => (
+                        <option key={n} value={n} style={{ background: "#111", color: "#fff" }}>
+                          Lap {n}
+                        </option>
+                      ))
                     )}
                   </select>
                 </div>
@@ -475,7 +480,11 @@ export default function DriverComparison({
                         </option>
                       ))
                     ) : (
-                      <option value={lapB} style={{ background: "#111", color: "#fff" }}>Lap {lapB}</option>
+                      Array.from({ length: 57 }, (_, i) => i + 1).map((n) => (
+                        <option key={n} value={n} style={{ background: "#111", color: "#fff" }}>
+                          Lap {n}
+                        </option>
+                      ))
                     )}
                   </select>
                 </div>

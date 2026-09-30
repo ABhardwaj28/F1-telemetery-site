@@ -203,7 +203,7 @@ export function eventToSlug(event: string): string {
   return event
     .toLowerCase()
     .replace(/\s+/g, "_")
-    .replace(/[^a-z0-9_]/g, "");
+    .replace(/[^\p{L}\p{N}_]/gu, "");
 }
 
 /** Session code → file prefix */

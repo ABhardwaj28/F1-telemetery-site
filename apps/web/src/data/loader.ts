@@ -638,6 +638,27 @@ export async function loadTelemetry(
   // Last 20 years (2005-2025) qualify for 100% raw high-density 50Hz FastF1 stream; older historic years are compressed
   const isRawQuali = isQuali && year >= 2005;
 
+  // 1. Try loading static pre-recorded FastF1 telemetry on disk
+  if (year === 2025) {
+    const padLap = String(targetLap).padStart(3, "0");
+    try {
+      const staticData = await json<LapTelemetry>(
+        `${BASE}/telemetry/2025/${circuitSlug}/${targetDriver}/lap_${padLap}.json`
+      );
+      if (staticData && staticData.telemetry?.data?.length) {
+        return {
+          ...staticData,
+          isCompressed: !isRawQuali,
+          samplingMode: isRawQuali ? "RAW_QUALIFYING_SENSITIVE" : "COMPRESSED_RACE_STINT",
+          samplingHz: isRawQuali ? 50 : 10,
+          compressionRatio: `1.0x (${staticData.telemetry.data.length} FastF1 Raw Points)`,
+        };
+      }
+    } catch {
+      // Fallback seamlessly to dynamics engine
+    }
+  }
+
   const profile = getDriverProfile(targetDriver);
 
   // Load circuit geometry

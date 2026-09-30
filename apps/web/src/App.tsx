@@ -618,9 +618,9 @@ export default function App() {
         {/* ── Driver quick-select ── */}
         {drivers.length > 0 && hasTelemetry && (
           <>
-            <div className="nav-heading" style={{ marginTop: 8 }}>DRIVER</div>
-            <div style={{ padding: "0 9px" }}>
-              {drivers.slice(0, 10).map((d) => {
+            <div className="nav-heading" style={{ marginTop: 8 }}>GRID DRIVERS</div>
+            <div style={{ padding: "0 9px", maxHeight: 230, overflowY: "auto" }}>
+              {drivers.map((d) => {
                 const col = TEAM_COLOURS[d.team] ?? "#666";
                 return (
                   <button
@@ -631,7 +631,7 @@ export default function App() {
                   >
                     <span style={{ width: 3, height: 14, background: col, borderRadius: 1, display: "inline-block", flexShrink: 0 }} />
                     {d.abbreviation}
-                    <span style={{ marginLeft: "auto", color: "#55555b", fontFamily: "IBM Plex Mono, monospace", fontSize: 7 }}>
+                    <span style={{ marginLeft: "auto", color: "#888892", fontFamily: "IBM Plex Mono, monospace", fontSize: 8 }}>
                       P{d.position ?? "—"}
                     </span>
                   </button>
@@ -662,7 +662,7 @@ export default function App() {
             ))}
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
             {/* Year */}
             <select
               value={selectedYear}
@@ -675,7 +675,7 @@ export default function App() {
               style={selStyle}
             >
               {ALL_SUPPORTED_YEARS.map((yr) => (
-                <option key={yr} value={yr}>
+                <option key={yr} value={yr} style={{ background: "#111113", color: "#dedee0" }}>
                   {yr}
                 </option>
               ))}
@@ -699,7 +699,7 @@ export default function App() {
               style={{ ...selStyle, minWidth: 200 }}
             >
               {calendar.map((r) => (
-                <option key={r.round} value={r.event}>
+                <option key={r.round} value={r.event} style={{ background: "#111113", color: "#dedee0" }}>
                   R{r.round} · {r.event.replace(" Grand Prix", " GP")}
                 </option>
               ))}
@@ -716,7 +716,7 @@ export default function App() {
               style={selStyle}
             >
               {sessionTabs.map((s) => (
-                <option key={s.code} value={s.code}>
+                <option key={s.code} value={s.code} style={{ background: "#111113", color: "#dedee0" }}>
                   {s.name}
                 </option>
               ))}
@@ -730,7 +730,7 @@ export default function App() {
                 style={selStyle}
               >
                 {drivers.map((d) => (
-                  <option key={d.abbreviation} value={d.abbreviation}>
+                  <option key={d.abbreviation} value={d.abbreviation} style={{ background: "#111113", color: "#dedee0" }}>
                     {d.abbreviation} · {d.full_name}
                   </option>
                 ))}
@@ -746,12 +746,14 @@ export default function App() {
               >
                 {driverLaps.length > 0
                   ? driverLaps.map((l) => (
-                      <option key={l.LapNumber} value={l.LapNumber}>
+                      <option key={l.LapNumber} value={l.LapNumber} style={{ background: "#111113", color: "#dedee0" }}>
                         Lap {l.LapNumber} · {formatLapTime(l.LapTime)}
                       </option>
                     ))
                   : Array.from({ length: 78 }, (_, i) => i + 1).map((n) => (
-                      <option key={n} value={n}>Lap {n}</option>
+                      <option key={n} value={n} style={{ background: "#111113", color: "#dedee0" }}>
+                        Lap {n}
+                      </option>
                     ))}
               </select>
             )}
