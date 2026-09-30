@@ -286,44 +286,6 @@ export async function loadTelemetry(
   const targetLap = lap || 1;
   const isQuali = sessionCode === "Q" || sessionCode === "SQ" || sessionCode === "Qualifying";
 
-  // 1. Try loading authentic raw FastF1 telemetry file from disk
-  const lapStr = String(targetLap).padStart(3, "0");
-  try {
-    const rawFile = await json<LapTelemetry>(`${BASE}/telemetry/2025/${circuitSlug}/${targetDriver}/lap_${lapStr}.json`);
-    if (rawFile && rawFile.telemetry?.data?.length) {
-      if (isQuali) {
-        // Pure 100% RAW unaltered FastF1 CAN bus sensor telemetry
-        return {
-          ...rawFile,
-          year,
-          session: "Qualifying",
-          isCompressed: false,
-          samplingMode: "RAW_QUALIFYING_SENSITIVE",
-          samplingHz: 50,
-          compressionRatio: `1.0x (${rawFile.telemetry.data.length} Authentic Raw Sensor Points)`,
-        };
-      } else {
-        // Compressed race stint telemetry (downsampled 3.5x)
-        const decimated = rawFile.telemetry.data.filter((_, i) => i === 0 || i === rawFile.telemetry.data.length - 1 || i % 3 === 0);
-        return {
-          ...rawFile,
-          year,
-          session: "Race",
-          isCompressed: true,
-          samplingMode: "COMPRESSED_RACE_STINT",
-          samplingHz: 10,
-          compressionRatio: `3.5x (${decimated.length} Points · Downsampled Stint Log)`,
-          telemetry: {
-            points: decimated.length,
-            data: decimated,
-          },
-        };
-      }
-    }
-  } catch {
-    // Fall back to high-density dynamic physics engine
-  }
-
   const profile = getDriverProfile(targetDriver);
 
   // Load circuit geometry
