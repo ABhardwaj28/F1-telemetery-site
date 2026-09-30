@@ -68,7 +68,7 @@ export async function loadSessionDrivers(
   try {
     return await json<SessionDriver[]>(sessionPath(year, event, sessionCode, "_drivers.json"));
   } catch {
-    return getHistoricalDrivers(year);
+    return getHistoricalDrivers(year, event, sessionCode);
   }
 }
 
@@ -81,7 +81,7 @@ export async function loadSessionLaps(
     return await json<SessionLap[]>(sessionPath(year, event, sessionCode, "_laps.json"));
   } catch {
     // Generate realistic session laps for any year / session
-    const drivers = getHistoricalDrivers(year);
+    const drivers = getHistoricalDrivers(year, event, sessionCode);
     const isQuali = sessionCode === "Q" || sessionCode === "SQ" || sessionCode === "Qualifying";
     const totalLaps = isQuali ? 12 : 57;
 
