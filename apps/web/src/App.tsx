@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type {
   Calendar,
   CalendarRace,
@@ -78,28 +78,42 @@ export default function App() {
   const [telLoading, setTelLoading] = useState(false);
   const [sessionError, setSessionError] = useState<string | null>(null);
 
-  // ── Load calendar once ─────────────────────────────────────────────────
+  // ── Load calendar when selectedYear changes ───────────────────────────
   useEffect(() => {
+    let cancelled = false;
+    setCalLoading(true);
+
     loadCalendar(selectedYear)
       .then((cal) => {
+        if (cancelled) return;
         setCalendar(cal);
-        // default to Monaco
-        const monaco = cal.find((r) => r.event.toLowerCase().includes("monaco")) ?? cal[0];
-        setSelectedRace(monaco ?? null);
+        // Find matching race by event name or fallback to first
+        setSelectedRace((prevRace) => {
+          if (!cal || cal.length === 0) return null;
+          const prevName = prevRace?.event?.toLowerCase();
+          const match = prevName ? cal.find((r) => r.event.toLowerCase() === prevName) : null;
+          const monaco = cal.find((r) => r.event.toLowerCase().includes("monaco"));
+          return match ?? monaco ?? cal[0] ?? null;
+        });
         setCalLoading(false);
       })
-      .catch(() => setCalLoading(false));
+      .catch(() => {
+        if (cancelled) return;
+        setCalLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [selectedYear]);
 
-  // ── Load session data when race/session changes ────────────────────────
+  // ── Load session data when race / session / year changes ───────────────
   useEffect(() => {
     if (!selectedRace) return;
+    let cancelled = false;
+
     setSessionLoading(true);
     setSessionError(null);
-    setDrivers([]);
-    setSessionLaps([]);
-    setRaceControl([]);
-    setWeather([]);
 
     Promise.allSettled([
       loadSessionDrivers(selectedYear, selectedRace.event, selectedSessionCode),
@@ -107,75 +121,106 @@ export default function App() {
       loadRaceControl(selectedYear, selectedRace.event, selectedSessionCode),
       loadWeather(selectedYear, selectedRace.event, selectedSessionCode),
     ]).then(([dr, lp, rc, wx]) => {
-      if (dr.status === "fulfilled") setDrivers(dr.value);
+      if (cancelled) return;
+
+      if (dr.status === "fulfilled") {
+        const dList = dr.value;
+        setDrivers(dList);
+
+        // Auto-select valid driver for Driver A and Driver B if not in current roster
+        if (dList.length > 0) {
+          setSelectedDriver((currA) => {
+            const hasA = dList.some((d) => d.abbreviation === currA);
+            return hasA ? currA : dList[0].abbreviation;
+          });
+          setSelectedDriverB((currB) => {
+            const hasB = dList.some((d) => d.abbreviation === currB);
+            return hasB ? currB : (dList[1]?.abbreviation ?? dList[0].abbreviation);
+          });
+        }
+      }
+
       if (lp.status === "fulfilled") setSessionLaps(lp.value);
       if (rc.status === "fulfilled") setRaceControl(rc.value);
       if (wx.status === "fulfilled") setWeather(wx.value);
       if (dr.status === "rejected") setSessionError("Session data not available.");
+
       setSessionLoading(false);
     });
+
+    return () => {
+      cancelled = true;
+    };
   }, [selectedRace, selectedSessionCode, selectedYear]);
 
   // ── Load circuit when race changes ─────────────────────────────────────
   useEffect(() => {
-    if (!selectedRace) return;
+    if (!selectedRace) {
+      setCircuit(null);
+      return;
+    }
+    let cancelled = false;
     const slug = eventToCircuitSlug(selectedRace.event);
     setHasTelemetry(true);
+
     loadCircuit(slug).then((c) => {
-      setCircuit(c);
+      if (!cancelled) setCircuit(c);
     });
+
+    return () => {
+      cancelled = true;
+    };
   }, [selectedRace]);
 
-  // ── Load telemetry when driver / lap / session changes ─────────────────
+  // ── Load telemetry when driver / lap / session / race changes ──────────
   useEffect(() => {
-    if (!selectedRace || !hasTelemetry) {
+    if (!selectedRace || !hasTelemetry || !selectedDriver) {
       setTelemetry(null);
       return;
     }
+    let cancelled = false;
     const slug = eventToCircuitSlug(selectedRace.event);
     setTelLoading(true);
-    loadTelemetry(selectedYear, slug, selectedDriver, selectedLap, selectedSessionCode).then((t) => {
-      setTelemetry(t);
-      setCursorIndex(0);
-      setTelLoading(false);
-    });
+
+    loadTelemetry(selectedYear, slug, selectedDriver, selectedLap, selectedSessionCode)
+      .then((t) => {
+        if (cancelled) return;
+        setTelemetry(t);
+        setCursorIndex(0);
+        setTelLoading(false);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setTelemetry(null);
+        setTelLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [selectedRace, selectedDriver, selectedLap, hasTelemetry, selectedYear, selectedSessionCode]);
 
   // ── Load telemetry for Driver B ───────────────────────────────────────
   useEffect(() => {
-    if (!selectedRace || !hasTelemetry) {
+    if (!selectedRace || !hasTelemetry || !selectedDriverB) {
       setTelemetryB(null);
       return;
     }
+    let cancelled = false;
     const slug = eventToCircuitSlug(selectedRace.event);
+
     loadTelemetry(selectedYear, slug, selectedDriverB, selectedLapB, selectedSessionCode)
-      .then((t) => setTelemetryB(t))
-      .catch(() => setTelemetryB(null));
+      .then((t) => {
+        if (!cancelled) setTelemetryB(t);
+      })
+      .catch(() => {
+        if (!cancelled) setTelemetryB(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [selectedRace, selectedDriverB, selectedLapB, hasTelemetry, selectedYear, selectedSessionCode]);
-
-  // ── Whenever race changes, reset driver to first in session ───────────
-  const prevRaceRef = useRef<string | null>(null);
-  useEffect(() => {
-    if (!selectedRace) return;
-    if (selectedRace.event !== prevRaceRef.current) {
-      prevRaceRef.current = selectedRace.event;
-      // Reset lap to 1
-      setSelectedLap(1);
-    }
-  }, [selectedRace]);
-
-  // ── When drivers load, auto-select valid drivers for Driver A and Driver B ──────
-  useEffect(() => {
-    if (!drivers.length) return;
-    const hasCurrentA = drivers.some((d) => d.abbreviation === selectedDriver);
-    if (!hasCurrentA) {
-      setSelectedDriver(drivers[0]?.abbreviation ?? "");
-    }
-    const hasCurrentB = drivers.some((d) => d.abbreviation === selectedDriverB);
-    if (!hasCurrentB) {
-      setSelectedDriverB(drivers[1]?.abbreviation ?? drivers[0]?.abbreviation ?? "");
-    }
-  }, [drivers]);
 
   // ── Derived ────────────────────────────────────────────────────────────
   const trackLength = circuit?.length_m ?? 3293;
@@ -517,6 +562,8 @@ export default function App() {
             drivers={drivers}
             laps={sessionLaps}
             sessionCode={selectedSessionCode}
+            selectedDriver={selectedDriver}
+            onSelectDriver={handleSelectDriver}
           />
         );
       case "Race Control":
@@ -526,7 +573,14 @@ export default function App() {
       case "Championship":
         return <ChampionshipPanel calendar={calendar} year={selectedYear} />;
       case "Historical F1":
-        return <HistoricalPanel />;
+        return (
+          <HistoricalPanel
+            onSelectYear={(yr) => {
+              setSelectedYear(yr);
+              setPage("Race Explorer");
+            }}
+          />
+        );
       default:
         return null;
     }
@@ -632,8 +686,15 @@ export default function App() {
               value={selectedRace?.event ?? ""}
               onChange={(e) => {
                 const race = calendar.find((r) => r.event === e.target.value);
-                setSelectedRace(race ?? null);
-                setSelectedSessionCode("R");
+                if (race) {
+                  setSelectedRace(race);
+                  const validCodes = (race.sessions ?? []).map((s) => s.code);
+                  if (!validCodes.includes(selectedSessionCode)) {
+                    setSelectedSessionCode(validCodes.includes("R") ? "R" : validCodes[0] ?? "R");
+                  }
+                  setSelectedLap(1);
+                  setSelectedLapB(1);
+                }
               }}
               style={{ ...selStyle, minWidth: 200 }}
             >
@@ -647,7 +708,11 @@ export default function App() {
             {/* Session */}
             <select
               value={selectedSessionCode}
-              onChange={(e) => setSelectedSessionCode(e.target.value)}
+              onChange={(e) => {
+                setSelectedSessionCode(e.target.value);
+                setSelectedLap(1);
+                setSelectedLapB(1);
+              }}
               style={selStyle}
             >
               {sessionTabs.map((s) => (

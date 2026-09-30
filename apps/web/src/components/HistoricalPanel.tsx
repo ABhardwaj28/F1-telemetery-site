@@ -220,7 +220,11 @@ const ALL_TIME_CONSTRUCTORS_1958_2024: ConstructorChampion[] = [
   { year: 1958, team: "Vanwall", engine: "Vanwall", points: 48, wins: 6, poles: 7, drivers: ["MOS", "BRO"] },
 ];
 
-export default function HistoricalPanel() {
+interface HistoricalPanelProps {
+  onSelectYear?: (year: number) => void;
+}
+
+export default function HistoricalPanel({ onSelectYear }: HistoricalPanelProps) {
   const [selectedEra, setSelectedEra] = useState<string>("all");
   const [activeTab, setActiveTab] = useState<"drivers" | "constructors" | "records">("drivers");
   const [searchQuery, setSearchQuery] = useState("");
@@ -481,10 +485,13 @@ export default function HistoricalPanel() {
                 {filteredDrivers.map((c) => (
                   <tr
                     key={c.year}
+                    onClick={() => onSelectYear?.(c.year)}
+                    title={onSelectYear ? `Click to inspect ${c.year} season in Race Explorer` : undefined}
                     style={{
                       borderBottom: "1px solid #14141a",
                       height: 42,
                       background: c.year % 2 === 0 ? "rgba(255,255,255,0.01)" : "transparent",
+                      cursor: onSelectYear ? "pointer" : "default",
                     }}
                   >
                     <td style={{ padding: "0 16px", fontWeight: 700, color: "#e10600" }}>{c.year}</td>
@@ -533,10 +540,13 @@ export default function HistoricalPanel() {
                 {filteredConstructors.map((c) => (
                   <tr
                     key={c.year}
+                    onClick={() => onSelectYear?.(c.year)}
+                    title={onSelectYear ? `Click to inspect ${c.year} season in Race Explorer` : undefined}
                     style={{
                       borderBottom: "1px solid #14141a",
                       height: 42,
                       background: c.year % 2 === 0 ? "rgba(255,255,255,0.01)" : "transparent",
+                      cursor: onSelectYear ? "pointer" : "default",
                     }}
                   >
                     <td style={{ padding: "0 16px", fontWeight: 700, color: "#00E5FF" }}>{c.year}</td>

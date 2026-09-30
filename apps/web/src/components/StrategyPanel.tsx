@@ -6,17 +6,26 @@ interface StrategyPanelProps {
   drivers: SessionDriver[];
   laps: SessionLap[];
   sessionCode: string;
+  selectedDriver?: string;
+  onSelectDriver?: (driver: string) => void;
 }
 
-export default function StrategyPanel({ drivers, laps, sessionCode }: StrategyPanelProps) {
-  const [selectedDriver, setSelectedDriver] = useState<string>(drivers[0]?.abbreviation ?? "NOR");
+export default function StrategyPanel({
+  drivers,
+  laps,
+  sessionCode,
+  selectedDriver: controlledDriver,
+  onSelectDriver,
+}: StrategyPanelProps) {
+  const [internalDriver, setInternalDriver] = useState<string>(drivers[0]?.abbreviation ?? "NOR");
+  const activeDriver = (controlledDriver && drivers.some(d => d.abbreviation === controlledDriver))
+    ? controlledDriver
+    : (drivers.some(d => d.abbreviation === internalDriver) ? internalDriver : (drivers[0]?.abbreviation ?? ""));
 
-  // Keep selected driver synced with current session drivers
-  useMemo(() => {
-    if (drivers.length && !drivers.some((d) => d.abbreviation === selectedDriver)) {
-      setSelectedDriver(drivers[0]?.abbreviation ?? "NOR");
-    }
-  }, [drivers, selectedDriver]);
+  const handleSelectDriver = (d: string) => {
+    setInternalDriver(d);
+    onSelectDriver?.(d);
+  };
 
   // Calculate stints per driver
   const driverStints = useMemo(() => {
@@ -62,9 +71,9 @@ export default function StrategyPanel({ drivers, laps, sessionCode }: StrategyPa
   // Selected driver lap times
   const selectedDriverLaps = useMemo(() => {
     return laps
-      .filter((l) => l.Driver === selectedDriver && l.LapTime && l.LapTime > 0)
+      .filter((l) => l.Driver === activeDriver && l.LapTime && l.LapTime > 0)
       .sort((a, b) => a.LapNumber - b.LapNumber);
-  }, [laps, selectedDriver]);
+  }, [laps, activeDriver]);
 
   const bestLapTime = useMemo(() => {
     if (!selectedDriverLaps.length) return null;
@@ -129,7 +138,7 @@ export default function StrategyPanel({ drivers, laps, sessionCode }: StrategyPa
             return (
               <div
                 key={d.abbreviation}
-                onClick={() => setSelectedDriver(d.abbreviation)}
+                onClick={() => handleSelectDriver(d.abbreviation)}
                 style={{
                   display: "grid",
                   gridTemplateColumns: "100px 1fr",
@@ -138,13 +147,13 @@ export default function StrategyPanel({ drivers, laps, sessionCode }: StrategyPa
                   cursor: "pointer",
                   padding: "4px 8px",
                   borderRadius: 4,
-                  background: selectedDriver === d.abbreviation ? "rgba(255,255,255,0.04)" : "transparent",
+                  background: activeDriver === d.abbreviation ? "rgba(255,255,255,0.04)" : "transparent",
                 }}
               >
                 {/* Driver Name */}
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <div style={{ width: 3, height: 16, background: teamCol, borderRadius: 1 }} />
-                  <span style={{ fontWeight: 700, fontSize: 11, color: selectedDriver === d.abbreviation ? "#fff" : "#aaa", fontFamily: "IBM Plex Mono, monospace" }}>
+                  <span style={{ fontWeight: 700, fontSize: 11, color: activeDriver === d.abbreviation ? "#fff" : "#aaa", fontFamily: "IBM Plex Mono, monospace" }}>
                     {d.abbreviation}
                   </span>
                 </div>
@@ -188,7 +197,7 @@ export default function StrategyPanel({ drivers, laps, sessionCode }: StrategyPa
         <div className="panel-title">
           <div>
             <h2>LAP TIME CONSISTENCY & DEGRADATION</h2>
-            <span>LAP-BY-LAP PACE EVOLUTION FOR {selectedDriver}</span>
+            <span>LAP-BY-LAP PACE EVOLUTION FOR {activeDriver}</span>
           </div>
           {bestLapTime && (
             <div style={{ fontSize: 11, color: "#9b59b6", fontFamily: "IBM Plex Mono, monospace", fontWeight: 700 }}>
@@ -248,7 +257,7 @@ export default function StrategyPanel({ drivers, laps, sessionCode }: StrategyPa
               })}
             </svg>
           ) : (
-            <div className="empty-state">NO LAP DATA AVAILABLE FOR {selectedDriver}</div>
+            <div className="empty-state">NO LAP DATA AVAILABLE FOR {activeDriver}</div>
           )}
         </div>
       </div>
