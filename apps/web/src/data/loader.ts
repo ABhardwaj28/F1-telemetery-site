@@ -286,7 +286,10 @@ export async function loadTelemetry(
   lap: number,
   sessionCode: string = "Q"
 ): Promise<LapTelemetry | null> {
-  const targetDriver = driver || "NOR";
+  const eraDrivers = getHistoricalDrivers(year);
+  const defaultDriver = eraDrivers[0]?.abbreviation || "VER";
+  const targetDriver =
+    driver && eraDrivers.some((d) => d.abbreviation === driver) ? driver : defaultDriver;
   const targetLap = lap || 1;
   const isQuali = sessionCode === "Q" || sessionCode === "SQ" || sessionCode === "Qualifying";
   // Last 20 years (2005-2025) qualify for 100% raw high-density 50Hz FastF1 stream; older historic years are compressed
