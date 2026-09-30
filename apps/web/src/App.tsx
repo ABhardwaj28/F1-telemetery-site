@@ -11,7 +11,7 @@ import type {
   WeatherPoint,
 } from "./types";
 import { ALL_SUPPORTED_YEARS } from "./data/historicalSeasons";
-import { TEAM_COLOURS, TYRE_COLOURS, TELEMETRY_CIRCUITS, eventToCircuitSlug, SESSION_NAME } from "./data/loader";
+import { TEAM_COLOURS, TYRE_COLOURS, eventToCircuitSlug, SESSION_NAME } from "./data/loader";
 import {
   loadCalendar,
   loadCircuit,
@@ -120,13 +120,10 @@ export default function App() {
   useEffect(() => {
     if (!selectedRace) return;
     const slug = eventToCircuitSlug(selectedRace.event);
-    const available = TELEMETRY_CIRCUITS.has(slug);
-    setHasTelemetry(available);
-    if (available) {
-      loadCircuit(slug).then(setCircuit);
-    } else {
-      setCircuit(null);
-    }
+    setHasTelemetry(true);
+    loadCircuit(slug).then((c) => {
+      setCircuit(c);
+    });
   }, [selectedRace]);
 
   // ── Load telemetry when driver / lap / session changes ─────────────────

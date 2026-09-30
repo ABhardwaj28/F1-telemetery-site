@@ -162,7 +162,7 @@ export async function loadWeather(
 
 // ─── Circuit ──────────────────────────────────────────────────────────────────
 
-/** Returns null if circuit data not available */
+/** Returns CircuitData, falling back to a classic circuit if slug is unlisted */
 export async function loadCircuit(
   circuitSlug: string
 ): Promise<CircuitData | null> {
@@ -171,7 +171,11 @@ export async function loadCircuit(
       `${BASE}/circuits/${circuitSlug}_2025_unified.json`
     );
   } catch {
-    return null;
+    try {
+      return await json<CircuitData>(`${BASE}/circuits/silverstone_2025_unified.json`);
+    } catch {
+      return null;
+    }
   }
 }
 
@@ -285,6 +289,8 @@ export async function loadTelemetry(
   const targetDriver = driver || "NOR";
   const targetLap = lap || 1;
   const isQuali = sessionCode === "Q" || sessionCode === "SQ" || sessionCode === "Qualifying";
+  // Last 20 years (2005-2025) qualify for 100% raw high-density 50Hz FastF1 stream; older historic years are compressed
+  const isRawQuali = isQuali && year >= 2005;
 
   const profile = getDriverProfile(targetDriver);
 
@@ -294,9 +300,9 @@ export async function loadTelemetry(
 
   const turns = circ.turns ?? [];
 
-  // In Qualifying: Generate high-density 50Hz raw stream (3500-5000+ points at 1.0m intervals)
-  // In Race: Use standard base track points with stint decimation
-  const activeTrack = isQuali ? densifyTrackForQuali(circ.track, 1.0) : circ.track;
+  // In Modern Qualifying (2005+): Generate high-density 50Hz raw stream (3500-5000+ points at 1.0m intervals)
+  // In Race & Historic Era (pre-2005): Use standard track points with stint compression
+  const activeTrack = isRawQuali ? densifyTrackForQuali(circ.track, 1.0) : circ.track;
 
   // Seed offset for driver micro-variations and lap dynamics
   const seed = (targetDriver.charCodeAt(0) * 7 + (targetDriver.charCodeAt(1) || 0) * 3 + targetLap * 11) % 100;
@@ -505,11 +511,11 @@ export async function loadTelemetry(
     });
   }
 
-  // ── Apply Telemetry Compression / Decimation for Race data ──
-  // In Quali: 100% uncompressed raw 50Hz stream (3,500 - 5,000+ points)
-  // In Race: Compressed 10Hz telemetry log (3.5x downsampled with smooth moving window)
+  // ── Apply Telemetry Compression / Decimation ──
+  // In Modern Quali (2005-2025): 100% uncompressed raw 50Hz stream (3,500 - 5,000+ points)
+  // In Race & Historic Era: Compressed 10Hz telemetry log (3.5x downsampled with smooth moving window)
   let telemetryData: any[];
-  if (isQuali) {
+  if (isRawQuali) {
     telemetryData = rawData;
   } else {
     // Stride decimation to compress data points while retaining start/end and apex extremes
@@ -527,10 +533,16 @@ export async function loadTelemetry(
     lap_time: lapTime,
     compound: lapCompound,
     tyre_life: tyreLife,
-    isCompressed: !isQuali,
-    samplingMode: isQuali ? "RAW_QUALIFYING_SENSITIVE" : "COMPRESSED_RACE_STINT",
-    samplingHz: isQuali ? 50 : 10,
-    compressionRatio: isQuali ? `1.0x (${telemetryData.length} Raw Points · 50Hz Uncompressed)` : `3.5x (${telemetryData.length} Points · Downsampled)`,
+    isCompressed: !isRawQuali,
+    samplingMode: isRawQuali
+      ? "RAW_QUALIFYING_SENSITIVE"
+      : isQuali
+      ? "HISTORICAL_COMPRESSED_QUALI"
+      : "COMPRESSED_RACE_STINT",
+    samplingHz: isRawQuali ? 50 : 10,
+    compressionRatio: isRawQuali
+      ? `1.0x (${telemetryData.length} Raw Points · 50Hz Uncompressed)`
+      : `3.5x (${telemetryData.length} Points · Compressed Log)`,
     telemetry: {
       points: telemetryData.length,
       data: telemetryData,
@@ -581,29 +593,37 @@ export function eventToCircuitSlug(event: string): string {
   if (!event) return "monaco";
   const ev = event.toLowerCase();
   if (ev.includes("monaco")) return "monaco";
-  if (ev.includes("bahrain")) return "bahrain";
+  if (ev.includes("bahrain") || ev.includes("sakhir")) return "bahrain";
   if (ev.includes("saudi") || ev.includes("jeddah")) return "jeddah";
-  if (ev.includes("australi") || ev.includes("melbourne")) return "melbourne";
-  if (ev.includes("japan") || ev.includes("suzuka")) return "suzuka";
+  if (ev.includes("australi") || ev.includes("melbourne") || ev.includes("adelaide")) return "melbourne";
+  if (ev.includes("japan") || ev.includes("suzuka") || ev.includes("fuji")) return "suzuka";
   if (ev.includes("chin") || ev.includes("shanghai")) return "shanghai";
   if (ev.includes("miami")) return "miami";
-  if (ev.includes("emilia") || ev.includes("imola") || ev.includes("romagna")) return "imola";
-  if (ev.includes("spain") || ev.includes("spanish") || ev.includes("barcelona") || ev.includes("españa")) return "barcelona";
-  if (ev.includes("canad") || ev.includes("montreal")) return "montreal";
-  if (ev.includes("austria") || ev.includes("spielberg") || ev.includes("red_bull") || ev.includes("österreich")) return "red_bull_ring";
-  if (ev.includes("brit") || ev.includes("silverstone")) return "silverstone";
+  if (ev.includes("emilia") || ev.includes("imola") || ev.includes("romagna") || ev.includes("san marino")) return "imola";
+  if (ev.includes("spain") || ev.includes("spanish") || ev.includes("barcelona") || ev.includes("españa") || ev.includes("jarama") || ev.includes("jerez")) return "barcelona";
+  if (ev.includes("canad") || ev.includes("montreal") || ev.includes("mosport")) return "montreal";
+  if (ev.includes("austria") || ev.includes("spielberg") || ev.includes("red_bull") || ev.includes("österreich") || ev.includes("oesterreich")) return "red_bull_ring";
+  if (ev.includes("brit") || ev.includes("silverstone") || ev.includes("brands hatch") || ev.includes("donington")) return "silverstone";
   if (ev.includes("hungar") || ev.includes("budapest")) return "hungaroring";
-  if (ev.includes("belgi") || ev.includes("spa")) return "spa";
+  if (ev.includes("belgi") || ev.includes("spa") || ev.includes("francorchamps") || ev.includes("zolder")) return "spa";
   if (ev.includes("dutch") || ev.includes("zandvoort") || ev.includes("netherland")) return "zandvoort";
   if (ev.includes("ital") || ev.includes("monza")) return "monza";
   if (ev.includes("azerbaijan") || ev.includes("baku")) return "baku";
   if (ev.includes("singapore") || ev.includes("marina bay")) return "singapore";
-  if (ev.includes("united states") || ev.includes("austin") || ev.includes("cota") || ev.includes("america")) return "austin";
+  if (ev.includes("united states") || ev.includes("austin") || ev.includes("cota") || ev.includes("america") || ev.includes("watkins") || ev.includes("indianapolis")) return "austin";
   if (ev.includes("mexico") || ev.includes("méxico") || ev.includes("rodriguez")) return "mexico_city";
-  if (ev.includes("brazil") || ev.includes("paulo") || ev.includes("interlagos")) return "interlagos";
-  if (ev.includes("vegas")) return "las_vegas";
+  if (ev.includes("brazil") || ev.includes("paulo") || ev.includes("interlagos") || ev.includes("jacarepagua")) return "interlagos";
+  if (ev.includes("vegas") || ev.includes("caesars")) return "las_vegas";
   if (ev.includes("qatar") || ev.includes("lusail")) return "lusail";
   if (ev.includes("abu dhabi") || ev.includes("yas marina")) return "yas_marina";
+  if (ev.includes("german") || ev.includes("germany") || ev.includes("hockenheim") || ev.includes("nürburg") || ev.includes("nurburg")) return "red_bull_ring";
+  if (ev.includes("french") || ev.includes("france") || ev.includes("reims") || ev.includes("paul ricard") || ev.includes("magny")) return "spa";
+  if (ev.includes("swiss") || ev.includes("switzerland") || ev.includes("bremgarten")) return "spa";
+  if (ev.includes("portug") || ev.includes("estoril") || ev.includes("algarve") || ev.includes("portimao")) return "barcelona";
+  if (ev.includes("malays") || ev.includes("sepang")) return "shanghai";
+  if (ev.includes("turkish") || ev.includes("turkey") || ev.includes("istanbul")) return "hungaroring";
+  if (ev.includes("south africa") || ev.includes("kyalami")) return "silverstone";
+  if (ev.includes("argentin") || ev.includes("buenos aires")) return "interlagos";
 
   const map: Record<string, string> = {
     "Australian Grand Prix": "melbourne",

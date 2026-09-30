@@ -227,14 +227,12 @@ export const HISTORICAL_DRIVERS: Record<number, SessionDriver[]> = {
   ],
 };
 
-// ─── Available Historical Seasons for Selection ───────────────────────────────
+// ─── Available Historical Seasons for Selection (1970 - 2025 Continuous) ───
 
-export const ALL_SUPPORTED_YEARS = [
-  2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018, 2017, 2016, 2015, 2014,
-  2013, 2012, 2011, 2010, 2009, 2008, 2007, 2006, 2005, 2004, 2003, 2002,
-  2001, 2000, 1998, 1996, 1994, 1991, 1988, 1986, 1984, 1982, 1980, 1976,
-  1974, 1972, 1970, 1968, 1965, 1963, 1960, 1958, 1955, 1953, 1951, 1950,
-];
+export const ALL_SUPPORTED_YEARS: number[] = Array.from(
+  { length: 2025 - 1970 + 1 },
+  (_, i) => 2025 - i
+);
 
 // Helper to get or synthesise historical season calendar
 export function getHistoricalCalendar(year: number): CalendarRace[] {

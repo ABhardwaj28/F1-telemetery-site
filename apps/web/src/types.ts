@@ -111,7 +111,7 @@ export interface LapTelemetry {
   compound: string;
   tyre_life: number;
   isCompressed?: boolean;
-  samplingMode?: "RAW_QUALIFYING_SENSITIVE" | "COMPRESSED_RACE_STINT";
+  samplingMode?: "RAW_QUALIFYING_SENSITIVE" | "COMPRESSED_RACE_STINT" | "HISTORICAL_COMPRESSED_QUALI";
   samplingHz?: number;
   compressionRatio?: string;
   telemetry: {
