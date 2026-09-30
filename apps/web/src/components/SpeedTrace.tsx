@@ -32,6 +32,20 @@ export default function SpeedTrace({
   const svgRef = useRef<SVGSVGElement>(null);
   const [hovering, setHovering] = useState(false);
 
+  if (!data || data.length === 0) {
+    return (
+      <div style={{ padding: "40px 24px", textAlign: "center", fontFamily: "IBM Plex Mono, monospace" }}>
+        <div style={{ fontSize: 24, marginBottom: 8 }}>📡</div>
+        <div style={{ color: "#ffffff", fontWeight: 700, fontSize: 13, marginBottom: 4 }}>
+          CAR TELEMETRY STREAM UNAVAILABLE
+        </div>
+        <div style={{ color: "#888892", fontSize: 11 }}>
+          High-frequency ECU and GPS telemetry channels are not recorded for this session.
+        </div>
+      </div>
+    );
+  }
+
   const maxDist = trackLength || (data.length ? data[data.length - 1].Distance : 5000);
 
   const maxSpeed = useMemo(() => {
