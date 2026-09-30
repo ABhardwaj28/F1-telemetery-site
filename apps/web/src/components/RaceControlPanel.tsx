@@ -159,7 +159,7 @@ export default function RaceControlPanel({
                     fontSize: 8,
                   }}
                 >
-                  {m.Time}
+                  {m.Time.includes("T") ? (m.Time.split("T")[1]?.split(".")[0] || m.Time) : m.Time}
                 </div>
               </div>
 

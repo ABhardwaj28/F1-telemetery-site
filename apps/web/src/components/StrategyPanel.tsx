@@ -65,7 +65,8 @@ export default function StrategyPanel({
   }, [drivers, laps]);
 
   const maxRaceLaps = useMemo(() => {
-    return Math.max(...laps.map((l) => l.LapNumber), 78);
+    if (!laps.length) return 70;
+    return Math.max(...laps.map((l) => l.LapNumber), 1);
   }, [laps]);
 
   // Selected driver lap times
@@ -89,7 +90,7 @@ export default function StrategyPanel({
   const minTime = validTimes.length ? Math.min(...validTimes) * 0.98 : 70;
   const maxTime = validTimes.length ? Math.min(Math.max(...validTimes), minTime * 1.25) : 100;
 
-  const scaleX = (lapNum: number) => PAD.left + ((lapNum - 1) / Math.max(maxRaceLaps, 1)) * (W - PAD.left - PAD.right);
+  const scaleX = (lapNum: number) => PAD.left + ((lapNum - 1) / Math.max(maxRaceLaps - 1, 1)) * (W - PAD.left - PAD.right);
   const scaleY = (time: number) => H - PAD.bottom - ((time - minTime) / Math.max(maxTime - minTime, 1)) * (H - PAD.top - PAD.bottom);
 
   const lapTimePath = useMemo(() => {
@@ -246,11 +247,17 @@ export default function StrategyPanel({
                 );
               })}
 
-              {/* X Axis labels */}
-              {[1, 20, 40, 60, maxRaceLaps].map((lapNum) => {
+              {/* X Axis labels dynamically spaced based on real race distance */}
+              {[
+                1,
+                Math.max(2, Math.round(maxRaceLaps * 0.25)),
+                Math.max(3, Math.round(maxRaceLaps * 0.50)),
+                Math.max(4, Math.round(maxRaceLaps * 0.75)),
+                maxRaceLaps,
+              ].map((lapNum) => {
                 const x = scaleX(lapNum);
                 return (
-                  <text key={lapNum} x={x} y={H - 10} fill="#666" fontSize="9" textAnchor="middle" fontFamily="IBM Plex Mono, monospace">
+                  <text key={lapNum} x={x} y={H - 10} fill="#888894" fontSize="9" textAnchor="middle" fontFamily="IBM Plex Mono, monospace">
                     L{lapNum}
                   </text>
                 );
