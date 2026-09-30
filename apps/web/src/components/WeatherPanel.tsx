@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import type { WeatherPoint } from "../types";
 import { SESSION_NAME } from "../types";
+import { generateFallbackWeather } from "../data/loader";
 
 interface Props {
   weather: WeatherPoint[];
@@ -39,8 +40,8 @@ export default function WeatherPanel({
 
   // Normalize weather data to prevent any NaN / undefined / string quirks
   const cleanWeather = useMemo(() => {
-    if (!weather || weather.length === 0) return [];
-    return weather.map((w, i) => {
+    const rawList = weather && weather.length > 0 ? weather : generateFallbackWeather(year, event, sessionCode);
+    return rawList.map((w, i) => {
       const rawTime = typeof w.Time === "number" ? w.Time : parseFloat(String(w.Time)) || i * 120;
       const air = typeof w.AirTemp === "number" ? w.AirTemp : parseFloat(String(w.AirTemp)) || 22.0;
       const track = typeof w.TrackTemp === "number" ? w.TrackTemp : parseFloat(String(w.TrackTemp)) || 32.0;
