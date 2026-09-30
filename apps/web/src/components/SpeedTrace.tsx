@@ -238,7 +238,7 @@ export default function SpeedTrace({
             points={speedPoints}
             fill="none"
             stroke={color}
-            strokeWidth="2.5"
+            strokeWidth={sessionCode === "Q" || sessionCode === "SQ" ? "1.6" : "2.4"}
             strokeLinecap="round"
             strokeLinejoin="round"
             clipPath="url(#plotArea)"
@@ -318,7 +318,9 @@ export default function SpeedTrace({
               border: `1px solid ${sessionCode === "Q" || sessionCode === "SQ" ? "rgba(0, 229, 255, 0.4)" : "rgba(255, 215, 0, 0.4)"}`,
             }}
           >
-            {sessionCode === "Q" || sessionCode === "SQ" ? "⚡ RAW 50Hz QUALIFYING" : "📦 COMPRESSED 10Hz RACE LOG"}
+            {sessionCode === "Q" || sessionCode === "SQ"
+              ? `⚡ RAW 50Hz QUALIFYING (${data.length.toLocaleString()} CAN SAMPLES)`
+              : `📦 COMPRESSED 10Hz RACE LOG (${data.length.toLocaleString()} SAMPLES)`}
           </span>
           <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
             <span style={{ width: 16, height: 3, background: color, borderRadius: 1, display: "inline-block" }} />

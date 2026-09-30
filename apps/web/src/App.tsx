@@ -243,6 +243,16 @@ export default function App() {
   function renderRaceExplorer() {
     const circuitSlug = selectedRace ? eventToCircuitSlug(selectedRace.event) : "";
     const teamCol = TEAM_COLOURS[drivers.find((d) => d.abbreviation === selectedDriver)?.team ?? ""] ?? "#e10600";
+    const isQuali = selectedSessionCode === "Q" || selectedSessionCode === "SQ" || selectedSessionCode === "Qualifying";
+    const lapTag = isQuali
+      ? ((selectedLap - 1) % 4 === 0
+          ? "OUT-LAP (WARMUP)"
+          : (selectedLap - 1) % 4 === 1
+          ? "FLYING SHOOTOUT (MAX ATTACK)"
+          : (selectedLap - 1) % 4 === 2
+          ? "RECHARGE / COOL-DOWN"
+          : "FLYING PUSH 2")
+      : (selectedLap === 1 ? "RACE START (HEAVY FUEL)" : `RACE STINT · TYRE LIFE ${(selectedLap % 20) + 1}L`);
 
     return (
       <>
@@ -258,7 +268,7 @@ export default function App() {
             </h1>
             <p>
               {hasTelemetry
-                ? `REAL FASTF1 DATA · ${selectedDriver} · LAP ${selectedLap}`
+                ? `REAL FASTF1 DATA · ${selectedDriver} · LAP ${selectedLap} (${lapTag}) · ${isQuali ? "50Hz RAW UNCOMPRESSED" : "10Hz COMPRESSED"}`
                 : `SESSION DATA · ${drivers.length} DRIVERS`}
             </p>
           </div>
@@ -325,7 +335,7 @@ export default function App() {
                   <div className="panel-title">
                     <div>
                       <h2>SPEED TRACE</h2>
-                      <span>LAP {selectedLap} · DISTANCE ALIGNED · HOVER TO SCRUB</span>
+                      <span>LAP {selectedLap} · {lapTag} · {isQuali ? "50Hz RAW CAN STREAM" : "10Hz COMPRESSED"}</span>
                     </div>
                     <strong style={{ color: teamCol }}>{selectedDriver}</strong>
                   </div>
