@@ -62,7 +62,7 @@ export default function WeatherPanel({
         WindDirection: windDir,
       };
     });
-  }, [weather]);
+  }, [weather, year, event, sessionCode]);
 
   const n = cleanWeather.length;
   const isFlatTimeline =

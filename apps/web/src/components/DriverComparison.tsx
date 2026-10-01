@@ -43,9 +43,14 @@ export default function DriverComparison({
   const [cursorDist, setCursorDist] = useState<number | null>(null);
   const [visibleChannel, setVisibleChannel] = useState<"all" | "speed" | "inputs" | "delta">("all");
   const [layoutMode, setLayoutMode] = useState<"overlay" | "split">("overlay");
-  const [sensitivityMultiplier, setSensitivityMultiplier] = useState<number>(2);
   const [isPlaying, setIsPlaying] = useState(false);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
+
+  // ── Horizontal Telemetry Zoom & Pan ──
+  const [zoomLevel, setZoomLevel] = useState<number>(1);
+  const [panDist, setPanDist] = useState<number>(0);
+  const [isDraggingPan, setIsDraggingPan] = useState(false);
+  const dragStartRef = useRef<{ mouseX: number; startPan: number } | null>(null);
 
   const teamA = drivers.find((d) => d.abbreviation === driverA)?.team ?? "";
   const teamB = drivers.find((d) => d.abbreviation === driverB)?.team ?? "";
@@ -64,6 +69,59 @@ export default function DriverComparison({
   const trackLength =
     circuit?.length_m ?? (ptsA.length ? ptsA[ptsA.length - 1].Distance : 5000);
   const turns = circuit?.turns ?? [];
+
+  // Viewport distance calculations
+  const windowSize = useMemo(() => {
+    return trackLength / zoomLevel;
+  }, [trackLength, zoomLevel]);
+
+  const viewStart = useMemo(() => {
+    if (zoomLevel <= 1) return 0;
+    return Math.max(0, Math.min(trackLength - windowSize, panDist));
+  }, [zoomLevel, trackLength, windowSize, panDist]);
+
+  const viewEnd = useMemo(() => {
+    if (zoomLevel <= 1) return trackLength;
+    return Math.min(trackLength, viewStart + windowSize);
+  }, [zoomLevel, trackLength, viewStart, windowSize]);
+
+  // Zoom setter with centering around cursor or target distance
+  const handleSetZoom = useCallback(
+    (newZoom: number, centerDist?: number) => {
+      const clampedZoom = Math.max(1, Math.min(8, newZoom));
+      if (clampedZoom === 1) {
+        setZoomLevel(1);
+        setPanDist(0);
+        return;
+      }
+      const newWin = trackLength / clampedZoom;
+      const center = centerDist ?? cursorDist ?? (viewStart + viewEnd) / 2;
+      const newPan = Math.max(0, Math.min(trackLength - newWin, center - newWin / 2));
+      setZoomLevel(clampedZoom);
+      setPanDist(newPan);
+    },
+    [trackLength, cursorDist, viewStart, viewEnd]
+  );
+
+  const handlePanBy = useCallback(
+    (deltaMeters: number) => {
+      if (zoomLevel <= 1) return;
+      setPanDist((prev) => Math.max(0, Math.min(trackLength - windowSize, prev + deltaMeters)));
+    },
+    [zoomLevel, trackLength, windowSize]
+  );
+
+  const handleFocusTurn = useCallback(
+    (turnDist: number) => {
+      const targetZoom = Math.max(3, zoomLevel);
+      const newWin = trackLength / targetZoom;
+      const newPan = Math.max(0, Math.min(trackLength - newWin, turnDist - newWin / 2));
+      setZoomLevel(targetZoom);
+      setPanDist(newPan);
+      setCursorDist(turnDist);
+    },
+    [trackLength, zoomLevel]
+  );
 
   // ── Telemetry interpolation helpers ──
   // Linearly interpolate a value from a sorted telemetry array at a given distance.
@@ -133,7 +191,21 @@ export default function DriverComparison({
           const current = prev ?? 0;
           const next = current + moveDist;
           if (next >= trackLength) {
+            if (zoomLevel > 1) setPanDist(0);
             return 0; // loop
+          }
+          // If zoomed in, advance viewport so the cursor stays visible
+          if (zoomLevel > 1) {
+            setPanDist((currPan) => {
+              const curEnd = currPan + windowSize;
+              if (next > curEnd - windowSize * 0.15) {
+                return Math.min(trackLength - windowSize, next - windowSize * 0.35);
+              }
+              if (next < currPan) {
+                return Math.max(0, next - windowSize * 0.1);
+              }
+              return currPan;
+            });
           }
           return next;
         });
@@ -146,7 +218,7 @@ export default function DriverComparison({
     return () => {
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
     };
-  }, [isPlaying, playbackSpeed, trackLength, avgSpeedMs]);
+  }, [isPlaying, playbackSpeed, trackLength, avgSpeedMs, zoomLevel, windowSize]);
 
   // Delta points — built on a unified distance grid sampled from whichever
   // dataset is denser. Time values are linearly interpolated at each sample
@@ -206,9 +278,27 @@ export default function DriverComparison({
   }, [ptsA, ptsB]);
 
   const scaleX = useCallback(
-    (dist: number) => PAD.left + (dist / trackLength) * (W - PAD.left - PAD.right),
-    [trackLength]
+    (dist: number) => {
+      const range = viewEnd - viewStart || 1;
+      return PAD.left + ((dist - viewStart) / range) * (W - PAD.left - PAD.right);
+    },
+    [viewStart, viewEnd]
   );
+
+  const distanceTicks = useMemo(() => {
+    const range = viewEnd - viewStart;
+    let step = 500;
+    if (range <= 500) step = 50;
+    else if (range <= 1000) step = 100;
+    else if (range <= 2500) step = 250;
+
+    const ticks: number[] = [];
+    const firstTick = Math.ceil(viewStart / step) * step;
+    for (let d = firstTick; d <= viewEnd; d += step) {
+      ticks.push(d);
+    }
+    return ticks;
+  }, [viewStart, viewEnd]);
   const scaleSpeedY = useCallback(
     (speed: number, height: number = H_SPEED) =>
       height - PAD.bottom - (speed / maxSpeed) * (height - PAD.top - PAD.bottom),
@@ -216,7 +306,7 @@ export default function DriverComparison({
   );
 
   // Delta scale with dynamic sensitivity
-  const maxDelta = Math.max(0.2, 1.2 / sensitivityMultiplier);
+  const maxDelta = Math.max(0.2, 1.2 / Math.min(3, zoomLevel));
   const scaleDeltaY = (d: number) => {
     const clamped = Math.max(-maxDelta, Math.min(maxDelta, d));
     const midY = (H_DELTA - PAD.top - PAD.bottom) / 2 + PAD.top;
@@ -347,21 +437,79 @@ export default function DriverComparison({
     });
   }, [turns, ptsA, ptsB]);
 
-  // Hover scrubbing handler
+  // Hover scrubbing & Drag-to-pan handler
   const handleMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
+    if (isDraggingPan && dragStartRef.current) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const dxPx = e.clientX - dragStartRef.current.mouseX;
+      const plotWidthPx = rect.width * ((W - PAD.left - PAD.right) / W);
+      const metersPerPx = windowSize / (plotWidthPx || 1);
+      const deltaMeters = -dxPx * metersPerPx;
+      const newPan = Math.max(
+        0,
+        Math.min(trackLength - windowSize, dragStartRef.current.startPan + deltaMeters)
+      );
+      setPanDist(newPan);
+      return;
+    }
+
     const rect = e.currentTarget.getBoundingClientRect();
     const relX = (e.clientX - rect.left) / rect.width;
     const svgX = relX * W;
     const clampedSvgX = Math.max(PAD.left, Math.min(W - PAD.right, svgX));
     const dist =
-      ((clampedSvgX - PAD.left) / (W - PAD.left - PAD.right)) * trackLength;
+      viewStart + ((clampedSvgX - PAD.left) / (W - PAD.left - PAD.right)) * (viewEnd - viewStart);
     setCursorDist(dist);
   };
 
-  // Reset cursor to lap start whenever telemetry changes (new lap loaded)
+  const handleMouseDown = (e: React.MouseEvent<SVGSVGElement>) => {
+    if (zoomLevel > 1) {
+      setIsDraggingPan(true);
+      dragStartRef.current = { mouseX: e.clientX, startPan: panDist };
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDraggingPan(false);
+    dragStartRef.current = null;
+  };
+
+  const handleWheel = (e: React.WheelEvent<SVGSVGElement>) => {
+    if (e.deltaY !== 0) {
+      e.preventDefault();
+      const rect = e.currentTarget.getBoundingClientRect();
+      const relX = (e.clientX - rect.left) / rect.width;
+      const svgX = relX * W;
+      const clampedSvgX = Math.max(PAD.left, Math.min(W - PAD.right, svgX));
+      const mouseDist =
+        viewStart + ((clampedSvgX - PAD.left) / (W - PAD.left - PAD.right)) * (viewEnd - viewStart);
+
+      const zoomFactor = e.deltaY < 0 ? 1.25 : 0.8;
+      const targetZoom = Math.max(1, Math.min(8, Number((zoomLevel * zoomFactor).toFixed(1))));
+      handleSetZoom(targetZoom, mouseDist);
+    }
+  };
+
+  // Scrubber click handler for track minimap
+  const handleScrubberClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const clickRatio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    const clickDist = clickRatio * trackLength;
+    if (zoomLevel <= 1) {
+      setCursorDist(clickDist);
+    } else {
+      const newPan = Math.max(0, Math.min(trackLength - windowSize, clickDist - windowSize / 2));
+      setPanDist(newPan);
+      setCursorDist(clickDist);
+    }
+  };
+
+  // Reset cursor & zoom to full lap whenever telemetry changes (new lap loaded)
   useEffect(() => {
     setCursorDist(null);
     setIsPlaying(false);
+    setZoomLevel(1);
+    setPanDist(0);
   }, [telemetryA, telemetryB]);
 
   // Cursor readout: use interpolation so both drivers are evaluated at the
@@ -792,15 +940,15 @@ export default function DriverComparison({
               <option value={4} style={{ background: "#111", color: "#fff" }}>4.0x Ultra</option>
             </select>
 
-            {/* Sensitivity Zoom */}
-            <div style={{ display: "flex", alignItems: "center", gap: 4, background: "#111116", border: "1px solid #2a2a35", borderRadius: 4, padding: "2px 6px" }}>
-              <span style={{ fontSize: 9, color: "#ffffff", fontFamily: "IBM Plex Mono, monospace", fontWeight: 700 }}>ZOOM:</span>
+            {/* Horizontal Track Zoom Controls */}
+            <div style={{ display: "flex", alignItems: "center", gap: 3, background: "#111116", border: "1px solid #2a2a35", borderRadius: 4, padding: "2px 6px" }}>
+              <span style={{ fontSize: 9, color: zoomLevel > 1 ? "#00E5FF" : "#ffffff", fontFamily: "IBM Plex Mono, monospace", fontWeight: 700 }}>ZOOM:</span>
               {[1, 2, 3, 5].map((s) => (
                 <button
                   key={s}
-                  onClick={() => setSensitivityMultiplier(s)}
+                  onClick={() => handleSetZoom(s)}
                   style={{
-                    background: sensitivityMultiplier === s ? "#e10600" : "transparent",
+                    background: zoomLevel === s ? "#e10600" : "transparent",
                     color: "#ffffff",
                     border: "none",
                     borderRadius: 2,
@@ -810,10 +958,66 @@ export default function DriverComparison({
                     cursor: "pointer",
                     fontWeight: 800,
                   }}
+                  title={s === 1 ? "1x Full Lap View" : `Zoom into ${s}x telemetry view`}
                 >
                   {s}x
                 </button>
               ))}
+              {zoomLevel > 1 && (
+                <>
+                  <button
+                    onClick={() => handlePanBy(-windowSize * 0.25)}
+                    style={{
+                      background: "#1e1e28",
+                      color: "#ffffff",
+                      border: "1px solid #333342",
+                      borderRadius: 2,
+                      padding: "2px 5px",
+                      fontSize: 9,
+                      cursor: "pointer",
+                      fontFamily: "IBM Plex Mono, monospace",
+                      fontWeight: 700,
+                    }}
+                    title="Pan Left (earlier in lap)"
+                  >
+                    ◀
+                  </button>
+                  <button
+                    onClick={() => handlePanBy(windowSize * 0.25)}
+                    style={{
+                      background: "#1e1e28",
+                      color: "#ffffff",
+                      border: "1px solid #333342",
+                      borderRadius: 2,
+                      padding: "2px 5px",
+                      fontSize: 9,
+                      cursor: "pointer",
+                      fontFamily: "IBM Plex Mono, monospace",
+                      fontWeight: 700,
+                    }}
+                    title="Pan Right (later in lap)"
+                  >
+                    ▶
+                  </button>
+                  <button
+                    onClick={() => handleSetZoom(1)}
+                    style={{
+                      background: "rgba(225, 6, 0, 0.15)",
+                      color: "#ff6b6b",
+                      border: "1px solid rgba(225, 6, 0, 0.4)",
+                      borderRadius: 2,
+                      padding: "2px 5px",
+                      fontSize: 8,
+                      cursor: "pointer",
+                      fontFamily: "IBM Plex Mono, monospace",
+                      fontWeight: 700,
+                    }}
+                    title="Reset to 1x full lap"
+                  >
+                    RESET
+                  </button>
+                </>
+              )}
             </div>
 
             {/* Channels Filter */}
@@ -1202,12 +1406,176 @@ export default function DriverComparison({
           </div>
         </div>
 
+        {/* ── Interactive Track Overview / Zoom Scrubber ── */}
+        <div
+          style={{
+            marginBottom: 14,
+            background: "#0c0c10",
+            border: "1px solid #22222d",
+            borderRadius: 6,
+            padding: "10px 14px",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              fontSize: 10,
+              fontFamily: "IBM Plex Mono, monospace",
+              marginBottom: 8,
+              flexWrap: "wrap",
+              gap: 8,
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ color: "#888898" }}>TRACK NAVIGATOR:</span>
+              <strong style={{ color: zoomLevel > 1 ? "#00E5FF" : "#ffffff", letterSpacing: "0.04em" }}>
+                {zoomLevel > 1
+                  ? `🔍 ZOOM ${zoomLevel}x · VIEWING ${Math.round(viewStart)}m – ${Math.round(viewEnd)}m (${Math.round(windowSize)}m SPAN)`
+                  : `1x FULL LAP VIEW (${Math.round(trackLength)}m)`}
+              </strong>
+              {zoomLevel > 1 && (
+                <span
+                  style={{
+                    fontSize: 9,
+                    color: "#ff8000",
+                    background: "rgba(255, 128, 0, 0.12)",
+                    border: "1px solid rgba(255, 128, 0, 0.3)",
+                    padding: "2px 6px",
+                    borderRadius: 3,
+                    fontWeight: 700,
+                  }}
+                >
+                  CLICK TRACK OR DRAG GRAPH TO PAN
+                </span>
+              )}
+            </div>
+
+            <div style={{ display: "flex", gap: 12, color: "#888", alignItems: "center" }}>
+              <span>0m</span>
+              <span>CURSOR: <strong style={{ color: "#fff" }}>{cursorDist != null ? `${Math.round(cursorDist)}m` : "—"}</strong></span>
+              <span>{Math.round(trackLength)}m</span>
+              {zoomLevel > 1 && (
+                <button
+                  onClick={() => handleSetZoom(1)}
+                  style={{
+                    background: "rgba(225, 6, 0, 0.2)",
+                    border: "1px solid #e10600",
+                    color: "#fff",
+                    borderRadius: 3,
+                    padding: "2px 6px",
+                    fontSize: 9,
+                    fontFamily: "IBM Plex Mono, monospace",
+                    cursor: "pointer",
+                    fontWeight: 700,
+                  }}
+                >
+                  RESET (1x)
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Mini Track Scrubber Strip */}
+          <div
+            onClick={handleScrubberClick}
+            style={{
+              position: "relative",
+              height: 28,
+              background: "#14141c",
+              border: "1px solid #282836",
+              borderRadius: 4,
+              cursor: "pointer",
+              overflow: "hidden",
+            }}
+            title="Click anywhere to jump viewport to that section of the track"
+          >
+            {/* Corner ticks on mini scrubber */}
+            {turns.map((t) => {
+              const leftPct = (t.distance / trackLength) * 100;
+              return (
+                <div
+                  key={t.number}
+                  style={{
+                    position: "absolute",
+                    left: `${leftPct}%`,
+                    top: 0,
+                    bottom: 0,
+                    width: 1,
+                    background: "#2f2f42",
+                    pointerEvents: "none",
+                  }}
+                >
+                  <span
+                    style={{
+                      position: "absolute",
+                      top: 1,
+                      left: 2,
+                      fontSize: 8,
+                      color: "#666678",
+                      fontFamily: "IBM Plex Mono, monospace",
+                      fontWeight: 700,
+                      userSelect: "none",
+                    }}
+                  >
+                    T{t.number}
+                  </span>
+                </div>
+              );
+            })}
+
+            {/* Highlighted active zoom viewport window */}
+            <div
+              style={{
+                position: "absolute",
+                left: `${(viewStart / trackLength) * 100}%`,
+                width: `${Math.max(2, (windowSize / trackLength) * 100)}%`,
+                top: 0,
+                bottom: 0,
+                background: zoomLevel > 1 ? "rgba(225, 6, 0, 0.25)" : "rgba(0, 229, 255, 0.15)",
+                borderLeft: `2px solid ${zoomLevel > 1 ? "#e10600" : "#00E5FF"}`,
+                borderRight: `2px solid ${zoomLevel > 1 ? "#e10600" : "#00E5FF"}`,
+                boxShadow: zoomLevel > 1 ? "0 0 10px rgba(225,6,0,0.4)" : "none",
+                cursor: zoomLevel > 1 ? "grab" : "pointer",
+                transition: isDraggingPan ? "none" : "left 0.1s, width 0.1s",
+              }}
+            />
+
+            {/* Cursor indicator line */}
+            {cursorDist !== null && (
+              <div
+                style={{
+                  position: "absolute",
+                  left: `${(cursorDist / trackLength) * 100}%`,
+                  top: 0,
+                  bottom: 0,
+                  width: 2,
+                  background: "#ffffff",
+                  boxShadow: "0 0 4px #fff",
+                  pointerEvents: "none",
+                }}
+              />
+            )}
+          </div>
+        </div>
+
         <svg
           viewBox={`0 0 ${W} ${totalHeight}`}
           width="100%"
+          onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
-          onMouseLeave={() => !isPlaying && setCursorDist(null)}
-          style={{ cursor: "crosshair", overflow: "visible" }}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={() => {
+            handleMouseUp();
+            if (!isPlaying) setCursorDist(null);
+          }}
+          onWheel={handleWheel}
+          style={{
+            cursor: zoomLevel > 1 ? (isDraggingPan ? "grabbing" : "grab") : "crosshair",
+            overflow: "visible",
+            userSelect: "none",
+          }}
         >
           <defs>
             <filter id="glowA">
@@ -1216,6 +1584,14 @@ export default function DriverComparison({
             <filter id="glowB">
               <feDropShadow dx="0" dy="0" stdDeviation="1.5" floodColor={colorB} floodOpacity="0.5" />
             </filter>
+            <clipPath id="chartPlotClip">
+              <rect
+                x={PAD.left}
+                y={PAD.top}
+                width={W - PAD.left - PAD.right}
+                height={totalHeight - PAD.top - PAD.bottom}
+              />
+            </clipPath>
           </defs>
 
           {/* ── 1. SPEED CHANNEL (OVERLAY MODE) ── */}
@@ -1258,79 +1634,101 @@ export default function DriverComparison({
               })}
 
               {/* Turn markers */}
-              {turns.map((t) => {
-                const x = scaleX(t.distance);
-                return (
-                  <g key={t.number}>
-                    <line
-                      x1={x}
-                      y1={PAD.top}
-                      x2={x}
-                      y2={H_SPEED - PAD.bottom}
-                      stroke="#333342"
-                      strokeWidth="1"
-                    />
-                    <text
-                      x={x}
-                      y={PAD.top - 6}
-                      fill="#ffffff"
-                      fontSize="9"
-                      textAnchor="middle"
-                      fontFamily="IBM Plex Mono, monospace"
-                      fontWeight="700"
+              {turns
+                .filter((t) => t.distance >= viewStart - 60 && t.distance <= viewEnd + 60)
+                .map((t) => {
+                  const x = scaleX(t.distance);
+                  return (
+                    <g
+                      key={t.number}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleFocusTurn(t.distance);
+                      }}
+                      style={{ cursor: "pointer" }}
                     >
-                      T{t.number}
-                    </text>
-                  </g>
-                );
-              })}
+                      <line
+                        x1={x}
+                        y1={PAD.top}
+                        x2={x}
+                        y2={H_SPEED - PAD.bottom}
+                        stroke="#444458"
+                        strokeWidth="1"
+                        strokeDasharray="2 2"
+                      />
+                      <rect
+                        x={x - 12}
+                        y={PAD.top - 16}
+                        width={24}
+                        height={14}
+                        rx={2}
+                        fill="#181822"
+                        stroke="#3a3a4c"
+                      />
+                      <text
+                        x={x}
+                        y={PAD.top - 6}
+                        fill="#00E5FF"
+                        fontSize="9"
+                        textAnchor="middle"
+                        fontFamily="IBM Plex Mono, monospace"
+                        fontWeight="700"
+                      >
+                        T{t.number}
+                      </text>
+                    </g>
+                  );
+                })}
 
-              {/* Driver A: Crisp Thin Solid Line */}
-              <path
-                d={speedPathA}
-                fill="none"
-                stroke={colorA}
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                filter="url(#glowA)"
-              />
-
-              {/* Driver B: Crisp Thin Dashed Line */}
-              <path
-                d={speedPathB}
-                fill="none"
-                stroke={colorB}
-                strokeWidth="1.8"
-                strokeDasharray="6 3"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                filter="url(#glowB)"
-              />
-
-              {/* Live ghost markers on curves */}
-              {cursorPointA && (
-                <circle
-                  cx={scaleX(cursorPointA.Distance)}
-                  cy={scaleSpeedY(cursorPointA.Speed)}
-                  r={4.5}
-                  fill={colorA}
-                  stroke="#fff"
-                  strokeWidth="1.5"
+              {/* Clipped traces and markers */}
+              <g clipPath="url(#chartPlotClip)">
+                {/* Driver A: Crisp Thin Solid Line */}
+                <path
+                  d={speedPathA}
+                  fill="none"
+                  stroke={colorA}
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  filter="url(#glowA)"
                 />
-              )}
-              {cursorPointB && (
-                <rect
-                  x={scaleX(cursorPointB.Distance) - 4}
-                  y={scaleSpeedY(cursorPointB.Speed) - 4}
-                  width={8}
-                  height={8}
-                  transform={`rotate(45, ${scaleX(cursorPointB.Distance)}, ${scaleSpeedY(cursorPointB.Speed)})`}
-                  fill={colorB}
-                  stroke="#fff"
-                  strokeWidth="1.5"
+
+                {/* Driver B: Crisp Thin Dashed Line */}
+                <path
+                  d={speedPathB}
+                  fill="none"
+                  stroke={colorB}
+                  strokeWidth="1.8"
+                  strokeDasharray="6 3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  filter="url(#glowB)"
                 />
-              )}
+
+                {/* Live ghost markers on curves */}
+                {cursorPointA && cursorPointA.Distance >= viewStart && cursorPointA.Distance <= viewEnd && (
+                  <circle
+                    cx={scaleX(cursorPointA.Distance)}
+                    cy={scaleSpeedY(cursorPointA.Speed)}
+                    r={4.5}
+                    fill={colorA}
+                    stroke="#fff"
+                    strokeWidth="1.5"
+                  />
+                )}
+                {cursorPointB && cursorPointB.Distance >= viewStart && cursorPointB.Distance <= viewEnd && (
+                  <rect
+                    x={scaleX(cursorPointB.Distance) - 4}
+                    y={scaleSpeedY(cursorPointB.Speed) - 4}
+                    width={8}
+                    height={8}
+                    transform={`rotate(45, ${scaleX(cursorPointB.Distance)}, ${scaleSpeedY(cursorPointB.Speed)})`}
+                    fill={colorB}
+                    stroke="#fff"
+                    strokeWidth="1.5"
+                  />
+                )}
+              </g>
 
               <text
                 x={PAD.left + 8}
@@ -1357,24 +1755,26 @@ export default function DriverComparison({
                 fill="#0a0a0d"
                 stroke="#1c1c24"
               />
-              <path
-                d={speedPathSplitA}
-                fill="none"
-                stroke={colorA}
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                filter="url(#glowA)"
-              />
-              {cursorPointA && (
-                <circle
-                  cx={scaleX(cursorPointA.Distance)}
-                  cy={scaleSpeedY(cursorPointA.Speed, 160)}
-                  r={4.5}
-                  fill={colorA}
-                  stroke="#fff"
-                  strokeWidth="1.5"
+              <g clipPath="url(#chartPlotClip)">
+                <path
+                  d={speedPathSplitA}
+                  fill="none"
+                  stroke={colorA}
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  filter="url(#glowA)"
                 />
-              )}
+                {cursorPointA && cursorPointA.Distance >= viewStart && cursorPointA.Distance <= viewEnd && (
+                  <circle
+                    cx={scaleX(cursorPointA.Distance)}
+                    cy={scaleSpeedY(cursorPointA.Speed, 160)}
+                    r={4.5}
+                    fill={colorA}
+                    stroke="#fff"
+                    strokeWidth="1.5"
+                  />
+                )}
+              </g>
               <text x={PAD.left + 8} y={PAD.top + 14} fill={colorA} fontSize="10" fontFamily="IBM Plex Mono, monospace" fontWeight="700">
                 {driverA} SPEED ({cursorPointA?.Speed.toFixed(0)} KM/H)
               </text>
@@ -1389,27 +1789,29 @@ export default function DriverComparison({
                   fill="#0a0a0d"
                   stroke="#1c1c24"
                 />
-                <path
-                  d={speedPathSplitB}
-                  fill="none"
-                  stroke={colorB}
-                  strokeWidth="1.8"
-                  strokeDasharray="6 3"
-                  strokeLinecap="round"
-                  filter="url(#glowB)"
-                />
-                {cursorPointB && (
-                  <rect
-                    x={scaleX(cursorPointB.Distance) - 4}
-                    y={scaleSpeedY(cursorPointB.Speed, 160) - 4}
-                    width={8}
-                    height={8}
-                    transform={`rotate(45, ${scaleX(cursorPointB.Distance)}, ${scaleSpeedY(cursorPointB.Speed, 160)})`}
-                    fill={colorB}
-                    stroke="#fff"
-                    strokeWidth="1.5"
+                <g clipPath="url(#chartPlotClip)">
+                  <path
+                    d={speedPathSplitB}
+                    fill="none"
+                    stroke={colorB}
+                    strokeWidth="1.8"
+                    strokeDasharray="6 3"
+                    strokeLinecap="round"
+                    filter="url(#glowB)"
                   />
-                )}
+                  {cursorPointB && cursorPointB.Distance >= viewStart && cursorPointB.Distance <= viewEnd && (
+                    <rect
+                      x={scaleX(cursorPointB.Distance) - 4}
+                      y={scaleSpeedY(cursorPointB.Speed, 160) - 4}
+                      width={8}
+                      height={8}
+                      transform={`rotate(45, ${scaleX(cursorPointB.Distance)}, ${scaleSpeedY(cursorPointB.Speed, 160)})`}
+                      fill={colorB}
+                      stroke="#fff"
+                      strokeWidth="1.5"
+                    />
+                  )}
+                </g>
                 <text x={PAD.left + 8} y={PAD.top + 14} fill={colorB} fontSize="10" fontFamily="IBM Plex Mono, monospace" fontWeight="700">
                   {driverB} SPEED ({cursorPointB?.Speed.toFixed(0)} KM/H)
                 </text>
@@ -1471,7 +1873,9 @@ export default function DriverComparison({
               </text>
 
               {/* Delta line */}
-              <path d={deltaPath} fill="none" stroke="#f5c518" strokeWidth="1.8" />
+              <g clipPath="url(#chartPlotClip)">
+                <path d={deltaPath} fill="none" stroke="#f5c518" strokeWidth="1.8" />
+              </g>
 
               <text
                 x={PAD.left + 8}
@@ -1534,8 +1938,10 @@ export default function DriverComparison({
               </text>
 
               {/* Throttle traces: Solid A vs Dashed B */}
-              <path d={throttlePathA} fill="none" stroke={colorA} strokeWidth="1.6" opacity="0.9" />
-              <path d={throttlePathB} fill="none" stroke={colorB} strokeWidth="1.6" strokeDasharray="5 2.5" opacity="0.9" />
+              <g clipPath="url(#chartPlotClip)">
+                <path d={throttlePathA} fill="none" stroke={colorA} strokeWidth="1.6" opacity="0.9" />
+                <path d={throttlePathB} fill="none" stroke={colorB} strokeWidth="1.6" strokeDasharray="5 2.5" opacity="0.9" />
+              </g>
 
               <text
                 x={PAD.left + 8}
@@ -1590,8 +1996,10 @@ export default function DriverComparison({
               </text>
 
               {/* Gear traces: Solid A vs Dashed B */}
-              <path d={gearPathA} fill="none" stroke={colorA} strokeWidth="1.6" />
-              <path d={gearPathB} fill="none" stroke={colorB} strokeWidth="1.6" strokeDasharray="5 2.5" />
+              <g clipPath="url(#chartPlotClip)">
+                <path d={gearPathA} fill="none" stroke={colorA} strokeWidth="1.6" />
+                <path d={gearPathB} fill="none" stroke={colorB} strokeWidth="1.6" strokeDasharray="5 2.5" />
+              </g>
 
               <text
                 x={PAD.left + 8}
@@ -1606,8 +2014,47 @@ export default function DriverComparison({
             </g>
           )}
 
+          {/* ── Dynamic Distance X-Axis Marks & Grid Lines ── */}
+          <g>
+            {distanceTicks.map((d) => {
+              const x = scaleX(d);
+              if (x < PAD.left || x > W - PAD.right) return null;
+              return (
+                <g key={d}>
+                  <line
+                    x1={x}
+                    y1={PAD.top}
+                    x2={x}
+                    y2={totalHeight - PAD.bottom}
+                    stroke="#191924"
+                    strokeWidth="1"
+                    strokeDasharray="2 3"
+                  />
+                  <line
+                    x1={x}
+                    y1={totalHeight - PAD.bottom}
+                    x2={x}
+                    y2={totalHeight - PAD.bottom + 5}
+                    stroke="#55556a"
+                    strokeWidth="1"
+                  />
+                  <text
+                    x={x}
+                    y={totalHeight - PAD.bottom + 15}
+                    fill="#888899"
+                    fontSize="9"
+                    textAnchor="middle"
+                    fontFamily="IBM Plex Mono, monospace"
+                  >
+                    {d}m
+                  </text>
+                </g>
+              );
+            })}
+          </g>
+
           {/* ── Simultaneous Hover/Play Cursor Bar ── */}
-          {cursorDist !== null && (
+          {cursorDist !== null && cursorDist >= viewStart && cursorDist <= viewEnd && (
             <line
               x1={scaleX(cursorDist)}
               y1={PAD.top}
@@ -1621,7 +2068,7 @@ export default function DriverComparison({
           )}
 
           {/* ── Tooltip Bubble ── */}
-          {cursorDist !== null && cursorPointA && cursorPointB && (
+          {cursorDist !== null && cursorDist >= viewStart && cursorDist <= viewEnd && cursorPointA && cursorPointB && (
             <g
               transform={`translate(${Math.min(
                 W - 200,
@@ -1696,6 +2143,7 @@ export default function DriverComparison({
                 <th style={{ padding: "8px 16px", color: colorB }}>{driverB} (DASHED) APEX</th>
                 <th style={{ padding: "8px 16px" }}>DELTA</th>
                 <th style={{ padding: "8px 16px" }}>ADVANTAGE</th>
+                <th style={{ padding: "8px 16px", textAlign: "right" }}>INSPECT</th>
               </tr>
             </thead>
             <tbody>
@@ -1703,8 +2151,19 @@ export default function DriverComparison({
                 const diff = t.speedA - t.speedB;
                 const adv = diff > 0 ? driverA : diff < 0 ? driverB : "EQUAL";
                 const advColor = diff > 0 ? colorA : diff < 0 ? colorB : "#888";
+                const isNear = cursorDist !== null && Math.abs(cursorDist - t.distance) < 40;
                 return (
-                  <tr key={t.turn} style={{ borderBottom: "1px solid #14141a" }}>
+                  <tr
+                    key={t.turn}
+                    onClick={() => handleFocusTurn(t.distance)}
+                    style={{
+                      borderBottom: "1px solid #14141a",
+                      cursor: "pointer",
+                      background: isNear ? "rgba(0, 229, 255, 0.08)" : "transparent",
+                      transition: "background 0.15s",
+                    }}
+                    title={`Click to zoom directly into Turn ${t.turn} (${t.distance}m)`}
+                  >
                     <td style={{ padding: "8px 16px", fontWeight: 700, color: "#eee" }}>
                       T{t.turn}
                     </td>
@@ -1737,6 +2196,27 @@ export default function DriverComparison({
                       >
                         {adv}
                       </span>
+                    </td>
+                    <td style={{ padding: "8px 16px", textAlign: "right" }}>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleFocusTurn(t.distance);
+                        }}
+                        style={{
+                          background: "#161622",
+                          border: "1px solid #2e2e42",
+                          color: "#00E5FF",
+                          borderRadius: 3,
+                          padding: "3px 8px",
+                          fontSize: 9,
+                          fontFamily: "IBM Plex Mono, monospace",
+                          fontWeight: 700,
+                          cursor: "pointer",
+                        }}
+                      >
+                        🔍 ZOOM T{t.turn}
+                      </button>
                     </td>
                   </tr>
                 );
