@@ -932,8 +932,11 @@ export async function loadTelemetry(
   const knownCompound = selectedSessionLap?.Compound ?? null;
   const knownTyreLife = selectedSessionLap?.TyreLife ?? null;
 
-  // 1. Try loading static pre-recorded FastF1 telemetry on disk
-  if (year === 2025) {
+  // 1. Try loading static pre-recorded FastF1 telemetry on disk.
+  //    Static files are Race-session data only. For Qualifying we ALWAYS use the
+  //    dynamic simulation engine so it can apply densifyTrackForQuali and produce
+  //    the proper high-density 50Hz uncompressed trace.
+  if (year === 2025 && !isQuali) {
     const padLap = String(targetLap).padStart(3, "0");
     try {
       const staticData = await json<LapTelemetry>(
@@ -945,9 +948,9 @@ export async function loadTelemetry(
           lap_time: knownLapTime ?? staticData.lap_time,
           compound: knownCompound ?? staticData.compound,
           tyre_life: knownTyreLife ?? staticData.tyre_life,
-          isCompressed: !isRawQuali,
-          samplingMode: isRawQuali ? "RAW_QUALIFYING_SENSITIVE" : "COMPRESSED_RACE_STINT",
-          samplingHz: isRawQuali ? 50 : 10,
+          isCompressed: true,
+          samplingMode: "COMPRESSED_RACE_STINT",
+          samplingHz: 10,
           compressionRatio: `1.0x (${staticData.telemetry.data.length} FastF1 Raw Points)`,
         };
       }
