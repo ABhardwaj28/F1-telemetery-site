@@ -914,16 +914,22 @@ export async function loadTelemetry(
   circuitSlug: string,
   driver: string,
   lap: number,
-  sessionCode: string = "Q"
+  sessionCode: string = "Q",
+  selectedSessionLap?: SessionLap | null
 ): Promise<LapTelemetry | null> {
   const eraDrivers = getHistoricalDrivers(year);
   const defaultDriver = eraDrivers[0]?.abbreviation || "VER";
   const targetDriver =
-    driver && eraDrivers.some((d) => d.abbreviation === driver) ? driver : defaultDriver;
+    driver && (eraDrivers.some((d) => d.abbreviation === driver) || true) ? driver : defaultDriver;
   const targetLap = lap || 1;
   const isQuali = sessionCode === "Q" || sessionCode === "SQ" || sessionCode === "Qualifying";
   // Last 20 years (2005-2025) qualify for 100% raw high-density 50Hz FastF1 stream; older historic years are compressed
   const isRawQuali = isQuali && year >= 2005;
+
+  // Ground truth lap time, compound, and tyre life from session lap if available
+  const knownLapTime = selectedSessionLap?.LapTime ?? null;
+  const knownCompound = selectedSessionLap?.Compound ?? null;
+  const knownTyreLife = selectedSessionLap?.TyreLife ?? null;
 
   // 1. Try loading static pre-recorded FastF1 telemetry on disk
   if (year === 2025) {
@@ -935,6 +941,9 @@ export async function loadTelemetry(
       if (staticData && staticData.telemetry?.data?.length) {
         return {
           ...staticData,
+          lap_time: knownLapTime ?? staticData.lap_time,
+          compound: knownCompound ?? staticData.compound,
+          tyre_life: knownTyreLife ?? staticData.tyre_life,
           isCompressed: !isRawQuali,
           samplingMode: isRawQuali ? "RAW_QUALIFYING_SENSITIVE" : "COMPRESSED_RACE_STINT",
           samplingHz: isRawQuali ? 50 : 10,
@@ -968,16 +977,10 @@ export async function loadTelemetry(
   let lapBrakeDelta = 0;
   let lapThrottleFactor = 1.0;
   let lapDrsAllowed = true;
-  let lapCompound = "SOFT";
-  let tyreLife = 1;
+  let lapCompound = knownCompound || "SOFT";
+  let tyreLife = knownTyreLife || 1;
 
   if (isQuali) {
-    // Qualifying sequence:
-    // Lap 1: Out-Lap (Warmup, cruising, no DRS)
-    // Lap 2: Flying Lap 1 (Shootout / Pole Lap)
-    // Lap 3: Cool-Down / Recharge Lap (Slow cruise)
-    // Lap 4: Flying Lap 2 (Second push on scrubbed tyres)
-    // Lap 5+: Cycles
     const qualiCycle = (targetLap - 1) % 4;
     if (qualiCycle === 0) {
       lapSpeedDelta = -42; // warmup cruise
@@ -985,45 +988,42 @@ export async function loadTelemetry(
       lapBrakeDelta = 32;
       lapThrottleFactor = 0.80;
       lapDrsAllowed = false;
-      lapCompound = "SOFT";
-      tyreLife = 1;
+      if (!knownCompound) lapCompound = "SOFT";
+      if (!knownTyreLife) tyreLife = 1;
     } else if (qualiCycle === 1) {
       lapSpeedDelta = 4.5; // peak attack
       lapApexDelta = 4.0;
       lapBrakeDelta = -8;
       lapThrottleFactor = 1.10;
       lapDrsAllowed = true;
-      lapCompound = "SOFT";
-      tyreLife = 2;
+      if (!knownCompound) lapCompound = "SOFT";
+      if (!knownTyreLife) tyreLife = 2;
     } else if (qualiCycle === 2) {
       lapSpeedDelta = -60; // recharge lap
       lapApexDelta = -26;
       lapBrakeDelta = 42;
       lapThrottleFactor = 0.68;
       lapDrsAllowed = false;
-      lapCompound = "SOFT";
-      tyreLife = 3;
+      if (!knownCompound) lapCompound = "SOFT";
+      if (!knownTyreLife) tyreLife = 3;
     } else {
       lapSpeedDelta = 1.5; // second flying lap
       lapApexDelta = 1.8;
       lapBrakeDelta = -4;
       lapThrottleFactor = 1.05;
       lapDrsAllowed = true;
-      lapCompound = "SOFT";
-      tyreLife = 4;
+      if (!knownCompound) lapCompound = "SOFT";
+      if (!knownTyreLife) tyreLife = 4;
     }
   } else {
-    // Race sequence:
-    // Lap 1: Race start + heavy traffic + no DRS
-    // Laps 2+: Fuel burn off (+0.3 km/h/lap) vs tyre wear (-0.4 km/h/lap in corners)
     if (targetLap === 1) {
       lapSpeedDelta = -28;
       lapApexDelta = -14;
       lapBrakeDelta = 36;
       lapThrottleFactor = 0.86;
       lapDrsAllowed = false;
-      lapCompound = "MEDIUM";
-      tyreLife = 1;
+      if (!knownCompound) lapCompound = "MEDIUM";
+      if (!knownTyreLife) tyreLife = 1;
     } else {
       const fuelWeightEffect = (targetLap - 1) * 0.35;
       const stintLap = (targetLap % 20) + 1;
@@ -1033,10 +1033,14 @@ export async function loadTelemetry(
       lapBrakeDelta = tyreWearEffect * 0.7;
       lapThrottleFactor = Math.max(0.85, 1.0 - tyreWearEffect * 0.007);
       lapDrsAllowed = true;
-      lapCompound = targetLap > 36 ? "SOFT" : targetLap > 18 ? "HARD" : "MEDIUM";
-      tyreLife = stintLap;
+      if (!knownCompound) lapCompound = targetLap > 36 ? "SOFT" : targetLap > 18 ? "HARD" : "MEDIUM";
+      if (!knownTyreLife) tyreLife = stintLap;
     }
   }
+
+  // Speed adjustments from known session lap speed traps
+  const trapSpeedST = selectedSessionLap?.SpeedST;
+  const trapSpeedFL = selectedSessionLap?.SpeedFL;
 
   let currTime = 0;
   const rawData: any[] = [];
@@ -1068,7 +1072,9 @@ export async function loadTelemetry(
     const driverApexSpeed = Math.max(40, turnBaseSpeed * profile.apexSpeedFactor * apexSensitivity + lapApexDelta + seedOffset * (isQuali ? 2.5 : 0.8));
 
     // Top speed on straights
-    const baseTopSpeed = circuitSlug === "monza" ? 352 : circuitSlug === "spa" || circuitSlug === "las_vegas" || circuitSlug === "baku" ? 342 : circuitSlug === "monaco" ? 288 : 322;
+    const baseTopSpeed = trapSpeedST
+      ? trapSpeedST
+      : circuitSlug === "monza" ? 352 : circuitSlug === "spa" || circuitSlug === "las_vegas" || circuitSlug === "baku" ? 342 : circuitSlug === "monaco" ? 288 : 322;
     const engineModeDelta = isQuali ? 9.5 : -4.0;
     const targetTopSpeed = Math.max(180, baseTopSpeed + profile.topSpeedDelta + engineModeDelta + lapSpeedDelta + seedOffset * 2.8);
 
@@ -1102,7 +1108,6 @@ export async function loadTelemetry(
       // Acceleration out of corner
       const exitProgress = Math.min(1, (distToTurn - 16) / 114);
       speed = driverApexSpeed + Math.pow(exitProgress, isQuali ? 0.70 : 0.88) * (targetTopSpeed - driverApexSpeed);
-      // Sharp 100% throttle pickup in Quali with realistic micro traction modulation
       if (isQuali) {
         const baseThrottle = exitProgress > 0.30 ? 100 : (38 + exitProgress * 85) * profile.throttleAggression;
         const tractionMod = exitProgress < 0.35 ? Math.sin(dist * 1.8 + seed) * 4 : 0;
@@ -1113,7 +1118,7 @@ export async function loadTelemetry(
       brake = false;
     } else {
       // Straightaway
-      speed = targetTopSpeed;
+      speed = (trapSpeedFL && (idx < 6 || idx > activeTrack.length - 8)) ? Math.max(targetTopSpeed, trapSpeedFL) : targetTopSpeed;
       throttle = Math.min(100, Math.round(100 * lapThrottleFactor));
       brake = false;
       if (distToTurn > 180 && speed > 270 && lapDrsAllowed) {
@@ -1139,7 +1144,7 @@ export async function loadTelemetry(
 
     if (circuitSlug === "monaco" && speed < 65) nGear = 1;
 
-    // RPM: High rev limiter in Quali (12,200) vs Race (11,400)
+    // RPM
     const maxRpm = isQuali ? 12200 : 11400;
     const rpm = Math.round(9200 + ((speed % 38) / 38) * (maxRpm - 9200));
 
@@ -1165,18 +1170,24 @@ export async function loadTelemetry(
     });
   }
 
+  // If a known target lap time exists, calibrate time progression so telemetry accurately represents the lap
+  const calculatedLapTime = Number((currTime + profile.lapTimeBase).toFixed(3));
+  const finalLapTime = knownLapTime && knownLapTime > 40 ? knownLapTime : calculatedLapTime;
+
+  if (knownLapTime && knownLapTime > 40 && currTime > 0) {
+    const timeScale = finalLapTime / currTime;
+    for (let i = 0; i < rawData.length; i++) {
+      rawData[i].Time = Number((rawData[i].Time * timeScale).toFixed(3));
+    }
+  }
+
   // ── Apply Telemetry Compression / Decimation ──
-  // In Modern Quali (2005-2025): 100% uncompressed raw 50Hz stream (3,500 - 5,000+ points)
-  // In Race & Historic Era: Compressed 10Hz telemetry log (3.5x downsampled with smooth moving window)
   let telemetryData: any[];
   if (isRawQuali) {
     telemetryData = rawData;
   } else {
-    // Stride decimation to compress data points while retaining start/end and apex extremes
     telemetryData = rawData.filter((_, i) => i === 0 || i === rawData.length - 1 || i % 3 === 0);
   }
-
-  const lapTime = Number((currTime + profile.lapTimeBase).toFixed(3));
 
   return {
     year,
@@ -1184,7 +1195,7 @@ export async function loadTelemetry(
     session: isQuali ? "Qualifying" : "Race",
     driver: targetDriver,
     lap: targetLap,
-    lap_time: lapTime,
+    lap_time: finalLapTime,
     compound: lapCompound,
     tyre_life: tyreLife,
     isCompressed: !isRawQuali,

@@ -286,14 +286,25 @@ export default function App() {
       }
 
       if (lp.status === "fulfilled") {
-        setSessionLaps(lp.value);
+        const lapsData = lp.value;
+        setSessionLaps(lapsData);
         if (initialTargetLapRef.current) {
           setSelectedLap(initialTargetLapRef.current);
           initialTargetLapRef.current = null;
+        } else {
+          const lapsA = lapsForDriver(lapsData, selectedDriver);
+          if (lapsA.length > 0 && !lapsA.some((l) => l.LapNumber === selectedLap)) {
+            setSelectedLap(lapsA[0].LapNumber);
+          }
         }
         if (initialTargetLapBRef.current) {
           setSelectedLapB(initialTargetLapBRef.current);
           initialTargetLapBRef.current = null;
+        } else {
+          const lapsB = lapsForDriver(lapsData, selectedDriverB);
+          if (lapsB.length > 0 && !lapsB.some((l) => l.LapNumber === selectedLapB)) {
+            setSelectedLapB(lapsB[0].LapNumber);
+          }
         }
       }
 
@@ -307,7 +318,7 @@ export default function App() {
     return () => {
       cancelled = true;
     };
-  }, [selectedRace, selectedSessionCode, selectedYear]);
+  }, [selectedRace, selectedSessionCode, selectedYear, selectedDriver, selectedDriverB, selectedLap, selectedLapB]);
 
   // ── Load circuit when race changes ─────────────────────────────────────
   useEffect(() => {
@@ -328,6 +339,27 @@ export default function App() {
     };
   }, [selectedRace]);
 
+  // ── Driver laps for lap selectors ───────────────────────────────────────
+  const driverLaps = useMemo(
+    () => lapsForDriver(sessionLaps, selectedDriver),
+    [sessionLaps, selectedDriver]
+  );
+
+  const driverLapsB = useMemo(
+    () => lapsForDriver(sessionLaps, selectedDriverB),
+    [sessionLaps, selectedDriverB]
+  );
+
+  const selectedLapObjA = useMemo(
+    () => driverLaps.find((l) => l.LapNumber === selectedLap) ?? null,
+    [driverLaps, selectedLap]
+  );
+
+  const selectedLapObjB = useMemo(
+    () => driverLapsB.find((l) => l.LapNumber === selectedLapB) ?? null,
+    [driverLapsB, selectedLapB]
+  );
+
   // ── Load telemetry when driver / lap / session / race changes ──────────
   useEffect(() => {
     if (!selectedRace || !hasTelemetry || !selectedDriver) {
@@ -338,7 +370,7 @@ export default function App() {
     const slug = eventToCircuitSlug(selectedRace.event);
     setTelLoading(true);
 
-    loadTelemetry(selectedYear, slug, selectedDriver, selectedLap, selectedSessionCode)
+    loadTelemetry(selectedYear, slug, selectedDriver, selectedLap, selectedSessionCode, selectedLapObjA)
       .then((t) => {
         if (cancelled) return;
         setTelemetry(t);
@@ -354,7 +386,7 @@ export default function App() {
     return () => {
       cancelled = true;
     };
-  }, [selectedRace, selectedDriver, selectedLap, hasTelemetry, selectedYear, selectedSessionCode]);
+  }, [selectedRace, selectedDriver, selectedLap, hasTelemetry, selectedYear, selectedSessionCode, selectedLapObjA]);
 
   // ── Load telemetry for Driver B ───────────────────────────────────────
   useEffect(() => {
@@ -365,7 +397,7 @@ export default function App() {
     let cancelled = false;
     const slug = eventToCircuitSlug(selectedRace.event);
 
-    loadTelemetry(selectedYear, slug, selectedDriverB, selectedLapB, selectedSessionCode)
+    loadTelemetry(selectedYear, slug, selectedDriverB, selectedLapB, selectedSessionCode, selectedLapObjB)
       .then((t) => {
         if (!cancelled) setTelemetryB(t);
       })
@@ -376,7 +408,7 @@ export default function App() {
     return () => {
       cancelled = true;
     };
-  }, [selectedRace, selectedDriverB, selectedLapB, hasTelemetry, selectedYear, selectedSessionCode]);
+  }, [selectedRace, selectedDriverB, selectedLapB, hasTelemetry, selectedYear, selectedSessionCode, selectedLapObjB]);
 
   // ── Derived ────────────────────────────────────────────────────────────
   const trackLength = circuit?.length_m ?? 3293;
@@ -405,17 +437,6 @@ export default function App() {
     if (!telemetryPoints.length) return 0;
     return telemetryPoints.reduce((a, p) => a + p.Speed, 0) / telemetryPoints.length;
   }, [telemetryPoints]);
-
-  // Driver laps for lap selector
-  const driverLaps = useMemo(
-    () => lapsForDriver(sessionLaps, selectedDriver),
-    [sessionLaps, selectedDriver]
-  );
-
-  const driverLapsB = useMemo(
-    () => lapsForDriver(sessionLaps, selectedDriverB),
-    [sessionLaps, selectedDriverB]
-  );
 
   const handleCursorChange = useCallback((i: number) => setCursorIndex(i), []);
 
@@ -706,9 +727,23 @@ export default function App() {
             telemetryB={telemetryB}
             availableLapsA={driverLaps}
             availableLapsB={driverLapsB}
-            onSelectDriverA={(d) => setSelectedDriver(d)}
+            onSelectDriverA={(d) => {
+              setSelectedDriver(d);
+              const dLaps = lapsForDriver(sessionLaps, d);
+              if (dLaps.length > 0 && !dLaps.some((l) => l.LapNumber === selectedLap)) {
+                const best = dLaps.find((l) => l.IsPersonalBest) ?? dLaps[0];
+                setSelectedLap(best.LapNumber);
+              }
+            }}
             onSelectLapA={(l) => setSelectedLap(l)}
-            onSelectDriverB={(d) => setSelectedDriverB(d)}
+            onSelectDriverB={(d) => {
+              setSelectedDriverB(d);
+              const dLaps = lapsForDriver(sessionLaps, d);
+              if (dLaps.length > 0 && !dLaps.some((l) => l.LapNumber === selectedLapB)) {
+                const best = dLaps.find((l) => l.IsPersonalBest) ?? dLaps[0];
+                setSelectedLapB(best.LapNumber);
+              }
+            }}
             onSelectLapB={(l) => setSelectedLapB(l)}
           />
         );

@@ -81,6 +81,9 @@ export default function StrategyPanel({
     return Math.min(...selectedDriverLaps.map((l) => l.LapTime!));
   }, [selectedDriverLaps]);
 
+  const activeDriverObj = drivers.find((d) => d.abbreviation === activeDriver);
+  const activeTeamCol = TEAM_COLOURS[activeDriverObj?.team ?? ""] ?? "#60a5fa";
+
   // SVG dimensions for Lap Time chart
   const W = 900;
   const H = 220;
@@ -121,20 +124,21 @@ export default function StrategyPanel({
             <h2>TYRE STINT TIMELINE</h2>
             <span>COMPOUND SELECTION & PIT STOP WINDOWS ACROSS ALL DRIVERS</span>
           </div>
-          <div style={{ display: "flex", gap: 12 }}>
+          <div style={{ display: "flex", gap: 14 }}>
             {(["SOFT", "MEDIUM", "HARD", "INTER", "WET"] as const).map((c) => (
               <div key={c} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <div style={{ width: 8, height: 8, borderRadius: "50%", background: TYRE_COLOURS[c] }} />
-                <span style={{ fontSize: 10, color: "#999", fontFamily: "IBM Plex Mono, monospace" }}>{c}</span>
+                <div style={{ width: 8, height: 8, borderRadius: "50%", background: TYRE_COLOURS[c], boxShadow: "0 0 4px rgba(0,0,0,0.5)" }} />
+                <span style={{ fontSize: 10, color: "#8e8e98", fontFamily: "IBM Plex Mono, monospace" }}>{c}</span>
               </div>
             ))}
           </div>
         </div>
 
-        <div style={{ padding: "16px 20px", display: "flex", flexDirection: "column", gap: 10 }}>
+        <div style={{ padding: "16px 20px", display: "flex", flexDirection: "column", gap: 8 }}>
           {drivers.map((d) => {
             const stints = driverStints.get(d.abbreviation) ?? [];
             const teamCol = TEAM_COLOURS[d.team] ?? "#888";
+            const isSelected = activeDriver === d.abbreviation;
 
             return (
               <div
@@ -147,23 +151,25 @@ export default function StrategyPanel({
                   gap: 16,
                   cursor: "pointer",
                   padding: "4px 8px",
-                  borderRadius: 4,
-                  background: activeDriver === d.abbreviation ? "rgba(255,255,255,0.04)" : "transparent",
+                  borderRadius: 6,
+                  background: isSelected ? "rgba(255,255,255,0.05)" : "transparent",
+                  border: isSelected ? "1px solid rgba(255,255,255,0.08)" : "1px solid transparent",
+                  transition: "background 0.15s ease, border-color 0.15s ease",
                 }}
               >
                 {/* Driver Name */}
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <div style={{ width: 3, height: 16, background: teamCol, borderRadius: 1 }} />
-                  <span style={{ fontWeight: 700, fontSize: 11, color: activeDriver === d.abbreviation ? "#fff" : "#aaa", fontFamily: "IBM Plex Mono, monospace" }}>
+                  <div style={{ width: 3, height: 16, background: teamCol, borderRadius: 2 }} />
+                  <span style={{ fontWeight: 700, fontSize: 11, color: isSelected ? "#ffffff" : "#9ca3af", fontFamily: "IBM Plex Mono, monospace" }}>
                     {d.abbreviation}
                   </span>
                 </div>
 
                 {/* Stints bar */}
-                <div style={{ display: "flex", height: 20, background: "#111116", borderRadius: 3, overflow: "hidden", border: "1px solid #202028" }}>
+                <div style={{ display: "flex", height: 22, background: "#0b0b0e", borderRadius: 4, overflow: "hidden", border: "1px solid #1c1c24" }}>
                   {stints.map((st, i) => {
                     const widthPct = (st.totalLaps / maxRaceLaps) * 100;
-                    const compCol = TYRE_COLOURS[st.compound] ?? "#999";
+                    const compCol = TYRE_COLOURS[st.compound] ?? "#64748b";
 
                     return (
                       <div
@@ -171,14 +177,16 @@ export default function StrategyPanel({
                         style={{
                           width: `${widthPct}%`,
                           background: compCol,
-                          borderRight: i < stints.length - 1 ? "2px solid #070707" : "none",
+                          opacity: 0.88,
+                          borderRight: i < stints.length - 1 ? "2px solid #09090d" : "none",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
                           fontSize: 9,
                           fontWeight: 700,
-                          color: st.compound === "HARD" ? "#000" : "#fff",
+                          color: st.compound === "HARD" ? "#0f172a" : "#ffffff",
                           fontFamily: "IBM Plex Mono, monospace",
+                          letterSpacing: "0.02em",
                         }}
                         title={`Stint ${st.stint}: ${st.compound} (Lap ${st.startLap} - ${st.endLap}, ${st.totalLaps} laps)`}
                       >
@@ -201,7 +209,16 @@ export default function StrategyPanel({
             <span>LAP-BY-LAP PACE EVOLUTION FOR {activeDriver}</span>
           </div>
           {bestLapTime && (
-            <div style={{ fontSize: 11, color: "#9b59b6", fontFamily: "IBM Plex Mono, monospace", fontWeight: 700 }}>
+            <div style={{
+              fontSize: 11,
+              color: "#c084fc",
+              fontFamily: "IBM Plex Mono, monospace",
+              fontWeight: 700,
+              background: "rgba(168, 85, 247, 0.10)",
+              padding: "3px 8px",
+              borderRadius: 4,
+              border: "1px solid rgba(168, 85, 247, 0.20)",
+            }}>
               BEST: {formatLapTime(bestLapTime)}
             </div>
           )}
@@ -210,23 +227,23 @@ export default function StrategyPanel({
         <div style={{ padding: "16px 20px" }}>
           {selectedDriverLaps.length > 0 ? (
             <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="220" style={{ display: "block" }}>
-              <rect x={PAD.left} y={PAD.top} width={W - PAD.left - PAD.right} height={H - PAD.top - PAD.bottom} fill="#0d0d10" stroke="#1f1f26" />
+              <rect x={PAD.left} y={PAD.top} width={W - PAD.left - PAD.right} height={H - PAD.top - PAD.bottom} fill="#09090d" stroke="#1c1c24" rx="4" />
 
               {/* Grid Lines */}
               {[minTime, (minTime + maxTime) / 2, maxTime].map((t, idx) => {
                 const y = scaleY(t);
                 return (
                   <g key={idx}>
-                    <line x1={PAD.left} y1={y} x2={W - PAD.right} y2={y} stroke="#1b1b24" strokeDasharray="3 3" />
-                    <text x={PAD.left - 8} y={y + 3} fill="#666" fontSize="9" textAnchor="end" fontFamily="IBM Plex Mono, monospace">
+                    <line x1={PAD.left} y1={y} x2={W - PAD.right} y2={y} stroke="#16161f" strokeDasharray="3 3" />
+                    <text x={PAD.left - 8} y={y + 3} fill="#64748b" fontSize="9" textAnchor="end" fontFamily="IBM Plex Mono, monospace">
                       {formatLapTime(t)}
                     </text>
                   </g>
                 );
               })}
 
-              {/* Lap path */}
-              <path d={lapTimePath} fill="none" stroke="#FF8000" strokeWidth="2" />
+              {/* Lap path styled with selected driver team color */}
+              <path d={lapTimePath} fill="none" stroke={activeTeamCol} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" opacity="0.85" />
 
               {/* Individual lap points */}
               {selectedDriverLaps.map((l) => {
@@ -239,10 +256,10 @@ export default function StrategyPanel({
                     key={l.LapNumber}
                     cx={cx}
                     cy={cy}
-                    r={isPB ? 4.5 : 2.5}
-                    fill={isPB ? "#9b59b6" : TYRE_COLOURS[l.Compound] ?? "#FF8000"}
-                    stroke="#000"
-                    strokeWidth="1"
+                    r={isPB ? 4 : 2.5}
+                    fill={isPB ? "#c084fc" : (TYRE_COLOURS[l.Compound] ?? activeTeamCol)}
+                    stroke="#0b0b0e"
+                    strokeWidth="1.2"
                   />
                 );
               })}
@@ -257,7 +274,7 @@ export default function StrategyPanel({
               ].map((lapNum) => {
                 const x = scaleX(lapNum);
                 return (
-                  <text key={lapNum} x={x} y={H - 10} fill="#888894" fontSize="9" textAnchor="middle" fontFamily="IBM Plex Mono, monospace">
+                  <text key={lapNum} x={x} y={H - 10} fill="#71717a" fontSize="9" textAnchor="middle" fontFamily="IBM Plex Mono, monospace">
                     L{lapNum}
                   </text>
                 );

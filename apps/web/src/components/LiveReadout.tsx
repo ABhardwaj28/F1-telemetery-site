@@ -1,3 +1,4 @@
+import { TYRE_COLOURS } from "../types";
 import type { TelemetryPoint } from "../types";
 
 interface Props {
@@ -7,14 +8,6 @@ interface Props {
   tyreLife: number;
   lap: number;
 }
-
-const TYRE_COLOURS: Record<string, string> = {
-  SOFT: "#e10600",
-  MEDIUM: "#f5c518",
-  HARD: "#e8e8e8",
-  INTER: "#34d399",
-  WET: "#3b82f6",
-};
 
 function nearestTurn(dist: number, turns: { number: number; distance: number }[]) {
   if (!turns.length) return null;

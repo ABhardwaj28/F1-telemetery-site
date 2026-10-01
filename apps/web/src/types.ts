@@ -270,11 +270,11 @@ export const TEAM_COLOURS: Record<string, string> = {
 };
 
 export const TYRE_COLOURS: Record<string, string> = {
-  SOFT: "#e10600",
-  MEDIUM: "#f5c518",
-  HARD: "#e8e8e8",
-  INTER: "#34d399",
-  WET: "#3b82f6",
+  SOFT: "#b83838",
+  MEDIUM: "#c89b28",
+  HARD: "#9fa4b0",
+  INTER: "#2e9668",
+  WET: "#336fae",
   UNKNOWN: "#666",
 };
 
