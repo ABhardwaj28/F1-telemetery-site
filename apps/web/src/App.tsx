@@ -244,7 +244,19 @@ export default function App() {
     };
   }, [selectedYear]);
 
+  // Refs to read current lap/driver inside effects without making them deps
+  const currentDriverRef = useRef(selectedDriver);
+  const currentDriverBRef = useRef(selectedDriverB);
+  const currentLapRef = useRef(selectedLap);
+  const currentLapBRef = useRef(selectedLapB);
+  useEffect(() => { currentDriverRef.current = selectedDriver; }, [selectedDriver]);
+  useEffect(() => { currentDriverBRef.current = selectedDriverB; }, [selectedDriverB]);
+  useEffect(() => { currentLapRef.current = selectedLap; }, [selectedLap]);
+  useEffect(() => { currentLapBRef.current = selectedLapB; }, [selectedLapB]);
+
   // ── Load session data when race / session / year changes ───────────────
+  // IMPORTANT: selectedDriver, selectedDriverB, selectedLap, selectedLapB are intentionally
+  // NOT in the deps array — changing a lap should never trigger a full session re-fetch.
   useEffect(() => {
     if (!selectedRace) return;
     let cancelled = false;
@@ -288,12 +300,17 @@ export default function App() {
       if (lp.status === "fulfilled") {
         const lapsData = lp.value;
         setSessionLaps(lapsData);
+        // Read current lap/driver from refs to avoid circular deps
+        const currLap = currentLapRef.current;
+        const currLapB = currentLapBRef.current;
+        const currDriver = currentDriverRef.current;
+        const currDriverB = currentDriverBRef.current;
         if (initialTargetLapRef.current) {
           setSelectedLap(initialTargetLapRef.current);
           initialTargetLapRef.current = null;
         } else {
-          const lapsA = lapsForDriver(lapsData, selectedDriver);
-          if (lapsA.length > 0 && !lapsA.some((l) => l.LapNumber === selectedLap)) {
+          const lapsA = lapsForDriver(lapsData, currDriver);
+          if (lapsA.length > 0 && !lapsA.some((l) => l.LapNumber === currLap)) {
             setSelectedLap(lapsA[0].LapNumber);
           }
         }
@@ -301,8 +318,8 @@ export default function App() {
           setSelectedLapB(initialTargetLapBRef.current);
           initialTargetLapBRef.current = null;
         } else {
-          const lapsB = lapsForDriver(lapsData, selectedDriverB);
-          if (lapsB.length > 0 && !lapsB.some((l) => l.LapNumber === selectedLapB)) {
+          const lapsB = lapsForDriver(lapsData, currDriverB);
+          if (lapsB.length > 0 && !lapsB.some((l) => l.LapNumber === currLapB)) {
             setSelectedLapB(lapsB[0].LapNumber);
           }
         }
@@ -318,7 +335,8 @@ export default function App() {
     return () => {
       cancelled = true;
     };
-  }, [selectedRace, selectedSessionCode, selectedYear, selectedDriver, selectedDriverB, selectedLap, selectedLapB]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedRace, selectedSessionCode, selectedYear]);
 
   // ── Load circuit when race changes ─────────────────────────────────────
   useEffect(() => {

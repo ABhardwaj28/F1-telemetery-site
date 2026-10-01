@@ -923,8 +923,9 @@ export async function loadTelemetry(
     driver && (eraDrivers.some((d) => d.abbreviation === driver) || true) ? driver : defaultDriver;
   const targetLap = lap || 1;
   const isQuali = sessionCode === "Q" || sessionCode === "SQ" || sessionCode === "Qualifying";
-  // Last 20 years (2005-2025) qualify for 100% raw high-density 50Hz FastF1 stream; older historic years are compressed
-  const isRawQuali = isQuali && year >= 2005;
+  // ALL qualifying sessions are raw/uncompressed — high-precision data is always needed
+  // for qualifying lap comparison regardless of era (even historic reconstructions need full fidelity)
+  const isRawQuali = isQuali;
 
   // Ground truth lap time, compound, and tyre life from session lap if available
   const knownLapTime = selectedSessionLap?.LapTime ?? null;

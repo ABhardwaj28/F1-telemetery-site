@@ -65,7 +65,56 @@ export default function DriverComparison({
     circuit?.length_m ?? (ptsA.length ? ptsA[ptsA.length - 1].Distance : 5000);
   const turns = circuit?.turns ?? [];
 
-  // Simultaneous animation timer
+  // ── Telemetry interpolation helpers ──
+  // Linearly interpolate a value from a sorted telemetry array at a given distance.
+  // This is the key to cross-density sync: both datasets are sampled at the same
+  // distance regardless of how many raw points each has.
+  const interpolateAt = useCallback(
+    (pts: typeof ptsA, dist: number, field: keyof (typeof pts)[0]): number => {
+      if (!pts.length) return 0;
+      if (dist <= pts[0].Distance) return pts[0][field] as number;
+      if (dist >= pts[pts.length - 1].Distance) return pts[pts.length - 1][field] as number;
+      let lo = 0;
+      let hi = pts.length - 1;
+      while (lo < hi - 1) {
+        const mid = (lo + hi) >> 1;
+        if (pts[mid].Distance <= dist) lo = mid;
+        else hi = mid;
+      }
+      const t = (dist - pts[lo].Distance) / (pts[hi].Distance - pts[lo].Distance || 1);
+      return (pts[lo][field] as number) + t * ((pts[hi][field] as number) - (pts[lo][field] as number));
+    },
+    []
+  );
+
+  // O(log n) binary search for nearest brake value (avoids O(n²) .reduce scan)
+  const nearestBrake = useCallback((pts: typeof ptsA, dist: number): boolean => {
+    if (!pts.length) return false;
+    if (dist <= pts[0].Distance) return pts[0].Brake;
+    if (dist >= pts[pts.length - 1].Distance) return pts[pts.length - 1].Brake;
+    let lo = 0;
+    let hi = pts.length - 1;
+    while (lo < hi - 1) {
+      const mid = (lo + hi) >> 1;
+      if (pts[mid].Distance <= dist) lo = mid;
+      else hi = mid;
+    }
+    // Pick whichever neighbour is closer
+    return Math.abs(pts[lo].Distance - dist) <= Math.abs(pts[hi].Distance - dist)
+      ? pts[lo].Brake
+      : pts[hi].Brake;
+  }, []);
+
+  // Simultaneous animation timer — use actual average speed derived from lap data
+  // so the cursor moves at the real pace of the car, not a hardcoded 68 m/s constant.
+  const avgSpeedMs = useMemo(() => {
+    // Average speed in m/s: trackLength / lap_time
+    const lapTimeA = telemetryA?.lap_time ?? 0;
+    const lapTimeB = telemetryB?.lap_time ?? 0;
+    const lapTime = lapTimeA && lapTimeB ? Math.min(lapTimeA, lapTimeB) : (lapTimeA || lapTimeB || 90);
+    return lapTime > 0 ? trackLength / lapTime : trackLength / 90;
+  }, [trackLength, telemetryA, telemetryB]);
+
   const animFrameRef = useRef<number | null>(null);
   const lastTimeRef = useRef<number | null>(null);
 
@@ -79,7 +128,7 @@ export default function DriverComparison({
     const animate = (time: number) => {
       if (lastTimeRef.current != null) {
         const deltaSec = (time - lastTimeRef.current) / 1000;
-        const moveDist = 68 * deltaSec * playbackSpeed;
+        const moveDist = avgSpeedMs * deltaSec * playbackSpeed;
         setCursorDist((prev) => {
           const current = prev ?? 0;
           const next = current + moveDist;
@@ -97,33 +146,35 @@ export default function DriverComparison({
     return () => {
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
     };
-  }, [isPlaying, playbackSpeed, trackLength]);
+  }, [isPlaying, playbackSpeed, trackLength, avgSpeedMs]);
 
-  // Delta points simultaneous calculation
+  // Delta points — built on a unified distance grid sampled from whichever
+  // dataset is denser. Time values are linearly interpolated at each sample
+  // point so a 5000-pt quali trace vs a 1000-pt race trace stays in sync.
   const deltaPoints = useMemo(() => {
     if (!ptsA.length || !ptsB.length) return [];
 
-    let bIdx = 0;
-    return ptsA.map((pA) => {
-      while (bIdx < ptsB.length - 1 && ptsB[bIdx + 1].Distance < pA.Distance) {
-        bIdx++;
-      }
-      const pB = ptsB[bIdx] || pA;
-      const dt = pA.Time - pB.Time;
+    // Use the denser dataset's distance samples as the common grid
+    const samples = ptsA.length >= ptsB.length ? ptsA : ptsB;
+
+    return samples.map((sample) => {
+      const dist = sample.Distance;
+      const timeA = interpolateAt(ptsA, dist, "Time");
+      const timeB = interpolateAt(ptsB, dist, "Time");
       return {
-        distance: pA.Distance,
-        delta: dt,
-        speedA: pA.Speed,
-        speedB: pB.Speed,
-        throttleA: pA.Throttle,
-        throttleB: pB.Throttle,
-        brakeA: pA.Brake,
-        brakeB: pB.Brake,
-        gearA: pA.nGear,
-        gearB: pB.nGear,
+        distance: dist,
+        delta: timeA - timeB,
+        speedA: interpolateAt(ptsA, dist, "Speed"),
+        speedB: interpolateAt(ptsB, dist, "Speed"),
+        throttleA: interpolateAt(ptsA, dist, "Throttle"),
+        throttleB: interpolateAt(ptsB, dist, "Throttle"),
+        brakeA: nearestBrake(ptsA, dist),
+        brakeB: nearestBrake(ptsB, dist),
+        gearA: Math.round(interpolateAt(ptsA, dist, "nGear")),
+        gearB: Math.round(interpolateAt(ptsB, dist, "nGear")),
       };
     });
-  }, [ptsA, ptsB]);
+  }, [ptsA, ptsB, interpolateAt, nearestBrake]);
 
   // SVG dimensions
   const W = 960;
@@ -307,23 +358,51 @@ export default function DriverComparison({
     setCursorDist(dist);
   };
 
+  // Reset cursor to lap start whenever telemetry changes (new lap loaded)
+  useEffect(() => {
+    setCursorDist(null);
+    setIsPlaying(false);
+  }, [telemetryA, telemetryB]);
+
+  // Cursor readout: use interpolation so both drivers are evaluated at the
+  // *exact same distance* even when their telemetry densities differ.
+  const cursorDist_ = cursorDist ?? (ptsA.length ? ptsA[0].Distance : 0);
+
   const cursorPointA = useMemo(() => {
-    if (cursorDist === null || !ptsA.length) return ptsA[0] ?? null;
-    return ptsA.reduce((prev, curr) =>
-      Math.abs(curr.Distance - cursorDist) < Math.abs(prev.Distance - cursorDist)
-        ? curr
-        : prev
-    );
-  }, [cursorDist, ptsA]);
+    if (!ptsA.length) return null;
+    const dist = cursorDist_;
+    return {
+      Distance: dist,
+      Speed: interpolateAt(ptsA, dist, "Speed"),
+      Throttle: interpolateAt(ptsA, dist, "Throttle"),
+      Time: interpolateAt(ptsA, dist, "Time"),
+      nGear: Math.round(interpolateAt(ptsA, dist, "nGear")),
+      Brake: nearestBrake(ptsA, dist),
+      RPM: interpolateAt(ptsA, dist, "RPM"),
+      DRS: Math.round(interpolateAt(ptsA, dist, "DRS")),
+      X: interpolateAt(ptsA, dist, "X"),
+      Y: interpolateAt(ptsA, dist, "Y"),
+      Z: interpolateAt(ptsA, dist, "Z"),
+    };
+  }, [cursorDist_, ptsA, interpolateAt, nearestBrake]);
 
   const cursorPointB = useMemo(() => {
-    if (cursorDist === null || !ptsB.length) return ptsB[0] ?? null;
-    return ptsB.reduce((prev, curr) =>
-      Math.abs(curr.Distance - cursorDist) < Math.abs(prev.Distance - cursorDist)
-        ? curr
-        : prev
-    );
-  }, [cursorDist, ptsB]);
+    if (!ptsB.length) return null;
+    const dist = cursorDist_;
+    return {
+      Distance: dist,
+      Speed: interpolateAt(ptsB, dist, "Speed"),
+      Throttle: interpolateAt(ptsB, dist, "Throttle"),
+      Time: interpolateAt(ptsB, dist, "Time"),
+      nGear: Math.round(interpolateAt(ptsB, dist, "nGear")),
+      Brake: nearestBrake(ptsB, dist),
+      RPM: interpolateAt(ptsB, dist, "RPM"),
+      DRS: Math.round(interpolateAt(ptsB, dist, "DRS")),
+      X: interpolateAt(ptsB, dist, "X"),
+      Y: interpolateAt(ptsB, dist, "Y"),
+      Z: interpolateAt(ptsB, dist, "Z"),
+    };
+  }, [cursorDist_, ptsB, interpolateAt, nearestBrake]);
 
   const lapDataA = useMemo(
     () => availableLapsA.find((l) => l.LapNumber === lapA) ?? (availableLapsA[0] || null),
@@ -359,7 +438,7 @@ export default function DriverComparison({
   const timeB = lapDataB?.LapTime ?? telemetryB?.lap_time ?? 0;
   const lapTimeDelta = timeA && timeB ? Number((timeA - timeB).toFixed(3)) : 0;
 
-  const currentDist = cursorDist ?? (ptsA.length ? ptsA[0].Distance : 0);
+  const currentDist = cursorDist_;
 
   // Sector times calculations
   const s1A = lapDataA?.Sector1Time ?? null;
