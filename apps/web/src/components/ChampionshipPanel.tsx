@@ -1,29 +1,46 @@
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import type { Calendar } from "../types";
-import { TEAM_COLOURS } from "../data/loader";
-import {
-  getHistoricalDriverStandings,
-  getHistoricalConstructorStandings,
-} from "../data/historicalSeasons";
+import { TEAM_COLOURS, loadChampionshipStandings } from "../data/loader";
+import type { ChampionshipStandings } from "../data/loader";
 
 interface ChampionshipPanelProps {
   calendar: Calendar;
   year: number;
 }
 
+/** Drivers who switched teams have "A / B" — colour by their most recent team. */
+function teamColour(team: string): string {
+  return TEAM_COLOURS[team] ?? TEAM_COLOURS[team.split(" / ").pop() ?? ""] ?? "#888";
+}
+
 export default function ChampionshipPanel({ calendar, year }: ChampionshipPanelProps) {
   const [tab, setTab] = useState<"drivers" | "constructors" | "calendar">("drivers");
+  const [standings, setStandings] = useState<ChampionshipStandings | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const driverStandings = useMemo(() => {
-    return getHistoricalDriverStandings(year);
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    loadChampionshipStandings(year).then((s) => {
+      if (cancelled) return;
+      setStandings(s);
+      setLoading(false);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [year]);
 
-  const constructorStandings = useMemo(() => {
-    return getHistoricalConstructorStandings(year);
-  }, [year]);
+  const driverStandings = standings?.drivers ?? [];
+  const constructorStandings = standings?.constructors ?? [];
 
   const maxDriverPts = driverStandings[0]?.points || 1;
   const maxConstructorPts = constructorStandings[0]?.points || 1;
+  const sourceLabel = loading
+    ? "LOADING OFFICIAL STANDINGS…"
+    : standings?.source === "jolpica"
+    ? `OFFICIAL FIA CLASSIFICATION${standings.round ? ` · AFTER ROUND ${standings.round}` : ""}`
+    : "OFFLINE — CACHED FINAL POINTS (WINS/PODIUMS UNAVAILABLE)";
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -32,6 +49,9 @@ export default function ChampionshipPanel({ calendar, year }: ChampionshipPanelP
         <div>
           <div className="eyebrow">FIA FORMULA ONE WORLD CHAMPIONSHIP · {year}</div>
           <h1 style={{ fontSize: 32, margin: "10px 0 0" }}>CHAMPIONSHIP STANDINGS</h1>
+          <div style={{ marginTop: 6, fontSize: 10, color: "#777782", fontFamily: "IBM Plex Mono, monospace" }}>
+            {sourceLabel}
+          </div>
         </div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           {(["drivers", "constructors", "calendar"] as const).map((t) => (
@@ -82,7 +102,7 @@ export default function ChampionshipPanel({ calendar, year }: ChampionshipPanelP
               </thead>
               <tbody>
                 {driverStandings.map((d) => {
-                  const teamCol = TEAM_COLOURS[d.team] ?? "#888";
+                  const teamCol = teamColour(d.team);
                   const pct = (d.points / maxDriverPts) * 100;
 
                   return (
@@ -102,7 +122,10 @@ export default function ChampionshipPanel({ calendar, year }: ChampionshipPanelP
                           <div style={{ width: 3, height: 20, background: teamCol, borderRadius: 1 }} />
                           <div>
                             <span style={{ fontWeight: 700, color: "#fff", marginRight: 6 }}>{d.driver}</span>
-                            <span style={{ color: "#777", fontSize: 10 }}>#{d.driverNumber} · {d.driverName}</span>
+                            <span style={{ color: "#777", fontSize: 10 }}>
+                              {d.driverNumber ? `#${d.driverNumber} · ` : ""}
+                              {d.driverName}
+                            </span>
                           </div>
                         </div>
                       </td>
@@ -157,8 +180,17 @@ export default function ChampionshipPanel({ calendar, year }: ChampionshipPanelP
                 </tr>
               </thead>
               <tbody>
+                {!loading && constructorStandings.length === 0 && (
+                  <tr>
+                    <td colSpan={7} style={{ padding: "24px 16px", color: "#777", textAlign: "center" }}>
+                      {year < 1958
+                        ? "The Constructors' Championship was first awarded in 1958."
+                        : "Constructor standings unavailable."}
+                    </td>
+                  </tr>
+                )}
                 {constructorStandings.map((c) => {
-                  const teamCol = TEAM_COLOURS[c.team] ?? "#888";
+                  const teamCol = teamColour(c.team);
                   const pct = (c.points / maxConstructorPts) * 100;
 
                   return (

@@ -216,29 +216,30 @@ export const HISTORICAL_CALENDARS: Record<number, CalendarRace[]> = {
 
 export const HISTORICAL_DRIVERS: Record<number, SessionDriver[]> = {
   2025: [
-    { driver_number: "1", abbreviation: "VER", full_name: "Max Verstappen", team: "Red Bull Racing", position: 1, points: 410 },
-    { driver_number: "4", abbreviation: "NOR", full_name: "Lando Norris", team: "McLaren", position: 2, points: 385 },
-    { driver_number: "16", abbreviation: "LEC", full_name: "Charles Leclerc", team: "Ferrari", position: 3, points: 360 },
-    { driver_number: "44", abbreviation: "HAM", full_name: "Lewis Hamilton", team: "Ferrari", position: 4, points: 310 },
-    { driver_number: "81", abbreviation: "PIA", full_name: "Oscar Piastri", team: "McLaren", position: 5, points: 295 },
-    { driver_number: "63", abbreviation: "RUS", full_name: "George Russell", team: "Mercedes", position: 6, points: 260 },
-    { driver_number: "55", abbreviation: "SAI", full_name: "Carlos Sainz", team: "Williams", position: 7, points: 140 },
-    { driver_number: "12", abbreviation: "ANT", full_name: "Andrea Kimi Antonelli", team: "Mercedes", position: 8, points: 125 },
-    { driver_number: "14", abbreviation: "ALO", full_name: "Fernando Alonso", team: "Aston Martin", position: 9, points: 95 },
-    { driver_number: "23", abbreviation: "ALB", full_name: "Alexander Albon", team: "Williams", position: 10, points: 65 },
-    { driver_number: "22", abbreviation: "TSU", full_name: "Yuki Tsunoda", team: "Racing Bulls", position: 11, points: 45 },
-    { driver_number: "10", abbreviation: "GAS", full_name: "Pierre Gasly", team: "Alpine", position: 12, points: 40 },
-    { driver_number: "30", abbreviation: "LAW", full_name: "Liam Lawson", team: "Red Bull Racing", position: 13, points: 38 },
-    { driver_number: "31", abbreviation: "OCO", full_name: "Esteban Ocon", team: "Haas", position: 14, points: 32 },
-    { driver_number: "87", abbreviation: "BEA", full_name: "Oliver Bearman", team: "Haas", position: 15, points: 28 },
-    { driver_number: "27", abbreviation: "HUL", full_name: "Nico Hulkenberg", team: "Kick Sauber", position: 16, points: 20 },
-    { driver_number: "18", abbreviation: "STR", full_name: "Lance Stroll", team: "Aston Martin", position: 17, points: 18 },
-    { driver_number: "5", abbreviation: "BOR", full_name: "Gabriel Bortoleto", team: "Kick Sauber", position: 18, points: 12 },
-    { driver_number: "6", abbreviation: "HAD", full_name: "Isack Hadjar", team: "Racing Bulls", position: 19, points: 8 },
-    { driver_number: "7", abbreviation: "DOO", full_name: "Jack Doohan", team: "Alpine", position: 20, points: 6 },
+    { driver_number: "4", abbreviation: "NOR", full_name: "Lando Norris", team: "McLaren", position: 1, points: 423 },
+    { driver_number: "1", abbreviation: "VER", full_name: "Max Verstappen", team: "Red Bull Racing", position: 2, points: 421 },
+    { driver_number: "81", abbreviation: "PIA", full_name: "Oscar Piastri", team: "McLaren", position: 3, points: 410 },
+    { driver_number: "63", abbreviation: "RUS", full_name: "George Russell", team: "Mercedes", position: 4, points: 319 },
+    { driver_number: "16", abbreviation: "LEC", full_name: "Charles Leclerc", team: "Ferrari", position: 5, points: 242 },
+    { driver_number: "44", abbreviation: "HAM", full_name: "Lewis Hamilton", team: "Ferrari", position: 6, points: 156 },
+    { driver_number: "12", abbreviation: "ANT", full_name: "Andrea Kimi Antonelli", team: "Mercedes", position: 7, points: 150 },
+    { driver_number: "23", abbreviation: "ALB", full_name: "Alexander Albon", team: "Williams", position: 8, points: 73 },
+    { driver_number: "55", abbreviation: "SAI", full_name: "Carlos Sainz", team: "Williams", position: 9, points: 64 },
+    { driver_number: "14", abbreviation: "ALO", full_name: "Fernando Alonso", team: "Aston Martin", position: 10, points: 56 },
+    { driver_number: "27", abbreviation: "HUL", full_name: "Nico Hulkenberg", team: "Kick Sauber", position: 11, points: 51 },
+    { driver_number: "6", abbreviation: "HAD", full_name: "Isack Hadjar", team: "Racing Bulls", position: 12, points: 51 },
+    { driver_number: "87", abbreviation: "BEA", full_name: "Oliver Bearman", team: "Haas", position: 13, points: 41 },
+    { driver_number: "30", abbreviation: "LAW", full_name: "Liam Lawson", team: "Racing Bulls", position: 14, points: 38 },
+    { driver_number: "31", abbreviation: "OCO", full_name: "Esteban Ocon", team: "Haas", position: 15, points: 38 },
+    { driver_number: "18", abbreviation: "STR", full_name: "Lance Stroll", team: "Aston Martin", position: 16, points: 33 },
+    { driver_number: "22", abbreviation: "TSU", full_name: "Yuki Tsunoda", team: "Red Bull Racing", position: 17, points: 33 },
+    { driver_number: "10", abbreviation: "GAS", full_name: "Pierre Gasly", team: "Alpine", position: 18, points: 22 },
+    { driver_number: "5", abbreviation: "BOR", full_name: "Gabriel Bortoleto", team: "Kick Sauber", position: 19, points: 19 },
+    { driver_number: "43", abbreviation: "COL", full_name: "Franco Colapinto", team: "Alpine", position: 20, points: 0 },
+    { driver_number: "7", abbreviation: "DOO", full_name: "Jack Doohan", team: "Alpine", position: 21, points: 0 },
   ],
   2024: [
-    { driver_number: "1", abbreviation: "VER", full_name: "Max Verstappen", team: "Red Bull Racing", position: 1, points: 429 },
+    { driver_number: "1", abbreviation: "VER", full_name: "Max Verstappen", team: "Red Bull Racing", position: 1, points: 437 },
     { driver_number: "4", abbreviation: "NOR", full_name: "Lando Norris", team: "McLaren", position: 2, points: 374 },
     { driver_number: "16", abbreviation: "LEC", full_name: "Charles Leclerc", team: "Ferrari", position: 3, points: 356 },
     { driver_number: "81", abbreviation: "PIA", full_name: "Oscar Piastri", team: "McLaren", position: 4, points: 292 },
@@ -247,17 +248,21 @@ export const HISTORICAL_DRIVERS: Record<number, SessionDriver[]> = {
     { driver_number: "44", abbreviation: "HAM", full_name: "Lewis Hamilton", team: "Mercedes", position: 7, points: 223 },
     { driver_number: "11", abbreviation: "PER", full_name: "Sergio Perez", team: "Red Bull Racing", position: 8, points: 152 },
     { driver_number: "14", abbreviation: "ALO", full_name: "Fernando Alonso", team: "Aston Martin", position: 9, points: 70 },
-    { driver_number: "27", abbreviation: "HUL", full_name: "Nico Hulkenberg", team: "Haas", position: 10, points: 41 },
-    { driver_number: "22", abbreviation: "TSU", full_name: "Yuki Tsunoda", team: "Racing Bulls", position: 11, points: 30 },
-    { driver_number: "10", abbreviation: "GAS", full_name: "Pierre Gasly", team: "Alpine", position: 12, points: 26 },
+    { driver_number: "10", abbreviation: "GAS", full_name: "Pierre Gasly", team: "Alpine", position: 10, points: 42 },
+    { driver_number: "27", abbreviation: "HUL", full_name: "Nico Hulkenberg", team: "Haas", position: 11, points: 41 },
+    { driver_number: "22", abbreviation: "TSU", full_name: "Yuki Tsunoda", team: "Racing Bulls", position: 12, points: 30 },
     { driver_number: "18", abbreviation: "STR", full_name: "Lance Stroll", team: "Aston Martin", position: 13, points: 24 },
     { driver_number: "31", abbreviation: "OCO", full_name: "Esteban Ocon", team: "Alpine", position: 14, points: 23 },
     { driver_number: "20", abbreviation: "MAG", full_name: "Kevin Magnussen", team: "Haas", position: 15, points: 16 },
     { driver_number: "23", abbreviation: "ALB", full_name: "Alexander Albon", team: "Williams", position: 16, points: 12 },
-    { driver_number: "30", abbreviation: "LAW", full_name: "Liam Lawson", team: "Racing Bulls", position: 17, points: 4 },
-    { driver_number: "43", abbreviation: "COL", full_name: "Franco Colapinto", team: "Williams", position: 18, points: 5 },
-    { driver_number: "77", abbreviation: "BOT", full_name: "Valtteri Bottas", team: "Kick Sauber", position: 19, points: 0 },
-    { driver_number: "24", abbreviation: "ZHO", full_name: "Zhou Guanyu", team: "Kick Sauber", position: 20, points: 0 },
+    { driver_number: "3", abbreviation: "RIC", full_name: "Daniel Ricciardo", team: "Racing Bulls", position: 17, points: 12 },
+    { driver_number: "87", abbreviation: "BEA", full_name: "Oliver Bearman", team: "Haas", position: 18, points: 7 },
+    { driver_number: "43", abbreviation: "COL", full_name: "Franco Colapinto", team: "Williams", position: 19, points: 5 },
+    { driver_number: "24", abbreviation: "ZHO", full_name: "Zhou Guanyu", team: "Kick Sauber", position: 20, points: 4 },
+    { driver_number: "30", abbreviation: "LAW", full_name: "Liam Lawson", team: "Racing Bulls", position: 21, points: 4 },
+    { driver_number: "77", abbreviation: "BOT", full_name: "Valtteri Bottas", team: "Kick Sauber", position: 22, points: 0 },
+    { driver_number: "2", abbreviation: "SAR", full_name: "Logan Sargeant", team: "Williams", position: 23, points: 0 },
+    { driver_number: "7", abbreviation: "DOO", full_name: "Jack Doohan", team: "Alpine", position: 24, points: 0 },
   ],
   2023: [
     { driver_number: "1", abbreviation: "VER", full_name: "Max Verstappen", team: "Red Bull Racing", position: 1, points: 575 },
@@ -591,34 +596,32 @@ export function getHistoricalDrivers(
 // ─── Historical Driver & Constructor Standings ────────────────────────────────
 import type { DriverStanding, ConstructorStanding } from "../types";
 
+/**
+ * Offline fallback only — the Championship page loads official standings from
+ * the Jolpica (Ergast) API via `loadChampionshipStandings`. This fallback uses
+ * the curated final points above and never borrows another season's roster.
+ * Wins / podiums are unknown offline and reported as 0.
+ */
 export function getHistoricalDriverStandings(year: number): DriverStanding[] {
-  const drivers = getHistoricalDrivers(year);
-  if (!drivers.length) return [];
+  const drivers = HISTORICAL_DRIVERS[year];
+  if (!drivers || !drivers.length) return [];
 
-  // Base points scale based on ranking
-  const maxPts = year >= 2010 ? 413 : year >= 2003 ? 148 : year >= 1991 ? 108 : 90;
-  
-  return drivers.map((d, idx) => {
-    const pos = idx + 1;
-    const pts = Math.max(0, Math.round(maxPts * Math.pow(0.78, idx)));
-    const wins = pos === 1 ? (year >= 2020 ? 11 : 8) : pos === 2 ? 4 : pos === 3 ? 2 : pos <= 5 ? 1 : 0;
-    const podiums = pos === 1 ? 16 : pos === 2 ? 12 : pos === 3 ? 10 : pos <= 6 ? 4 : 0;
-    const gap = idx === 0 ? 0 : Math.round(maxPts - pts);
+  const sorted = [...drivers].sort((a, b) => (a.position ?? 99) - (b.position ?? 99));
+  const leaderPts = sorted[0].points ?? 0;
 
-    return {
-      position: pos,
-      driver: d.abbreviation,
-      driverNumber: d.driver_number,
-      driverName: d.full_name,
-      nationality: "FIA",
-      team: d.team,
-      points: pts,
-      wins,
-      podiums,
-      fastestLaps: pos <= 3 ? 3 : 0,
-      gapToLeader: gap,
-    };
-  });
+  return sorted.map((d, idx) => ({
+    position: idx + 1,
+    driver: d.abbreviation,
+    driverNumber: d.driver_number,
+    driverName: d.full_name,
+    nationality: "",
+    team: d.team,
+    points: d.points ?? 0,
+    wins: 0,
+    podiums: 0,
+    fastestLaps: 0,
+    gapToLeader: Math.max(0, leaderPts - (d.points ?? 0)),
+  }));
 }
 
 export function getHistoricalConstructorStandings(year: number): ConstructorStanding[] {

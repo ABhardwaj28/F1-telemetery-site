@@ -18,6 +18,8 @@ import type {
   Calendar,
   CalendarFile,
   CircuitData,
+  ConstructorStanding,
+  DriverStanding,
   LapTelemetry,
   RaceControlMessage,
   SessionDriver,
@@ -38,6 +40,8 @@ async function json<T>(url: string): Promise<T> {
 import {
   getHistoricalCalendar,
   getHistoricalDrivers,
+  getHistoricalDriverStandings,
+  getHistoricalConstructorStandings,
 } from "./historicalSeasons";
 
 // ─── Calendar ─────────────────────────────────────────────────────────────────
@@ -49,6 +53,149 @@ export async function loadCalendar(year: number): Promise<Calendar> {
     return file.events;
   } catch {
     return getHistoricalCalendar(year);
+  }
+}
+
+// ─── Championship standings (official, via Jolpica / Ergast) ─────────────────
+
+export interface ChampionshipStandings {
+  drivers: DriverStanding[];
+  constructors: ConstructorStanding[];
+  /** Round the standings are valid after (0 if unknown). */
+  round: number;
+  source: "jolpica" | "fallback";
+}
+
+const STANDINGS_CACHE = new Map<number, ChampionshipStandings>();
+
+/** Map Ergast constructor names onto the names used by TEAM_COLOURS. */
+function normalizeTeamName(name: string, year: number): string {
+  const n = name.replace(/\s+F1 Team$/i, "").trim();
+  if (n === "Red Bull") return "Red Bull Racing";
+  if (n === "RB") return "Racing Bulls";
+  if (n === "Sauber" && year >= 2024) return "Kick Sauber";
+  if (n === "Lotus F1") return "Lotus";
+  return n;
+}
+
+async function jolpica<T = any>(path: string, attempt = 0): Promise<T> {
+  const res = await fetch(`https://api.jolpi.ca/ergast/f1/${path}`);
+  if (res.status === 429 && attempt < 3) {
+    await new Promise((r) => setTimeout(r, 800 * (attempt + 1)));
+    return jolpica<T>(path, attempt + 1);
+  }
+  if (!res.ok) throw new Error(`${res.status} jolpica ${path}`);
+  return res.json() as Promise<T>;
+}
+
+function ergastCode(d: any): string {
+  return (
+    d.code ||
+    (d.familyName as string)
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^A-Za-z]/g, "")
+      .slice(0, 3)
+      .toUpperCase()
+  );
+}
+
+export async function loadChampionshipStandings(year: number): Promise<ChampionshipStandings> {
+  const cached = STANDINGS_CACHE.get(year);
+  if (cached) return cached;
+
+  try {
+    // Batch 1: standings tables (Jolpica allows ~4 req/s burst).
+    const [driverRes, constructorRes] = await Promise.all([
+      jolpica(`${year}/driverStandings.json?limit=100`),
+      jolpica(`${year}/constructorStandings.json?limit=100`).catch(() => null),
+    ]);
+    const list = driverRes?.MRData?.StandingsTable?.StandingsLists?.[0];
+    const rows: any[] = list?.DriverStandings ?? [];
+    if (!rows.length) throw new Error("no standings");
+
+    // Batch 2: P1/P2/P3 classifications to count podiums + season race numbers.
+    const podiumRaces = await Promise.all(
+      [1, 2, 3].map((p) =>
+        jolpica(`${year}/results/${p}.json?limit=100`)
+          .then((r) => (r?.MRData?.RaceTable?.Races ?? []) as any[])
+          .catch(() => [] as any[])
+      )
+    );
+    const driverPodiums = new Map<string, number>();
+    const teamPodiums = new Map<string, number>();
+    const raceNumber = new Map<string, string>();
+    podiumRaces.flat().forEach((race) => {
+      (race.Results ?? []).forEach((r: any) => {
+        const id = r.Driver.driverId;
+        driverPodiums.set(id, (driverPodiums.get(id) ?? 0) + 1);
+        const team = normalizeTeamName(r.Constructor.name, year);
+        teamPodiums.set(team, (teamPodiums.get(team) ?? 0) + 1);
+        if (r.number) raceNumber.set(id, r.number);
+      });
+    });
+
+    const leaderPts = Number(rows[0].points) || 0;
+    const teamDrivers = new Map<string, string[]>();
+
+    const drivers: DriverStanding[] = rows.map((s, idx) => {
+      const d = s.Driver;
+      const code = ergastCode(d);
+      const teams: string[] = (s.Constructors ?? []).map((c: any) => normalizeTeamName(c.name, year));
+      teams.forEach((t) => {
+        const arr = teamDrivers.get(t) ?? [];
+        if (!arr.includes(code)) arr.push(code);
+        teamDrivers.set(t, arr);
+      });
+      const pts = Number(s.points) || 0;
+      return {
+        position: Number(s.position) || idx + 1,
+        driver: code,
+        // Pre-2014 there were no permanent numbers; only trust them from 2014 on.
+        driverNumber: raceNumber.get(d.driverId) ?? (year >= 2014 ? d.permanentNumber ?? "" : ""),
+        driverName: `${d.givenName} ${d.familyName}`,
+        nationality: d.nationality ?? "",
+        team: teams.join(" / "),
+        points: pts,
+        wins: Number(s.wins) || 0,
+        podiums: driverPodiums.get(d.driverId) ?? 0,
+        fastestLaps: 0,
+        gapToLeader: Math.round((leaderPts - pts) * 10) / 10,
+      };
+    });
+
+    const cList = constructorRes?.MRData?.StandingsTable?.StandingsLists?.[0];
+    const cRows: any[] = cList?.ConstructorStandings ?? [];
+    const cLeader = Number(cRows[0]?.points) || 0;
+    const constructors: ConstructorStanding[] = cRows.map((c, idx) => {
+      const team = normalizeTeamName(c.Constructor.name, year);
+      const pts = Number(c.points) || 0;
+      return {
+        position: Number(c.position) || idx + 1,
+        team,
+        points: pts,
+        wins: Number(c.wins) || 0,
+        podiums: teamPodiums.get(team) ?? 0,
+        gapToLeader: Math.round((cLeader - pts) * 10) / 10,
+        drivers: teamDrivers.get(team) ?? [],
+      };
+    });
+
+    const result: ChampionshipStandings = {
+      drivers,
+      constructors,
+      round: Number(list?.round) || 0,
+      source: "jolpica",
+    };
+    STANDINGS_CACHE.set(year, result);
+    return result;
+  } catch {
+    return {
+      drivers: getHistoricalDriverStandings(year),
+      constructors: getHistoricalConstructorStandings(year),
+      round: 0,
+      source: "fallback",
+    };
   }
 }
 
