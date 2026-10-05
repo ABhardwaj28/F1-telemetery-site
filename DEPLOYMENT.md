@@ -30,13 +30,11 @@ Code remains the normal place to edit and run the project.
 
 ## Hosting boundary
 
-- Deploy `apps/web` as immutable static assets on a CDN-capable host.
-- Deploy `apps/api` as a separately health-checked service with `/health`.
+- **Static GitHub Pages (Client-Side Mode):** `apps/web` is deployed as an immutable static Single Page Application on GitHub Pages / CDN, reading pre-generated static session/telemetry datasets and directly accessing Jolpica Ergast for historical results.
+- **Full API Gateway Mode:** Deploy `apps/api` as a separately health-checked FastAPI service with `/health` and SQLite storage (`var/f1-data-lab.sqlite3`) when running a persistent backend tier.
 - Put the database and telemetry assets behind managed backups and retention.
-- Set `F1_ALLOWED_ORIGINS` to the exact production and preview domains; do not
-  use a wildcard CORS policy.
-- Run Jolpica and FastF1 importers as scheduled workers, never inside the API or
-  frontend runtime.
+- Set `F1_ALLOWED_ORIGINS` to the exact production and preview domains; do not use a wildcard CORS policy.
+- Run Jolpica and FastF1 importers as scheduled workers, never inside the API or frontend runtime.
 
 ## Compatibility rules
 

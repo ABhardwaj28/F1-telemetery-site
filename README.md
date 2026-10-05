@@ -8,7 +8,7 @@
 [![GitHub Repo](https://img.shields.io/badge/GitHub-F1--telemetery--site-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/ABhardwaj28/F1-telemetery-site)
 [![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Vite](https://img.shields.io/badge/Vite-6.0-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
+[![Vite](https://img.shields.io/badge/Vite-8.0+-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![FastF1](https://img.shields.io/badge/FastF1-3.8+-E10600?style=for-the-badge&logo=formula1&logoColor=white)](https://github.com/theOehrly/Fast-F1)
 
@@ -124,26 +124,79 @@ Corner locations are mapped against FastF1 `CircuitInfo` using minimum Euclidean
 
 ## 🚀 Quick Start
 
-### 1. Clone & Run Frontend
+### 1. Clone the Repository
 
 ```bash
-# Clone the repository
 git clone https://github.com/ABhardwaj28/F1-telemetery-site.git
 cd F1-telemetery-site
+```
 
-# Navigate to the web app
+### 2. Frontend Development (React + Vite)
+
+The frontend is a modern React 19 + TypeScript application powered by Vite.
+
+```bash
 cd apps/web
 
-# Install dependencies
+# Install frontend dependencies
 npm install
 
 # Start development server
 npm run dev
 ```
 
-Visit `http://localhost:5173` to explore the dashboard locally.
+Visit `http://localhost:5173` to explore the interactive dashboard locally.
 
-### 2. Build for Production
+### 3. Backend & Python Environment Setup
+
+The repository includes a FastAPI service (`apps/api`), shared data models (`packages/data-model`), and ingestion pipelines (`pipelines/`).
+
+```bash
+# From the repository root, create and activate a Python virtual environment
+python3 -m venv .venv
+source .venv/bin/activate
+
+# Install dependencies and editable packages
+pip install -r requirements.txt
+pip install -e packages/data-model
+pip install -e apps/api
+
+# Run the FastAPI backend service
+uvicorn apps.api.f1_api.main:app --reload --port 8000
+```
+
+The API health check is available at `http://localhost:8000/health` and OpenAPI interactive documentation at `http://localhost:8000/docs`.
+
+### 4. Running Test Suites
+
+Verify both frontend and backend contracts:
+
+```bash
+# Run Python backend unit tests (database, capability contracts, Jolpica normalisation)
+./.venv/bin/pytest
+
+# Run frontend TypeScript type checking and production build
+cd apps/web
+npm run build
+npm run lint
+```
+
+### 5. Data Ingestion & Telemetry Pipelines
+
+To extract official session telemetry, laps, and weather data using FastF1:
+
+```bash
+# Activate your Python virtual environment
+source .venv/bin/activate
+
+# Extract race and weather data for a given Grand Prix round (e.g. Monaco 2025)
+python scripts/build_race.py --year 2025 --round 8
+
+# Build circuit coordinate geometry and apex markers
+python scripts/build_turn_map.py
+```
+
+### 6. Production Build & Preview
 
 ```bash
 cd apps/web
