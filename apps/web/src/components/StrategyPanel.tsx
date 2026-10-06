@@ -17,7 +17,7 @@ export default function StrategyPanel({
   selectedDriver: controlledDriver,
   onSelectDriver,
 }: StrategyPanelProps) {
-  const [internalDriver, setInternalDriver] = useState<string>(drivers[0]?.abbreviation ?? "NOR");
+  const [internalDriver, setInternalDriver] = useState<string>(drivers[0]?.abbreviation ?? "LEC");
   const activeDriver = (controlledDriver && drivers.some(d => d.abbreviation === controlledDriver))
     ? controlledDriver
     : (drivers.some(d => d.abbreviation === internalDriver) ? internalDriver : (drivers[0]?.abbreviation ?? ""));

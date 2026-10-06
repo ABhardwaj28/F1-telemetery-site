@@ -47,35 +47,57 @@ const NAV = [
 
 // ─── Initial State from URL / Storage ─────────────────────────────────────────
 function getInitialAppState() {
+  const defaultState = {
+    page: "Race Explorer",
+    year: 2025,
+    raceEvent: "Australian Grand Prix",
+    sessionCode: "R",
+    driver: "LEC",
+    lap: 1,
+    driverB: "VER",
+    lapB: 1,
+  };
+
   if (typeof window === "undefined") {
-    return {
-      page: "Race Explorer",
-      year: 2025,
-      raceEvent: null as string | null,
-      sessionCode: "R",
-      driver: "NOR",
-      lap: 1,
-      driverB: "VER",
-      lapB: 1,
-    };
+    return defaultState;
   }
 
-  const params = new URLSearchParams(window.location.search);
-  const hasQueryParams = window.location.search.length > 1;
+  // Clear legacy / stale localStorage state stuck on 1970 or Monaco
+  try {
+    const raw = localStorage.getItem("f1_app_state");
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (
+        parsed.year === 1970 ||
+        (parsed.raceEvent && parsed.raceEvent.toLowerCase().includes("monaco")) ||
+        parsed.driver === "NOR"
+      ) {
+        localStorage.removeItem("f1_app_state");
+      }
+    }
+  } catch {}
 
-  // Clean homepage visit (e.g. from GitHub repo URL / description):
-  // Always load the primary Race Explorer dashboard
-  if (!hasQueryParams) {
-    return {
-      page: "Race Explorer",
-      year: 2025,
-      raceEvent: null as string | null,
-      sessionCode: "R",
-      driver: "NOR",
-      lap: 1,
-      driverB: "VER",
-      lapB: 1,
-    };
+  const params = new URLSearchParams(window.location.search);
+
+  // If query params are stuck on 1970 or Monaco from an old session, purge them
+  const rawParamYear = params.get("year");
+  const rawParamRace = params.get("race");
+  if (
+    rawParamYear === "1970" ||
+    (rawParamRace && rawParamRace.toLowerCase().includes("monaco") && rawParamYear !== "2025")
+  ) {
+    try {
+      localStorage.removeItem("f1_app_state");
+      window.history.replaceState(null, "", window.location.pathname);
+    } catch {}
+    return defaultState;
+  }
+
+  // If no explicit race or year query parameter is present in URL, ALWAYS open on default 2025 Australia Leclerc
+  const hasExplicitRace = Boolean(params.get("race"));
+  const hasExplicitYear = Boolean(params.get("year"));
+  if (!hasExplicitRace && !hasExplicitYear) {
+    return defaultState;
   }
 
   let localData: any = {};
@@ -96,12 +118,12 @@ function getInitialAppState() {
   const rawPage = params.get("tab") || localData.page || "Race Explorer";
   const page = validPages.includes(rawPage) ? rawPage : "Race Explorer";
 
-  const rawYear = params.get("year") ? Number(params.get("year")) : localData.year;
-  const year = rawYear && ALL_SUPPORTED_YEARS.includes(rawYear) ? rawYear : 2025;
+  const rawYear = params.get("year") ? Number(params.get("year")) : (localData.year ?? 2025);
+  const year = rawYear && ALL_SUPPORTED_YEARS.includes(rawYear) && rawYear !== 1970 ? rawYear : 2025;
 
-  const raceEvent = params.get("race") || localData.raceEvent || null;
+  const raceEvent = params.get("race") || localData.raceEvent || "Australian Grand Prix";
   const sessionCode = params.get("session") || localData.sessionCode || "R";
-  const driver = params.get("driver") || localData.driver || "NOR";
+  const driver = params.get("driver") || localData.driver || "LEC";
   const lap = params.get("lap") ? Number(params.get("lap")) : (localData.lap || 1);
   const driverB = params.get("driverB") || localData.driverB || "VER";
   const lapB = params.get("lapB") ? Number(params.get("lapB")) : (localData.lapB || 1);
@@ -121,8 +143,8 @@ export default function App() {
         initialCalendar.find((r) => initial.raceEvent!.toLowerCase().includes(r.event.toLowerCase()));
       if (match) return match;
     }
-    const monaco = initialCalendar.find((r) => r.event.toLowerCase().includes("monaco"));
-    return monaco ?? initialCalendar[0] ?? null;
+    const australia = initialCalendar.find((r) => r.event.toLowerCase().includes("australia"));
+    return australia ?? initialCalendar[0] ?? null;
   }, [initialCalendar, initial.raceEvent]);
 
   const initialTargetRaceRef = useRef<string | null>(initial.raceEvent);
@@ -229,8 +251,8 @@ export default function App() {
               cal.find((r) => targetName.toLowerCase().includes(r.event.toLowerCase()));
             if (match) return match;
           }
-          const monaco = cal.find((r) => r.event.toLowerCase().includes("monaco"));
-          return monaco ?? cal[0] ?? null;
+          const australia = cal.find((r) => r.event.toLowerCase().includes("australia"));
+          return australia ?? cal[0] ?? null;
         });
         setCalLoading(false);
       })
@@ -286,13 +308,21 @@ export default function App() {
           setSelectedDriver((currA: string) => {
             const desired = targetA || currA;
             const hasA = dList.some((d) => d.abbreviation === desired);
-            return hasA ? desired : dList[0].abbreviation;
+            if (hasA) return desired;
+            const leclerc = dList.find(
+              (d) => d.abbreviation === "LEC" || d.full_name?.toLowerCase().includes("leclerc")
+            );
+            return leclerc ? leclerc.abbreviation : dList[0].abbreviation;
           });
 
           setSelectedDriverB((currB: string) => {
             const desired = targetB || currB;
             const hasB = dList.some((d) => d.abbreviation === desired);
-            return hasB ? desired : (dList[1]?.abbreviation ?? dList[0].abbreviation);
+            if (hasB) return desired;
+            const verstappen = dList.find(
+              (d) => d.abbreviation === "VER" || d.full_name?.toLowerCase().includes("verstappen")
+            );
+            return verstappen ? verstappen.abbreviation : (dList[1]?.abbreviation ?? dList[0].abbreviation);
           });
         }
       }
@@ -460,8 +490,14 @@ export default function App() {
 
   const handleSelectDriver = useCallback((abbr: string) => {
     setSelectedDriver(abbr);
-    setSelectedLap(1);
-  }, []);
+    const dLaps = lapsForDriver(sessionLaps, abbr);
+    if (dLaps.length > 0) {
+      const best = dLaps.find((l) => l.IsPersonalBest) ?? dLaps[0];
+      setSelectedLap(best.LapNumber);
+    } else {
+      setSelectedLap(1);
+    }
+  }, [sessionLaps]);
 
   // ── Session tabs for selected race ────────────────────────────────────
   const sessionTabs = selectedRace?.sessions ?? [];
@@ -748,18 +784,24 @@ export default function App() {
             onSelectDriverA={(d) => {
               setSelectedDriver(d);
               const dLaps = lapsForDriver(sessionLaps, d);
-              if (dLaps.length > 0 && !dLaps.some((l) => l.LapNumber === selectedLap)) {
-                const best = dLaps.find((l) => l.IsPersonalBest) ?? dLaps[0];
-                setSelectedLap(best.LapNumber);
+              if (dLaps.length > 0) {
+                const hasLap = dLaps.some((l) => l.LapNumber === selectedLap);
+                if (!hasLap || selectedLap === 1) {
+                  const best = dLaps.find((l) => l.IsPersonalBest) ?? dLaps[0];
+                  setSelectedLap(best.LapNumber);
+                }
               }
             }}
             onSelectLapA={(l) => setSelectedLap(l)}
             onSelectDriverB={(d) => {
               setSelectedDriverB(d);
               const dLaps = lapsForDriver(sessionLaps, d);
-              if (dLaps.length > 0 && !dLaps.some((l) => l.LapNumber === selectedLapB)) {
-                const best = dLaps.find((l) => l.IsPersonalBest) ?? dLaps[0];
-                setSelectedLapB(best.LapNumber);
+              if (dLaps.length > 0) {
+                const hasLap = dLaps.some((l) => l.LapNumber === selectedLapB);
+                if (!hasLap || selectedLapB === 1) {
+                  const best = dLaps.find((l) => l.IsPersonalBest) ?? dLaps[0];
+                  setSelectedLapB(best.LapNumber);
+                }
               }
             }}
             onSelectLapB={(l) => setSelectedLapB(l)}

@@ -580,6 +580,21 @@ export default function DriverComparison({
     [availableLapsB]
   );
 
+  // Auto-sync lap selection when driver or available laps change so telemetry is always in sync
+  useEffect(() => {
+    if (availableLapsA.length > 0 && !availableLapsA.some((l) => l.LapNumber === lapA)) {
+      const best = availableLapsA.find((l) => l.IsPersonalBest) ?? availableLapsA[0];
+      if (best) onSelectLapA(best.LapNumber);
+    }
+  }, [availableLapsA, lapA, onSelectLapA]);
+
+  useEffect(() => {
+    if (availableLapsB.length > 0 && !availableLapsB.some((l) => l.LapNumber === lapB)) {
+      const best = availableLapsB.find((l) => l.IsPersonalBest) ?? availableLapsB[0];
+      if (best) onSelectLapB(best.LapNumber);
+    }
+  }, [availableLapsB, lapB, onSelectLapB]);
+
   const topSpeedA = ptsA.length ? Math.max(...ptsA.map((p) => p.Speed)) : 0;
   const topSpeedB = ptsB.length ? Math.max(...ptsB.map((p) => p.Speed)) : 0;
   const timeA = lapDataA?.LapTime ?? telemetryA?.lap_time ?? 0;
@@ -661,11 +676,18 @@ export default function DriverComparison({
                     style={{ background: "#111", color: "#ffffff", minWidth: 160 }}
                   >
                     {availableLapsA.length > 0 ? (
-                      availableLapsA.map((l) => (
-                        <option key={l.LapNumber} value={l.LapNumber} style={{ background: "#111", color: "#fff" }}>
-                          Lap {l.LapNumber} · {formatLapTime(l.LapTime)}{l.IsPersonalBest ? " ★ (PB)" : ""}{l.Compound ? ` [${l.Compound[0]}]` : ""}
-                        </option>
-                      ))
+                      <>
+                        {!availableLapsA.some((l) => l.LapNumber === lapA) && (
+                          <option key="syncing-a" value={lapA} disabled style={{ background: "#111", color: "#888" }}>
+                            Lap {lapA} (Syncing...)
+                          </option>
+                        )}
+                        {availableLapsA.map((l) => (
+                          <option key={l.LapNumber} value={l.LapNumber} style={{ background: "#111", color: "#fff" }}>
+                            Lap {l.LapNumber} · {formatLapTime(l.LapTime)}{l.IsPersonalBest ? " ★ (PB)" : ""}{l.Compound ? ` [${l.Compound[0]}]` : ""}
+                          </option>
+                        ))}
+                      </>
                     ) : (
                       Array.from({ length: 57 }, (_, i) => i + 1).map((n) => (
                         <option key={n} value={n} style={{ background: "#111", color: "#fff" }}>
@@ -797,11 +819,18 @@ export default function DriverComparison({
                     style={{ background: "#111", color: "#fff", minWidth: 160 }}
                   >
                     {availableLapsB.length > 0 ? (
-                      availableLapsB.map((l) => (
-                        <option key={l.LapNumber} value={l.LapNumber} style={{ background: "#111", color: "#fff" }}>
-                          Lap {l.LapNumber} · {formatLapTime(l.LapTime)}{l.IsPersonalBest ? " ★ (PB)" : ""}{l.Compound ? ` [${l.Compound[0]}]` : ""}
-                        </option>
-                      ))
+                      <>
+                        {!availableLapsB.some((l) => l.LapNumber === lapB) && (
+                          <option key="syncing-b" value={lapB} disabled style={{ background: "#111", color: "#888" }}>
+                            Lap {lapB} (Syncing...)
+                          </option>
+                        )}
+                        {availableLapsB.map((l) => (
+                          <option key={l.LapNumber} value={l.LapNumber} style={{ background: "#111", color: "#fff" }}>
+                            Lap {l.LapNumber} · {formatLapTime(l.LapTime)}{l.IsPersonalBest ? " ★ (PB)" : ""}{l.Compound ? ` [${l.Compound[0]}]` : ""}
+                          </option>
+                        ))}
+                      </>
                     ) : (
                       Array.from({ length: 57 }, (_, i) => i + 1).map((n) => (
                         <option key={n} value={n} style={{ background: "#111", color: "#fff" }}>

@@ -26,7 +26,7 @@ function line(points: [number, number][]) {
 export default function WeatherPanel({
   weather,
   year = 2025,
-  event = "Monaco Grand Prix",
+  event = "Australian Grand Prix",
   sessionCode = "R",
 }: Props) {
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);

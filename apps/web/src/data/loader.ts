@@ -34,6 +34,10 @@ const BASE = `${(import.meta.env.BASE_URL || "/").replace(/\/$/, "")}/data`;
 async function json<T>(url: string): Promise<T> {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`${res.status} ${url}`);
+  const ct = res.headers.get("content-type");
+  if (ct && !ct.includes("application/json") && !ct.includes("text/json")) {
+    throw new Error(`Expected JSON but got ${ct} from ${url}`);
+  }
   return res.json() as Promise<T>;
 }
 
@@ -44,16 +48,65 @@ import {
   getHistoricalConstructorStandings,
 } from "./historicalSeasons";
 
-// ─── Calendar ─────────────────────────────────────────────────────────────────
+const CALENDAR_CACHE = new Map<number, Calendar>();
 
 export async function loadCalendar(year: number): Promise<Calendar> {
+  if (CALENDAR_CACHE.has(year)) {
+    return CALENDAR_CACHE.get(year)!;
+  }
+
+  // 1. Try local calendar file on disk (available for 2023, 2024, 2025)
   try {
     const file = await json<CalendarFile>(`${BASE}/seasons/${year}/calendar.json`);
-    if (Array.isArray(file)) return file as unknown as Calendar;
-    return file.events;
+    const events = Array.isArray(file) ? (file as unknown as Calendar) : file.events;
+    if (events && events.length > 0) {
+      CALENDAR_CACHE.set(year, events);
+      return events;
+    }
   } catch {
-    return getHistoricalCalendar(year);
+    // Continue to official Jolpica F1 API
   }
+
+  // 2. Fetch official complete F1 calendar from Jolpica / Ergast API (1950 - 2025)
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 3500);
+    const res = await fetch(`https://api.jolpi.ca/ergast/f1/${year}.json?limit=50`, {
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+    if (res.ok) {
+      const data = await res.json();
+      const races = data?.MRData?.RaceTable?.Races;
+      if (Array.isArray(races) && races.length > 0) {
+        const cal: Calendar = races.map((r: any) => ({
+          round: Number(r.round),
+          event: r.raceName,
+          country: r.Circuit?.Location?.country ?? "",
+          location: r.Circuit?.Location?.locality ?? "",
+          official_name: `${r.season} ${r.raceName}`,
+          date: r.date ? `${r.date}T${r.time || "00:00:00"}` : `${year}-01-01T00:00:00`,
+          format: "conventional",
+          sessions: [
+            { name: "Practice 1", code: "FP1" },
+            { name: "Practice 2", code: "FP2" },
+            { name: "Practice 3", code: "FP3" },
+            { name: "Qualifying", code: "Q" },
+            { name: "Race", code: "R" },
+          ],
+        }));
+        CALENDAR_CACHE.set(year, cal);
+        return cal;
+      }
+    }
+  } catch {
+    // Continue to synthesized historical calendar fallback
+  }
+
+  // 3. Fallback to synthesized historical calendar
+  const fallback = getHistoricalCalendar(year);
+  CALENDAR_CACHE.set(year, fallback);
+  return fallback;
 }
 
 // ─── Championship standings (official, via Jolpica / Ergast) ─────────────────
@@ -221,7 +274,7 @@ async function fetchJolpicaRaceData(
   }
 
   try {
-    const cal = getHistoricalCalendar(year);
+    const cal = await loadCalendar(year);
     const targetSlug = eventToCircuitSlug(event);
     const raceMatch =
       cal.find((r) => eventToCircuitSlug(r.event) === targetSlug) ||
@@ -1079,6 +1132,36 @@ export async function loadTelemetry(
   const knownCompound = selectedSessionLap?.Compound ?? null;
   const knownTyreLife = selectedSessionLap?.TyreLife ?? null;
 
+function isValidStaticTelemetry(data: LapTelemetry | null | undefined): boolean {
+  if (!data?.telemetry?.data?.length) return false;
+  const pts = data.telemetry.data;
+  if (pts.length < 50) return false;
+
+  // Reject dummy placeholder coordinates (X: 1800, Y: 0, Z: 500)
+  if (pts[0].X === 1800 && pts[0].Y === 0 && pts[0].Z === 500) return false;
+
+  // Check for realistic speed and throttle variation
+  const uniqueSpeeds = new Set<number>();
+  const uniqueThrottles = new Set<number>();
+  let minSpeed = Infinity;
+  let maxSpeed = -Infinity;
+
+  for (let i = 0; i < Math.min(pts.length, 150); i++) {
+    const s = pts[i].Speed;
+    uniqueSpeeds.add(s);
+    uniqueThrottles.add(pts[i].Throttle);
+    if (s < minSpeed) minSpeed = s;
+    if (s > maxSpeed) maxSpeed = s;
+  }
+
+  // Reject dummy files with flat speeds (e.g. all 335 or 340) or stepped dummy throttle
+  if (uniqueSpeeds.size < 10) return false;
+  if (maxSpeed - minSpeed < 30) return false;
+  if (uniqueThrottles.size < 5) return false;
+
+  return true;
+}
+
   // 1. Try loading static pre-recorded FastF1 telemetry on disk.
   //    Static files are Race-session data only. For Qualifying we ALWAYS use the
   //    dynamic simulation engine so it can apply densifyTrackForQuali and produce
@@ -1089,10 +1172,28 @@ export async function loadTelemetry(
       const staticData = await json<LapTelemetry>(
         `${BASE}/telemetry/2025/${circuitSlug}/${targetDriver}/lap_${padLap}.json`
       );
-      if (staticData && staticData.telemetry?.data?.length) {
+      if (isValidStaticTelemetry(staticData)) {
+        const origLapTime =
+          staticData.lap_time ||
+          staticData.telemetry.data[staticData.telemetry.data.length - 1]?.Time ||
+          90;
+        const targetLapTime = knownLapTime && knownLapTime > 40 ? knownLapTime : origLapTime;
+
+        // If known lap time differs from static lap time, calibrate Time progression
+        if (knownLapTime && origLapTime > 0 && Math.abs(knownLapTime - origLapTime) > 0.05) {
+          const timeScale = targetLapTime / origLapTime;
+          for (let i = 0; i < staticData.telemetry.data.length; i++) {
+            staticData.telemetry.data[i].Time = Number(
+              (staticData.telemetry.data[i].Time * timeScale).toFixed(3)
+            );
+          }
+        }
+
         return {
           ...staticData,
-          lap_time: knownLapTime ?? staticData.lap_time,
+          driver: targetDriver,
+          lap: targetLap,
+          lap_time: targetLapTime,
           compound: knownCompound ?? staticData.compound,
           tyre_life: knownTyreLife ?? staticData.tyre_life,
           isCompressed: true,

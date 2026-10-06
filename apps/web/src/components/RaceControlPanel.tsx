@@ -25,7 +25,7 @@ const CATEGORY_ICONS: Record<string, string> = {
 export default function RaceControlPanel({
   messages,
   year = 2025,
-  event = "Monaco Grand Prix",
+  event = "Australian Grand Prix",
   sessionCode = "R",
 }: Props) {
   const isPreDigital = year < 1994;
