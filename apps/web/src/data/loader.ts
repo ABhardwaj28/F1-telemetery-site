@@ -35,7 +35,7 @@ import { eventToSlug, SESSION_FILE } from "../types";
 import monacoCircuit from "./monaco";
 
 export function getBaseUrl(): string {
-  const base = import.meta.env.BASE_URL || "/";
+  const base = (typeof import.meta !== "undefined" && import.meta.env?.BASE_URL) || "/";
   if (base.startsWith("http")) return `${base.replace(/\/$/, "")}/data`;
   if (base.startsWith("/")) return `${base.replace(/\/$/, "")}/data`;
   if (typeof window !== "undefined") {
