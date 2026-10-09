@@ -1,4 +1,4 @@
-import { TYRE_COLOURS } from "../types";
+import { getTyreColour } from "../types";
 import type { TelemetryPoint } from "../types";
 
 interface Props {
@@ -25,11 +25,12 @@ function nearestTurn(dist: number, turns: { number: number; distance: number }[]
 
 interface LiveReadoutProps extends Props {
   turns: { number: number; distance: number }[];
+  year?: number;
 }
 
-export default function LiveReadout({ point, lapTime, compound, tyreLife, lap, turns }: LiveReadoutProps) {
+export default function LiveReadout({ point, lapTime, compound, tyreLife, lap, turns, year }: LiveReadoutProps) {
   const nt = point ? nearestTurn(point.Distance, turns) : null;
-  const tyreCol = TYRE_COLOURS[compound] ?? "#888";
+  const tyreCol = getTyreColour(compound, year);
 
   const cells = [
     {

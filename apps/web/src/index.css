@@ -777,3 +777,24 @@ button {
     padding: 15px;
   }
 }
+
+/* DRIVER COMPARISON LOCKED CARDS GRID (never shifts or resizes on speed changes) */
+.driver-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 1120px) {
+  .driver-cards-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .driver-cards-grid {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+}

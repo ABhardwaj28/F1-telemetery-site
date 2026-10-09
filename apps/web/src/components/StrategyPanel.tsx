@@ -1,6 +1,12 @@
 import { useMemo, useState } from "react";
 import type { SessionDriver, SessionLap } from "../types";
-import { TEAM_COLOURS, TYRE_COLOURS, formatLapTime } from "../data/loader";
+import {
+  TEAM_COLOURS,
+  getTyreColour,
+  getTyreTextColor,
+  getTyreShort,
+  formatLapTime,
+} from "../data/loader";
 
 interface StrategyPanelProps {
   drivers: SessionDriver[];
@@ -8,6 +14,7 @@ interface StrategyPanelProps {
   sessionCode: string;
   selectedDriver?: string;
   onSelectDriver?: (driver: string) => void;
+  year?: number;
 }
 
 export default function StrategyPanel({
@@ -16,6 +23,7 @@ export default function StrategyPanel({
   sessionCode,
   selectedDriver: controlledDriver,
   onSelectDriver,
+  year,
 }: StrategyPanelProps) {
   const [internalDriver, setInternalDriver] = useState<string>(drivers[0]?.abbreviation ?? "LEC");
   const activeDriver = (controlledDriver && drivers.some(d => d.abbreviation === controlledDriver))
@@ -103,6 +111,26 @@ export default function StrategyPanel({
       .join(" ");
   }, [selectedDriverLaps, maxRaceLaps, minTime, maxTime]);
 
+  // Unique tyre compounds in this session's strategy
+  const displayedCompounds = useMemo(() => {
+    const set = new Set<string>();
+    driverStints.forEach((stints) => {
+      stints.forEach((s) => {
+        if (s.compound) set.add(s.compound);
+      });
+    });
+    if (!set.size) {
+      if (year && year === 2018) {
+        return ["HYPERSOFT", "ULTRASOFT", "SUPERSOFT", "SOFT", "MEDIUM", "HARD"];
+      }
+      if (year && year < 2018) {
+        return ["ULTRASOFT", "SUPERSOFT", "SOFT", "MEDIUM"];
+      }
+      return ["SOFT", "MEDIUM", "HARD", "INTER", "WET"];
+    }
+    return Array.from(set);
+  }, [driverStints, year]);
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       {/* ── Top Header ── */}
@@ -119,16 +147,33 @@ export default function StrategyPanel({
 
       {/* ── Tyre Stint Chart ── */}
       <div className="panel">
-        <div className="panel-title">
+        <div className="panel-title" style={{ flexWrap: "wrap", gap: 12 }}>
           <div>
             <h2>TYRE STINT TIMELINE</h2>
             <span>COMPOUND SELECTION & PIT STOP WINDOWS ACROSS ALL DRIVERS</span>
           </div>
-          <div style={{ display: "flex", gap: 14 }}>
-            {(["SOFT", "MEDIUM", "HARD", "INTER", "WET"] as const).map((c) => (
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+            {displayedCompounds.map((c) => (
               <div key={c} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <div style={{ width: 8, height: 8, borderRadius: "50%", background: TYRE_COLOURS[c], boxShadow: "0 0 4px rgba(0,0,0,0.5)" }} />
-                <span style={{ fontSize: 10, color: "#8e8e98", fontFamily: "IBM Plex Mono, monospace" }}>{c}</span>
+                <div
+                  style={{
+                    width: 9,
+                    height: 9,
+                    borderRadius: "50%",
+                    background: getTyreColour(c, year),
+                    boxShadow: "0 0 4px rgba(0,0,0,0.5)",
+                  }}
+                />
+                <span
+                  style={{
+                    fontSize: 10,
+                    color: "#9e9ea8",
+                    fontFamily: "IBM Plex Mono, monospace",
+                    fontWeight: 600,
+                  }}
+                >
+                  {c} ({getTyreShort(c)})
+                </span>
               </div>
             ))}
           </div>
@@ -169,7 +214,9 @@ export default function StrategyPanel({
                 <div style={{ display: "flex", height: 22, background: "#0b0b0e", borderRadius: 4, overflow: "hidden", border: "1px solid #1c1c24" }}>
                   {stints.map((st, i) => {
                     const widthPct = (st.totalLaps / maxRaceLaps) * 100;
-                    const compCol = TYRE_COLOURS[st.compound] ?? "#64748b";
+                    const compCol = getTyreColour(st.compound, year);
+                    const textColor = getTyreTextColor(st.compound, year);
+                    const shortCode = getTyreShort(st.compound);
 
                     return (
                       <div
@@ -177,20 +224,20 @@ export default function StrategyPanel({
                         style={{
                           width: `${widthPct}%`,
                           background: compCol,
-                          opacity: 0.88,
+                          opacity: 0.92,
                           borderRight: i < stints.length - 1 ? "2px solid #09090d" : "none",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
                           fontSize: 9,
                           fontWeight: 700,
-                          color: st.compound === "HARD" ? "#0f172a" : "#ffffff",
+                          color: textColor,
                           fontFamily: "IBM Plex Mono, monospace",
                           letterSpacing: "0.02em",
                         }}
                         title={`Stint ${st.stint}: ${st.compound} (Lap ${st.startLap} - ${st.endLap}, ${st.totalLaps} laps)`}
                       >
-                        {st.totalLaps >= 4 ? `${st.compound[0]} (${st.totalLaps}L)` : ""}
+                        {st.totalLaps >= 4 ? `${shortCode} (${st.totalLaps}L)` : st.totalLaps >= 2 ? shortCode : ""}
                       </div>
                     );
                   })}
@@ -257,7 +304,7 @@ export default function StrategyPanel({
                     cx={cx}
                     cy={cy}
                     r={isPB ? 4 : 2.5}
-                    fill={isPB ? "#c084fc" : (TYRE_COLOURS[l.Compound] ?? activeTeamCol)}
+                    fill={isPB ? "#c084fc" : (getTyreColour(l.Compound, year) ?? activeTeamCol)}
                     stroke="#0b0b0e"
                     strokeWidth="1.2"
                   />

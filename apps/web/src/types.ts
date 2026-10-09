@@ -270,13 +270,107 @@ export const TEAM_COLOURS: Record<string, string> = {
 };
 
 export const TYRE_COLOURS: Record<string, string> = {
-  SOFT: "#b83838",
-  MEDIUM: "#c89b28",
-  HARD: "#9fa4b0",
+  // Modern era (2019+)
+  SOFT: "#e10600",
+  MEDIUM: "#ffd12e",
+  HARD: "#ffffff",
+  // Historical Compounds (pre-2019 era)
+  HYPERSOFT: "#ff87b4",
+  ULTRASOFT: "#b138dd",
+  SUPERSOFT: "#e10600",
+  SUPERHARD: "#ea580c",
+  // Wet weather
   INTER: "#2e9668",
+  INTERMEDIATE: "#2e9668",
   WET: "#336fae",
-  UNKNOWN: "#666",
+  UNKNOWN: "#666666",
 };
+
+export const TYRE_SHORT: Record<string, string> = {
+  HYPERSOFT: "HS",
+  ULTRASOFT: "US",
+  SUPERSOFT: "SS",
+  SOFT: "S",
+  MEDIUM: "M",
+  HARD: "H",
+  SUPERHARD: "SH",
+  INTER: "I",
+  INTERMEDIATE: "I",
+  WET: "W",
+};
+
+/**
+ * Returns period-accurate colour for any tyre compound based on season year.
+ * Before 2019:
+ *  - SOFT was Yellow (#ffd12e)
+ *  - MEDIUM was White (#f0f0f0)
+ *  - HARD was Orange (#ff8000) (Ice Blue #00bfff in 2018)
+ *  - ULTRASOFT was Purple (#b138dd)
+ *  - SUPERSOFT was Red (#e10600)
+ *  - HYPERSOFT was Pink (#ff87b4)
+ *  - SUPERHARD was Orange (#ea580c)
+ * From 2019+:
+ *  - SOFT is Red (#e10600)
+ *  - MEDIUM is Yellow (#ffd12e)
+ *  - HARD is White (#ffffff)
+ */
+export function getTyreColour(compound?: string | null, year?: number): string {
+  if (!compound) return "#666666";
+  const norm = compound.trim().toUpperCase().replace(/\s+/g, "");
+
+  if (norm === "INTER" || norm === "INTERMEDIATE") return "#2e9668";
+  if (norm === "WET") return "#336fae";
+
+  if (year && year < 2019) {
+    switch (norm) {
+      case "HYPERSOFT":
+        return "#ff87b4";
+      case "ULTRASOFT":
+        return "#b138dd";
+      case "SUPERSOFT":
+        return "#e10600";
+      case "SOFT":
+        return "#ffd12e"; // Yellow in pre-2019
+      case "MEDIUM":
+        return "#f0f0f0"; // White in pre-2019
+      case "HARD":
+        return year === 2018 ? "#00bfff" : "#ff8000"; // Ice Blue in 2018, Orange in 2013-2017
+      case "SUPERHARD":
+        return "#ea580c";
+      default:
+        break;
+    }
+  }
+
+  return TYRE_COLOURS[norm] ?? "#888888";
+}
+
+/**
+ * Returns high-contrast text color (dark vs light) for text inside tyre badges.
+ */
+export function getTyreTextColor(compound?: string | null, year?: number): string {
+  const col = getTyreColour(compound, year).toLowerCase();
+  if (
+    col === "#ffd12e" ||
+    col === "#f0f0f0" ||
+    col === "#ffffff" ||
+    col === "#00bfff" ||
+    col === "#ff87b4" ||
+    col === "#c0c0c0"
+  ) {
+    return "#0f172a";
+  }
+  return "#ffffff";
+}
+
+/**
+ * Returns concise 1-2 letter acronym for tyre compound (e.g. US, SS, S, M, H, HS, SH, I, W).
+ */
+export function getTyreShort(compound?: string | null): string {
+  if (!compound) return "—";
+  const norm = compound.trim().toUpperCase().replace(/\s+/g, "");
+  return TYRE_SHORT[norm] ?? (norm.length <= 2 ? norm : norm.slice(0, 1));
+}
 
 export const FLAG_COLOURS: Record<string, string> = {
   GREEN: "#34d399",

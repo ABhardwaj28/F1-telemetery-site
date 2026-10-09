@@ -11,7 +11,7 @@ import type {
   WeatherPoint,
 } from "./types";
 import { ALL_SUPPORTED_YEARS, getHistoricalCalendar } from "./data/historicalSeasons";
-import { TEAM_COLOURS, TYRE_COLOURS, eventToCircuitSlug, SESSION_NAME } from "./data/loader";
+import { TEAM_COLOURS, getTyreColour, eventToCircuitSlug, SESSION_NAME } from "./data/loader";
 import {
   loadCalendar,
   loadCircuit,
@@ -21,6 +21,7 @@ import {
   loadTelemetry,
   loadWeather,
   lapsForDriver,
+  getOptimalLap,
   formatLapTime,
 } from "./data/loader";
 import TrackMap from "./components/TrackMap";
@@ -340,8 +341,8 @@ export default function App() {
           initialTargetLapRef.current = null;
         } else {
           const lapsA = lapsForDriver(lapsData, currDriver);
-          if (lapsA.length > 0 && !lapsA.some((l) => l.LapNumber === currLap)) {
-            setSelectedLap(lapsA[0].LapNumber);
+          if (lapsA.length > 0) {
+            setSelectedLap(getOptimalLap(lapsA, currLap));
           }
         }
         if (initialTargetLapBRef.current) {
@@ -349,8 +350,8 @@ export default function App() {
           initialTargetLapBRef.current = null;
         } else {
           const lapsB = lapsForDriver(lapsData, currDriverB);
-          if (lapsB.length > 0 && !lapsB.some((l) => l.LapNumber === currLapB)) {
-            setSelectedLapB(lapsB[0].LapNumber);
+          if (lapsB.length > 0) {
+            setSelectedLapB(getOptimalLap(lapsB, currLapB));
           }
         }
       }
@@ -418,7 +419,7 @@ export default function App() {
     const slug = eventToCircuitSlug(selectedRace.event);
     setTelLoading(true);
 
-    loadTelemetry(selectedYear, slug, selectedDriver, selectedLap, selectedSessionCode, selectedLapObjA)
+    loadTelemetry(selectedYear, slug, selectedDriver, selectedLap, selectedSessionCode, selectedLapObjA, selectedRace.event)
       .then((t) => {
         if (cancelled) return;
         setTelemetry(t);
@@ -445,7 +446,7 @@ export default function App() {
     let cancelled = false;
     const slug = eventToCircuitSlug(selectedRace.event);
 
-    loadTelemetry(selectedYear, slug, selectedDriverB, selectedLapB, selectedSessionCode, selectedLapObjB)
+    loadTelemetry(selectedYear, slug, selectedDriverB, selectedLapB, selectedSessionCode, selectedLapObjB, selectedRace.event)
       .then((t) => {
         if (!cancelled) setTelemetryB(t);
       })
@@ -492,8 +493,7 @@ export default function App() {
     setSelectedDriver(abbr);
     const dLaps = lapsForDriver(sessionLaps, abbr);
     if (dLaps.length > 0) {
-      const best = dLaps.find((l) => l.IsPersonalBest) ?? dLaps[0];
-      setSelectedLap(best.LapNumber);
+      setSelectedLap((prevLap: number) => getOptimalLap(dLaps, prevLap));
     } else {
       setSelectedLap(1);
     }
@@ -562,7 +562,7 @@ export default function App() {
                 </div>
                 <div className="metric">
                   <span>TYRE</span>
-                  <strong style={{ color: TYRE_COLOURS[telemetry.compound] ?? "#888" }}>
+                  <strong style={{ color: getTyreColour(telemetry.compound, selectedYear) }}>
                     {telemetry.compound}
                   </strong>
                 </div>
@@ -618,6 +618,7 @@ export default function App() {
                     </div>
                   ) : telemetryPoints.length ? (
                     <SpeedTrace
+                      key={`${selectedDriver}_${selectedLap}_${selectedSessionCode}_${selectedYear}`}
                       data={telemetryPoints}
                       turns={turns}
                       trackLength={trackLength}
@@ -673,6 +674,7 @@ export default function App() {
                 tyreLife={telemetry?.tyre_life ?? 0}
                 lap={selectedLap}
                 turns={turns}
+                year={selectedYear}
               />
             )}
 
@@ -684,6 +686,7 @@ export default function App() {
                 sessionCode={selectedSessionCode}
                 selectedDriver={selectedDriver}
                 onSelectDriver={handleSelectDriver}
+                year={selectedYear}
               />
             )}
 
@@ -781,15 +784,12 @@ export default function App() {
             telemetryB={telemetryB}
             availableLapsA={driverLaps}
             availableLapsB={driverLapsB}
+            year={selectedYear}
             onSelectDriverA={(d) => {
               setSelectedDriver(d);
               const dLaps = lapsForDriver(sessionLaps, d);
               if (dLaps.length > 0) {
-                const hasLap = dLaps.some((l) => l.LapNumber === selectedLap);
-                if (!hasLap || selectedLap === 1) {
-                  const best = dLaps.find((l) => l.IsPersonalBest) ?? dLaps[0];
-                  setSelectedLap(best.LapNumber);
-                }
+                setSelectedLap((prev: number) => getOptimalLap(dLaps, prev));
               }
             }}
             onSelectLapA={(l) => setSelectedLap(l)}
@@ -797,11 +797,7 @@ export default function App() {
               setSelectedDriverB(d);
               const dLaps = lapsForDriver(sessionLaps, d);
               if (dLaps.length > 0) {
-                const hasLap = dLaps.some((l) => l.LapNumber === selectedLapB);
-                if (!hasLap || selectedLapB === 1) {
-                  const best = dLaps.find((l) => l.IsPersonalBest) ?? dLaps[0];
-                  setSelectedLapB(best.LapNumber);
-                }
+                setSelectedLapB((prev: number) => getOptimalLap(dLaps, prev));
               }
             }}
             onSelectLapB={(l) => setSelectedLapB(l)}
@@ -815,6 +811,7 @@ export default function App() {
             sessionCode={selectedSessionCode}
             selectedDriver={selectedDriver}
             onSelectDriver={handleSelectDriver}
+            year={selectedYear}
           />
         );
       case "Race Control":
@@ -961,8 +958,6 @@ export default function App() {
               value={selectedSessionCode}
               onChange={(e) => {
                 setSelectedSessionCode(e.target.value);
-                setSelectedLap(1);
-                setSelectedLapB(1);
               }}
               style={selStyle}
             >

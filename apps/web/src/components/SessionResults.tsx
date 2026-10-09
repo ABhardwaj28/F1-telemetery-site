@@ -1,5 +1,5 @@
 import type { SessionDriver, SessionLap } from "../types";
-import { TEAM_COLOURS, TYRE_COLOURS } from "../types";
+import { TEAM_COLOURS, getTyreColour, getTyreShort } from "../types";
 import { formatLapTime, formatSector } from "../data/loader";
 
 interface Props {
@@ -8,15 +8,8 @@ interface Props {
   sessionCode: string;
   onSelectDriver: (abbr: string) => void;
   selectedDriver: string;
+  year?: number;
 }
-
-const TYRE_SHORT: Record<string, string> = {
-  SOFT: "S",
-  MEDIUM: "M",
-  HARD: "H",
-  INTER: "I",
-  WET: "W",
-};
 
 export default function SessionResults({
   drivers,
@@ -24,6 +17,7 @@ export default function SessionResults({
   sessionCode,
   onSelectDriver,
   selectedDriver,
+  year,
 }: Props) {
   const isRace = sessionCode === "R" || sessionCode === "S";
 
@@ -124,7 +118,7 @@ export default function SessionResults({
           const isSel = d.abbreviation === selectedDriver;
           const isFastest =
             lap && bestOverall && lap.LapTime === bestOverall.LapTime;
-          const tyreCol = TYRE_COLOURS[lap?.Compound ?? ""] ?? "#888";
+          const tyreCol = getTyreColour(lap?.Compound, year);
 
           return (
             <div
@@ -239,7 +233,7 @@ export default function SessionResults({
                     fontWeight: 700,
                   }}
                 >
-                  {TYRE_SHORT[lap?.Compound ?? ""] ?? "—"}
+                  {getTyreShort(lap?.Compound)}
                 </span>
               </div>
             </div>

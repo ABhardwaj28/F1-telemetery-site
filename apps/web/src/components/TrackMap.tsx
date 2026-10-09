@@ -10,13 +10,23 @@ interface Props {
 }
 
 function projectPoints(pts: TrackPoint[]) {
-  if (pts.length === 0) return { projected: [], minX: 0, maxX: 1, minY: 0, maxY: 1 };
-  const xs = pts.map((p) => p.x);
-  const ys = pts.map((p) => p.y);
-  const minX = Math.min(...xs);
-  const maxX = Math.max(...xs);
-  const minY = Math.min(...ys);
-  const maxY = Math.max(...ys);
+  if (!pts || pts.length === 0) return { projected: [], minX: 0, maxX: 1, minY: 0, maxY: 1 };
+  let minX = Infinity;
+  let maxX = -Infinity;
+  let minY = Infinity;
+  let maxY = -Infinity;
+
+  for (let i = 0; i < pts.length; i++) {
+    const p = pts[i] as any;
+    const x = p.x ?? p.X ?? 0;
+    const y = p.y ?? p.Y ?? 0;
+    if (x < minX) minX = x;
+    if (x > maxX) maxX = x;
+    if (y < minY) minY = y;
+    if (y > maxY) maxY = y;
+  }
+
+  if (minX === Infinity || isNaN(minX)) { minX = 0; maxX = 1; minY = 0; maxY = 1; }
   return { projected: pts, minX, maxX, minY, maxY };
 }
 
@@ -51,7 +61,9 @@ export default function TrackMap({ trackPoints, turns, carIndex, trackLength }: 
 
   const svgPoints = useMemo(
     () =>
-      projected.map((p) => toSvg(p.x, p.y, minX, maxX, minY, maxY, W, H, PAD)),
+      projected.map((p: any) =>
+        toSvg(p.x ?? p.X ?? 0, p.y ?? p.Y ?? 0, minX, maxX, minY, maxY, W, H, PAD)
+      ),
     [projected, minX, maxX, minY, maxY]
   );
 
@@ -59,14 +71,24 @@ export default function TrackMap({ trackPoints, turns, carIndex, trackLength }: 
 
   const turnSvgPositions = useMemo(
     () =>
-      turns.map((t) => ({
+      (turns || []).map((t: any) => ({
         ...t,
-        sx: toSvg(t.telemetry_x, t.telemetry_y, minX, maxX, minY, maxY, W, H, PAD),
+        sx: toSvg(
+          t.telemetry_x ?? t.x ?? 0,
+          t.telemetry_y ?? t.y ?? 0,
+          minX,
+          maxX,
+          minY,
+          maxY,
+          W,
+          H,
+          PAD
+        ),
       })),
     [turns, minX, maxX, minY, maxY]
   );
 
-  const carPt = svgPoints[Math.min(carIndex, svgPoints.length - 1)];
+  const carPt = svgPoints.length > 0 ? svgPoints[Math.max(0, Math.min(carIndex, svgPoints.length - 1))] : null;
 
   // Sector colours (rough 3-sector split)
   const sec1End = trackLength * 0.33;
@@ -158,7 +180,7 @@ export default function TrackMap({ trackPoints, turns, carIndex, trackLength }: 
       })}
 
       {/* Car position */}
-      {carPt && (
+      {carPt && !isNaN(carPt[0]) && !isNaN(carPt[1]) && (
         <g filter="url(#glow)">
           <circle cx={carPt[0]} cy={carPt[1]} r={10} fill="none" stroke="white" strokeWidth="1" opacity="0.4" />
           <circle cx={carPt[0]} cy={carPt[1]} r={6} fill="none" stroke="white" strokeWidth="1" opacity="0.7" />

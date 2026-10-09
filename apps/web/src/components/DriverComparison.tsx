@@ -5,7 +5,13 @@ import type {
   SessionDriver,
   SessionLap,
 } from "../types";
-import { TEAM_COLOURS, TYRE_COLOURS, formatLapTime } from "../data/loader";
+import {
+  TEAM_COLOURS,
+  getTyreColour,
+  getTyreShort,
+  getTyreTextColor,
+  formatLapTime,
+} from "../data/loader";
 
 interface DriverComparisonProps {
   circuit: CircuitData | null;
@@ -22,6 +28,7 @@ interface DriverComparisonProps {
   onSelectLapA: (lap: number) => void;
   onSelectDriverB: (driver: string) => void;
   onSelectLapB: (lap: number) => void;
+  year?: number;
 }
 
 export default function DriverComparison({
@@ -39,6 +46,7 @@ export default function DriverComparison({
   onSelectLapA,
   onSelectDriverB,
   onSelectLapB,
+  year,
 }: DriverComparisonProps) {
   const [cursorDist, setCursorDist] = useState<number | null>(null);
   const [visibleChannel, setVisibleChannel] = useState<"all" | "speed" | "inputs" | "delta">("all");
@@ -251,7 +259,10 @@ export default function DriverComparison({
   // SVG dimensions
   const W = 960;
   const H_SPEED = layoutMode === "split" ? 170 : 240;
-  const H_SPEED_SPLIT_TOTAL = 350;
+  const H_SPLIT_HEIGHT = 110;
+  const H_SPLIT_GAP = 20;
+  const H_SPLIT_TRACK = H_SPLIT_HEIGHT + 20 + 20; // 150
+  const H_SPEED_SPLIT_TOTAL = H_SPLIT_HEIGHT + H_SPLIT_GAP + H_SPLIT_TRACK; // 280
   const H_DELTA = 90;
   const H_THROTTLE = 90;
   const H_GEAR = 70;
@@ -339,13 +350,13 @@ export default function DriverComparison({
       .join(" ");
   }, [ptsB, scaleX, scaleSpeedY]);
 
-  // Split view paths
+  // Split view paths (strictly scaled to H_SPLIT_TRACK)
   const speedPathSplitA = useMemo(() => {
     if (!ptsA.length) return "";
     return ptsA
       .map(
         (p, i) =>
-          `${i === 0 ? "M" : "L"} ${scaleX(p.Distance).toFixed(1)} ${scaleSpeedY(p.Speed, 160).toFixed(1)}`
+          `${i === 0 ? "M" : "L"} ${scaleX(p.Distance).toFixed(1)} ${scaleSpeedY(p.Speed, H_SPLIT_TRACK).toFixed(1)}`
       )
       .join(" ");
   }, [ptsA, scaleX, scaleSpeedY]);
@@ -355,7 +366,7 @@ export default function DriverComparison({
     return ptsB
       .map(
         (p, i) =>
-          `${i === 0 ? "M" : "L"} ${scaleX(p.Distance).toFixed(1)} ${scaleSpeedY(p.Speed, 160).toFixed(1)}`
+          `${i === 0 ? "M" : "L"} ${scaleX(p.Distance).toFixed(1)} ${scaleSpeedY(p.Speed, H_SPLIT_TRACK).toFixed(1)}`
       )
       .join(" ");
   }, [ptsB, scaleX, scaleSpeedY]);
@@ -617,256 +628,141 @@ export default function DriverComparison({
   const s3Delta = s3A != null && s3B != null ? Number((s3A - s3B).toFixed(3)) : null;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       {/* ── Top Bar Selectors with Driver Colors & Quick Buttons ── */}
-      <div className="panel" style={{ padding: "16px 20px" }}>
+      <div
+        className="panel"
+        style={{
+          padding: "20px 24px",
+          background: "linear-gradient(180deg, #121219 0%, #0c0c11 100%)",
+          border: "1px solid #20202c",
+          borderRadius: 8,
+          boxShadow: "0 8px 24px rgba(0,0,0,0.35)",
+        }}
+      >
+        {/* Tier 1: Symmetrical Driver Matchup Header */}
         <div
           style={{
-            display: "flex",
-            flexWrap: "wrap",
-            justifyContent: "space-between",
-            alignItems: "center",
+            display: "grid",
+            gridTemplateColumns: "1fr auto 1fr",
             gap: 16,
+            alignItems: "center",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap" }}>
-            {/* Driver A */}
-            <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+          {/* Driver A */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              padding: "10px 14px",
+              background: "#0c0c11",
+              border: "1px solid #1e1e28",
+              borderLeft: `4px solid ${colorA}`,
+              borderRadius: 6,
+              minWidth: 0,
+            }}
+          >
+            <div style={{ flex: 1, minWidth: 0 }}>
               <div
                 style={{
-                  width: 5,
-                  height: 48,
-                  background: colorA,
-                  borderRadius: 2,
-                  boxShadow: `0 0 10px ${colorA}88`,
+                  fontSize: 10,
+                  color: colorA,
+                  letterSpacing: "0.08em",
+                  fontWeight: 700,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  marginBottom: 6,
                 }}
-              />
-              <div>
-                <div
-                  style={{
-                    fontSize: 10,
-                    color: colorA,
-                    letterSpacing: "0.08em",
-                    fontWeight: 700,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 6,
-                  }}
-                >
-                  <span style={{ width: 14, height: 2, background: colorA, display: "inline-block" }} />
-                  DRIVER A ({driverA}) — SOLID TRACE
-                </div>
-                <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
-                  <select
-                    className="f1-select"
-                    value={driverA}
-                    onChange={(e) => onSelectDriverA(e.target.value)}
-                    style={{ borderColor: colorA, background: "#111", color: "#ffffff", minWidth: 130 }}
-                  >
-                    {drivers.map((d) => (
-                      <option key={d.abbreviation} value={d.abbreviation} style={{ background: "#111", color: "#ffffff" }}>
-                        {d.abbreviation} ({d.team})
-                      </option>
-                    ))}
-                  </select>
-                  <select
-                    className="f1-select"
-                    value={lapA}
-                    onChange={(e) => onSelectLapA(Number(e.target.value))}
-                    style={{ background: "#111", color: "#ffffff", minWidth: 160 }}
-                  >
-                    {availableLapsA.length > 0 ? (
-                      <>
-                        {!availableLapsA.some((l) => l.LapNumber === lapA) && (
-                          <option key="syncing-a" value={lapA} disabled style={{ background: "#111", color: "#888" }}>
-                            Lap {lapA} (Syncing...)
-                          </option>
-                        )}
-                        {availableLapsA.map((l) => (
-                          <option key={l.LapNumber} value={l.LapNumber} style={{ background: "#111", color: "#fff" }}>
-                            Lap {l.LapNumber} · {formatLapTime(l.LapTime)}{l.IsPersonalBest ? " ★ (PB)" : ""}{l.Compound ? ` [${l.Compound[0]}]` : ""}
-                          </option>
-                        ))}
-                      </>
-                    ) : (
-                      Array.from({ length: 57 }, (_, i) => i + 1).map((n) => (
-                        <option key={n} value={n} style={{ background: "#111", color: "#fff" }}>
-                          Lap {n}
-                        </option>
-                      ))
-                    )}
-                  </select>
-                </div>
-                {/* Quick lap shortcuts Driver A */}
-                <div style={{ display: "flex", gap: 4, marginTop: 6 }}>
-                  {bestLapA && (
-                    <button
-                      onClick={() => onSelectLapA(bestLapA.LapNumber)}
-                      style={{
-                        background: lapA === bestLapA.LapNumber ? `${colorA}33` : "#14141c",
-                        border: `1px solid ${lapA === bestLapA.LapNumber ? colorA : "#2a2a38"}`,
-                        color: lapA === bestLapA.LapNumber ? colorA : "#a0a0ab",
-                        padding: "2px 6px",
-                        fontSize: 9,
-                        fontFamily: "IBM Plex Mono, monospace",
-                        borderRadius: 3,
-                        cursor: "pointer",
-                        fontWeight: 700,
-                      }}
-                      title={`Fastest Lap: Lap ${bestLapA.LapNumber} (${formatLapTime(bestLapA.LapTime)})`}
-                    >
-                      ★ PB (L{bestLapA.LapNumber})
-                    </button>
-                  )}
-                  <button
-                    onClick={() => onSelectLapA(1)}
-                    style={{
-                      background: lapA === 1 ? `${colorA}33` : "#14141c",
-                      border: `1px solid ${lapA === 1 ? colorA : "#2a2a38"}`,
-                      color: lapA === 1 ? colorA : "#a0a0ab",
-                      padding: "2px 6px",
-                      fontSize: 9,
-                      fontFamily: "IBM Plex Mono, monospace",
-                      borderRadius: 3,
-                      cursor: "pointer",
-                    }}
-                  >
-                    LAP 1
-                  </button>
-                  {availableLapsA.length > 1 && (
-                    <button
-                      onClick={() => onSelectLapA(availableLapsA[availableLapsA.length - 1].LapNumber)}
-                      style={{
-                        background: lapA === availableLapsA[availableLapsA.length - 1].LapNumber ? `${colorA}33` : "#14141c",
-                        border: `1px solid ${lapA === availableLapsA[availableLapsA.length - 1].LapNumber ? colorA : "#2a2a38"}`,
-                        color: lapA === availableLapsA[availableLapsA.length - 1].LapNumber ? colorA : "#a0a0ab",
-                        padding: "2px 6px",
-                        fontSize: 9,
-                        fontFamily: "IBM Plex Mono, monospace",
-                        borderRadius: 3,
-                        cursor: "pointer",
-                      }}
-                    >
-                      FINAL (L{availableLapsA[availableLapsA.length - 1].LapNumber})
-                    </button>
-                  )}
-                </div>
+              >
+                <span style={{ width: 12, height: 2, background: colorA, display: "inline-block" }} />
+                DRIVER A ({driverA}) — SOLID TRACE
               </div>
-            </div>
-
-            <div
-              style={{
-                fontSize: 16,
-                color: "#dedee0",
-                fontWeight: 800,
-                fontFamily: "IBM Plex Mono, monospace",
-                alignSelf: "center",
-              }}
-            >
-              VS
-            </div>
-
-            {/* Driver B */}
-            <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
-              <div
-                style={{
-                  width: 5,
-                  height: 48,
-                  background: colorB,
-                  borderRadius: 2,
-                  boxShadow: `0 0 10px ${colorB}88`,
-                }}
-              />
-              <div>
-                <div
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+                <select
+                  className="f1-select"
+                  value={driverA}
+                  onChange={(e) => onSelectDriverA(e.target.value)}
+                  style={{ borderColor: colorA, background: "#111", color: "#ffffff", minWidth: 130, flex: "1 1 120px" }}
+                >
+                  {drivers.map((d) => (
+                    <option key={d.abbreviation} value={d.abbreviation} style={{ background: "#111", color: "#ffffff" }}>
+                      {d.abbreviation} ({d.team})
+                    </option>
+                  ))}
+                </select>
+                <select
+                  className="f1-select"
+                  value={lapA}
+                  onChange={(e) => onSelectLapA(Number(e.target.value))}
+                  style={{ background: "#111", color: "#ffffff", minWidth: 150, flex: "1 1 140px" }}
+                >
+                  {availableLapsA.length > 0 ? (
+                    <>
+                      {!availableLapsA.some((l) => l.LapNumber === lapA) && (
+                        <option key="syncing-a" value={lapA} disabled style={{ background: "#111", color: "#888" }}>
+                          Lap {lapA} (Syncing...)
+                        </option>
+                      )}
+                      {availableLapsA.map((l) => (
+                        <option key={l.LapNumber} value={l.LapNumber} style={{ background: "#111", color: "#fff" }}>
+                          Lap {l.LapNumber} · {formatLapTime(l.LapTime)}{l.IsPersonalBest ? " ★ (PB)" : ""}{l.Compound ? ` [${getTyreShort(l.Compound)}]` : ""}
+                        </option>
+                      ))}
+                    </>
+                  ) : (
+                    Array.from({ length: 57 }, (_, i) => i + 1).map((n) => (
+                      <option key={n} value={n} style={{ background: "#111", color: "#fff" }}>
+                        Lap {n}
+                      </option>
+                    ))
+                  )}
+                </select>
+              </div>
+              {/* Quick lap shortcuts Driver A */}
+              <div style={{ display: "flex", gap: 4, marginTop: 8 }}>
+                {bestLapA && (
+                  <button
+                    onClick={() => onSelectLapA(bestLapA.LapNumber)}
+                    style={{
+                      background: lapA === bestLapA.LapNumber ? `${colorA}33` : "#14141c",
+                      border: `1px solid ${lapA === bestLapA.LapNumber ? colorA : "#2a2a38"}`,
+                      color: lapA === bestLapA.LapNumber ? colorA : "#a0a0ab",
+                      padding: "2px 6px",
+                      fontSize: 9,
+                      fontFamily: "IBM Plex Mono, monospace",
+                      borderRadius: 3,
+                      cursor: "pointer",
+                      fontWeight: 700,
+                    }}
+                    title={`Fastest Lap: Lap ${bestLapA.LapNumber} (${formatLapTime(bestLapA.LapTime)})`}
+                  >
+                    ★ PB (L{bestLapA.LapNumber})
+                  </button>
+                )}
+                <button
+                  onClick={() => onSelectLapA(1)}
                   style={{
-                    fontSize: 10,
-                    color: colorB,
-                    letterSpacing: "0.08em",
-                    fontWeight: 700,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 6,
+                    background: lapA === 1 ? `${colorA}33` : "#14141c",
+                    border: `1px solid ${lapA === 1 ? colorA : "#2a2a38"}`,
+                    color: lapA === 1 ? colorA : "#a0a0ab",
+                    padding: "2px 6px",
+                    fontSize: 9,
+                    fontFamily: "IBM Plex Mono, monospace",
+                    borderRadius: 3,
+                    cursor: "pointer",
                   }}
                 >
-                  <span
-                    style={{
-                      width: 14,
-                      height: 2,
-                      borderTop: `2px dashed ${colorB}`,
-                      display: "inline-block",
-                    }}
-                  />
-                  DRIVER B ({driverB}) — DASHED TRACE
-                </div>
-                <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
-                  <select
-                    className="f1-select"
-                    value={driverB}
-                    onChange={(e) => onSelectDriverB(e.target.value)}
-                    style={{ borderColor: colorB, background: "#111", color: "#fff", minWidth: 130 }}
-                  >
-                    {drivers.map((d) => (
-                      <option key={d.abbreviation} value={d.abbreviation} style={{ background: "#111", color: "#fff" }}>
-                        {d.abbreviation} ({d.team})
-                      </option>
-                    ))}
-                  </select>
-                  <select
-                    className="f1-select"
-                    value={lapB}
-                    onChange={(e) => onSelectLapB(Number(e.target.value))}
-                    style={{ background: "#111", color: "#fff", minWidth: 160 }}
-                  >
-                    {availableLapsB.length > 0 ? (
-                      <>
-                        {!availableLapsB.some((l) => l.LapNumber === lapB) && (
-                          <option key="syncing-b" value={lapB} disabled style={{ background: "#111", color: "#888" }}>
-                            Lap {lapB} (Syncing...)
-                          </option>
-                        )}
-                        {availableLapsB.map((l) => (
-                          <option key={l.LapNumber} value={l.LapNumber} style={{ background: "#111", color: "#fff" }}>
-                            Lap {l.LapNumber} · {formatLapTime(l.LapTime)}{l.IsPersonalBest ? " ★ (PB)" : ""}{l.Compound ? ` [${l.Compound[0]}]` : ""}
-                          </option>
-                        ))}
-                      </>
-                    ) : (
-                      Array.from({ length: 57 }, (_, i) => i + 1).map((n) => (
-                        <option key={n} value={n} style={{ background: "#111", color: "#fff" }}>
-                          Lap {n}
-                        </option>
-                      ))
-                    )}
-                  </select>
-                </div>
-                {/* Quick lap shortcuts Driver B */}
-                <div style={{ display: "flex", gap: 4, marginTop: 6 }}>
-                  {bestLapB && (
-                    <button
-                      onClick={() => onSelectLapB(bestLapB.LapNumber)}
-                      style={{
-                        background: lapB === bestLapB.LapNumber ? `${colorB}33` : "#14141c",
-                        border: `1px solid ${lapB === bestLapB.LapNumber ? colorB : "#2a2a38"}`,
-                        color: lapB === bestLapB.LapNumber ? colorB : "#a0a0ab",
-                        padding: "2px 6px",
-                        fontSize: 9,
-                        fontFamily: "IBM Plex Mono, monospace",
-                        borderRadius: 3,
-                        cursor: "pointer",
-                        fontWeight: 700,
-                      }}
-                      title={`Fastest Lap: Lap ${bestLapB.LapNumber} (${formatLapTime(bestLapB.LapTime)})`}
-                    >
-                      ★ PB (L{bestLapB.LapNumber})
-                    </button>
-                  )}
+                  LAP 1
+                </button>
+                {availableLapsA.length > 1 && (
                   <button
-                    onClick={() => onSelectLapB(1)}
+                    onClick={() => onSelectLapA(availableLapsA[availableLapsA.length - 1].LapNumber)}
                     style={{
-                      background: lapB === 1 ? `${colorB}33` : "#14141c",
-                      border: `1px solid ${lapB === 1 ? colorB : "#2a2a38"}`,
-                      color: lapB === 1 ? colorB : "#a0a0ab",
+                      background: lapA === availableLapsA[availableLapsA.length - 1].LapNumber ? `${colorA}33` : "#14141c",
+                      border: `1px solid ${lapA === availableLapsA[availableLapsA.length - 1].LapNumber ? colorA : "#2a2a38"}`,
+                      color: lapA === availableLapsA[availableLapsA.length - 1].LapNumber ? colorA : "#a0a0ab",
                       padding: "2px 6px",
                       fontSize: 9,
                       fontFamily: "IBM Plex Mono, monospace",
@@ -874,33 +770,212 @@ export default function DriverComparison({
                       cursor: "pointer",
                     }}
                   >
-                    LAP 1
+                    FINAL (L{availableLapsA[availableLapsA.length - 1].LapNumber})
                   </button>
-                  {availableLapsB.length > 1 && (
-                    <button
-                      onClick={() => onSelectLapB(availableLapsB[availableLapsB.length - 1].LapNumber)}
-                      style={{
-                        background: lapB === availableLapsB[availableLapsB.length - 1].LapNumber ? `${colorB}33` : "#14141c",
-                        border: `1px solid ${lapB === availableLapsB[availableLapsB.length - 1].LapNumber ? colorB : "#2a2a38"}`,
-                        color: lapB === availableLapsB[availableLapsB.length - 1].LapNumber ? colorB : "#a0a0ab",
-                        padding: "2px 6px",
-                        fontSize: 9,
-                        fontFamily: "IBM Plex Mono, monospace",
-                        borderRadius: 3,
-                        cursor: "pointer",
-                      }}
-                    >
-                      FINAL (L{availableLapsB[availableLapsB.length - 1].LapNumber})
-                    </button>
-                  )}
-                </div>
+                )}
               </div>
             </div>
           </div>
 
-          {/* Controls: Overlay vs Split, Playback, Channels */}
+          {/* VS Center Badge */}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 4,
+              padding: "0 8px",
+            }}
+          >
+            <div
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: "50%",
+                background: "#161622",
+                border: "1px solid #2d2d3e",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 12,
+                color: "#e2e2ec",
+                fontWeight: 800,
+                fontFamily: "IBM Plex Mono, monospace",
+                boxShadow: "0 0 12px rgba(0,0,0,0.5)",
+              }}
+            >
+              VS
+            </div>
+            <div
+              style={{
+                fontSize: 10,
+                fontWeight: 700,
+                fontFamily: "IBM Plex Mono, monospace",
+                fontVariantNumeric: "tabular-nums",
+                color: timeA && timeB ? (lapTimeDelta < 0 ? colorA : lapTimeDelta > 0 ? colorB : "#aaa") : "#666",
+                background: "rgba(255,255,255,0.03)",
+                padding: "2px 6px",
+                borderRadius: 4,
+                border: "1px solid #222230",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {timeA && timeB ? (lapTimeDelta === 0 ? "TIED" : `${lapTimeDelta > 0 ? "+" : ""}${lapTimeDelta.toFixed(3)}s`) : "—"}
+            </div>
+          </div>
+
+          {/* Driver B */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              padding: "10px 14px",
+              background: "#0c0c11",
+              border: "1px solid #1e1e28",
+              borderRight: `4px solid ${colorB}`,
+              borderRadius: 6,
+              minWidth: 0,
+            }}
+          >
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div
+                style={{
+                  fontSize: 10,
+                  color: colorB,
+                  letterSpacing: "0.08em",
+                  fontWeight: 700,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  marginBottom: 6,
+                }}
+              >
+                <span
+                  style={{
+                    width: 12,
+                    height: 2,
+                    borderTop: `2px dashed ${colorB}`,
+                    display: "inline-block",
+                  }}
+                />
+                DRIVER B ({driverB}) — DASHED TRACE
+              </div>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+                <select
+                  className="f1-select"
+                  value={driverB}
+                  onChange={(e) => onSelectDriverB(e.target.value)}
+                  style={{ borderColor: colorB, background: "#111", color: "#ffffff", minWidth: 130, flex: "1 1 120px" }}
+                >
+                  {drivers.map((d) => (
+                    <option key={d.abbreviation} value={d.abbreviation} style={{ background: "#111", color: "#ffffff" }}>
+                      {d.abbreviation} ({d.team})
+                    </option>
+                  ))}
+                </select>
+                <select
+                  className="f1-select"
+                  value={lapB}
+                  onChange={(e) => onSelectLapB(Number(e.target.value))}
+                  style={{ background: "#111", color: "#ffffff", minWidth: 150, flex: "1 1 140px" }}
+                >
+                  {availableLapsB.length > 0 ? (
+                    <>
+                      {!availableLapsB.some((l) => l.LapNumber === lapB) && (
+                        <option key="syncing-b" value={lapB} disabled style={{ background: "#111", color: "#888" }}>
+                          Lap {lapB} (Syncing...)
+                        </option>
+                      )}
+                      {availableLapsB.map((l) => (
+                        <option key={l.LapNumber} value={l.LapNumber} style={{ background: "#111", color: "#fff" }}>
+                          Lap {l.LapNumber} · {formatLapTime(l.LapTime)}{l.IsPersonalBest ? " ★ (PB)" : ""}{l.Compound ? ` [${getTyreShort(l.Compound)}]` : ""}
+                        </option>
+                      ))}
+                    </>
+                  ) : (
+                    Array.from({ length: 57 }, (_, i) => i + 1).map((n) => (
+                      <option key={n} value={n} style={{ background: "#111", color: "#fff" }}>
+                        Lap {n}
+                      </option>
+                    ))
+                  )}
+                </select>
+              </div>
+              {/* Quick lap shortcuts Driver B */}
+              <div style={{ display: "flex", gap: 4, marginTop: 8 }}>
+                {bestLapB && (
+                  <button
+                    onClick={() => onSelectLapB(bestLapB.LapNumber)}
+                    style={{
+                      background: lapB === bestLapB.LapNumber ? `${colorB}33` : "#14141c",
+                      border: `1px solid ${lapB === bestLapB.LapNumber ? colorB : "#2a2a38"}`,
+                      color: lapB === bestLapB.LapNumber ? colorB : "#a0a0ab",
+                      padding: "2px 6px",
+                      fontSize: 9,
+                      fontFamily: "IBM Plex Mono, monospace",
+                      borderRadius: 3,
+                      cursor: "pointer",
+                      fontWeight: 700,
+                    }}
+                    title={`Fastest Lap: Lap ${bestLapB.LapNumber} (${formatLapTime(bestLapB.LapTime)})`}
+                  >
+                    ★ PB (L{bestLapB.LapNumber})
+                  </button>
+                )}
+                <button
+                  onClick={() => onSelectLapB(1)}
+                  style={{
+                    background: lapB === 1 ? `${colorB}33` : "#14141c",
+                    border: `1px solid ${lapB === 1 ? colorB : "#2a2a38"}`,
+                    color: lapB === 1 ? colorB : "#a0a0ab",
+                    padding: "2px 6px",
+                    fontSize: 9,
+                    fontFamily: "IBM Plex Mono, monospace",
+                    borderRadius: 3,
+                    cursor: "pointer",
+                  }}
+                >
+                  LAP 1
+                </button>
+                {availableLapsB.length > 1 && (
+                  <button
+                    onClick={() => onSelectLapB(availableLapsB[availableLapsB.length - 1].LapNumber)}
+                    style={{
+                      background: lapB === availableLapsB[availableLapsB.length - 1].LapNumber ? `${colorB}33` : "#14141c",
+                      border: `1px solid ${lapB === availableLapsB[availableLapsB.length - 1].LapNumber ? colorB : "#2a2a38"}`,
+                      color: lapB === availableLapsB[availableLapsB.length - 1].LapNumber ? colorB : "#a0a0ab",
+                      padding: "2px 6px",
+                      fontSize: 9,
+                      fontFamily: "IBM Plex Mono, monospace",
+                      borderRadius: 3,
+                      cursor: "pointer",
+                    }}
+                  >
+                    FINAL (L{availableLapsB[availableLapsB.length - 1].LapNumber})
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Tier 2: Dedicated Analysis & Playback Toolbar */}
+        <div
+          style={{
+            marginTop: 14,
+            paddingTop: 12,
+            borderTop: "1px solid #1f1f28",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            flexWrap: "wrap",
+            gap: 12,
+          }}
+        >
+          {/* Left: View Mode & Channels */}
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-            {/* View Mode: Overlay vs Split */}
             <div style={{ display: "flex", border: "1px solid #2a2a35", borderRadius: 4, overflow: "hidden" }}>
               <button
                 onClick={() => setLayoutMode("overlay")}
@@ -908,7 +983,7 @@ export default function DriverComparison({
                   background: layoutMode === "overlay" ? "#282834" : "#111116",
                   color: layoutMode === "overlay" ? "#ffffff" : "#a0a0ab",
                   border: "none",
-                  padding: "6px 12px",
+                  padding: "5px 12px",
                   fontSize: 10,
                   fontFamily: "IBM Plex Mono, monospace",
                   cursor: "pointer",
@@ -924,7 +999,7 @@ export default function DriverComparison({
                   color: layoutMode === "split" ? "#ffffff" : "#a0a0ab",
                   border: "none",
                   borderLeft: "1px solid #2a2a35",
-                  padding: "6px 12px",
+                  padding: "5px 12px",
                   fontSize: 10,
                   fontFamily: "IBM Plex Mono, monospace",
                   cursor: "pointer",
@@ -935,14 +1010,39 @@ export default function DriverComparison({
               </button>
             </div>
 
-            {/* Play/Pause */}
+            <div style={{ display: "flex", gap: 6 }}>
+              {(["all", "speed", "inputs", "delta"] as const).map((ch) => (
+                <button
+                  key={ch}
+                  onClick={() => setVisibleChannel(ch)}
+                  style={{
+                    background: visibleChannel === ch ? "#e10600" : "#131318",
+                    color: visibleChannel === ch ? "#ffffff" : "#dedee6",
+                    border: "1px solid #252530",
+                    padding: "5px 10px",
+                    borderRadius: 4,
+                    fontSize: 10,
+                    fontFamily: "IBM Plex Mono, monospace",
+                    cursor: "pointer",
+                    fontWeight: 600,
+                    textTransform: "uppercase",
+                  }}
+                >
+                  {ch === "inputs" ? "THROTTLE / GEAR" : ch}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Right: Playback & Track Zoom */}
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
             <button
               onClick={() => setIsPlaying(!isPlaying)}
               style={{
                 background: isPlaying ? "#e10600" : "#1a1a22",
                 color: "#ffffff",
                 border: "1px solid #333340",
-                padding: "6px 14px",
+                padding: "5px 12px",
                 borderRadius: 4,
                 fontSize: 10,
                 fontFamily: "IBM Plex Mono, monospace",
@@ -956,7 +1056,6 @@ export default function DriverComparison({
               {isPlaying ? "⏸ PAUSE" : "▶ PLAY"}
             </button>
 
-            {/* Speed Multiplier */}
             <select
               value={playbackSpeed}
               onChange={(e) => setPlaybackSpeed(Number(e.target.value))}
@@ -969,7 +1068,6 @@ export default function DriverComparison({
               <option value={4} style={{ background: "#111", color: "#fff" }}>4.0x Ultra</option>
             </select>
 
-            {/* Horizontal Track Zoom Controls */}
             <div style={{ display: "flex", alignItems: "center", gap: 3, background: "#111116", border: "1px solid #2a2a35", borderRadius: 4, padding: "2px 6px" }}>
               <span style={{ fontSize: 9, color: zoomLevel > 1 ? "#00E5FF" : "#ffffff", fontFamily: "IBM Plex Mono, monospace", fontWeight: 700 }}>ZOOM:</span>
               {[1, 2, 3, 5].map((s) => (
@@ -1048,30 +1146,6 @@ export default function DriverComparison({
                 </>
               )}
             </div>
-
-            {/* Channels Filter */}
-            <div style={{ display: "flex", gap: 6 }}>
-              {(["all", "speed", "inputs", "delta"] as const).map((ch) => (
-                <button
-                  key={ch}
-                  onClick={() => setVisibleChannel(ch)}
-                  style={{
-                    background: visibleChannel === ch ? "#e10600" : "#131318",
-                    color: visibleChannel === ch ? "#ffffff" : "#dedee6",
-                    border: "1px solid #252530",
-                    padding: "6px 10px",
-                    borderRadius: 4,
-                    fontSize: 10,
-                    fontFamily: "IBM Plex Mono, monospace",
-                    cursor: "pointer",
-                    fontWeight: 600,
-                    textTransform: "uppercase",
-                  }}
-                >
-                  {ch === "inputs" ? "THROTTLE / GEAR" : ch}
-                </button>
-              ))}
-            </div>
           </div>
         </div>
 
@@ -1124,233 +1198,392 @@ export default function DriverComparison({
       </div>
 
       {/* ── Head to Head Selected Lap Metrics & Performance Cards ── */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-          gap: 12,
-        }}
-      >
+      <div className="driver-cards-grid">
         {/* Card 1: Lap Time Delta */}
         <div
           className="panel"
           style={{
-            padding: "14px 18px",
+            padding: "16px 18px",
+            minHeight: 128,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between",
+            boxSizing: "border-box",
+            borderRadius: 8,
+            background: "linear-gradient(145deg, #13131c 0%, #0d0d13 100%)",
+            border: "1px solid #222230",
             borderLeft: `4px solid ${colorA}`,
-            background: "linear-gradient(135deg, rgba(255,255,255,0.02) 0%, rgba(0,0,0,0.3) 100%)",
+            boxShadow: "0 4px 16px rgba(0,0,0,0.3)",
+            overflow: "hidden",
+            minWidth: 0,
+            width: "100%",
           }}
         >
-          <div style={{ fontSize: 10, color: "#888", letterSpacing: "0.08em", display: "flex", justifyContent: "space-between" }}>
-            <span>LAP TIME DELTA</span>
-            <span>L{lapA} vs L{lapB}</span>
+          <div style={{ fontSize: 10, color: "#888", letterSpacing: "0.08em", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ whiteSpace: "nowrap" }}>LAP TIME DELTA</span>
+            <span style={{ fontFamily: "IBM Plex Mono, monospace", color: "#666", whiteSpace: "nowrap" }}>L{lapA} vs L{lapB}</span>
           </div>
           <div
             style={{
-              display: "flex",
-              justifyContent: "space-between",
+              display: "grid",
+              gridTemplateColumns: "1fr auto 1fr",
               alignItems: "baseline",
+              gap: 4,
               marginTop: 6,
+              width: "100%",
             }}
           >
             <div
               style={{
-                fontSize: 18,
-                fontWeight: 700,
+                fontSize: 17,
+                fontWeight: 800,
                 fontFamily: "IBM Plex Mono, monospace",
+                fontVariantNumeric: "tabular-nums",
                 color: colorA,
+                textAlign: "left",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
               }}
             >
               {formatLapTime(timeA)}
             </div>
             <div
               style={{
-                fontSize: 12,
+                fontSize: 11,
                 fontWeight: 700,
                 fontFamily: "IBM Plex Mono, monospace",
+                fontVariantNumeric: "tabular-nums",
                 color: lapTimeDelta < 0 ? colorA : lapTimeDelta > 0 ? colorB : "#dedee0",
+                textAlign: "center",
+                width: 76,
+                minWidth: 76,
+                maxWidth: 76,
+                padding: "2px 4px",
+                background: "rgba(255,255,255,0.03)",
+                borderRadius: 4,
+                border: "1px solid #252535",
+                whiteSpace: "nowrap",
+                boxSizing: "border-box",
+                flexShrink: 0,
               }}
             >
               {timeA && timeB
                 ? lapTimeDelta === 0
-                  ? "EVEN (0.000s)"
+                  ? "EVEN"
                   : `${lapTimeDelta > 0 ? "+" : ""}${lapTimeDelta.toFixed(3)}s`
                 : "—"}
             </div>
             <div
               style={{
-                fontSize: 18,
-                fontWeight: 700,
+                fontSize: 17,
+                fontWeight: 800,
                 fontFamily: "IBM Plex Mono, monospace",
+                fontVariantNumeric: "tabular-nums",
                 color: colorB,
+                textAlign: "right",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
               }}
             >
               {formatLapTime(timeB)}
             </div>
           </div>
-          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4, fontSize: 9, fontFamily: "IBM Plex Mono, monospace", color: "#777" }}>
-            <span>{driverA} {lapDataA?.IsPersonalBest ? "★ PB" : ""}</span>
-            <span style={{ color: lapTimeDelta < 0 ? colorA : colorB, fontWeight: 700 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 4, fontSize: 9, fontFamily: "IBM Plex Mono, monospace", color: "#777", whiteSpace: "nowrap", overflow: "hidden" }}>
+            <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{driverA} {lapDataA?.IsPersonalBest ? "★ PB" : ""}</span>
+            <span style={{ color: lapTimeDelta < 0 ? colorA : colorB, fontWeight: 700, flexShrink: 0, padding: "0 4px" }}>
               {timeA && timeB ? (lapTimeDelta < 0 ? `${driverA} FASTER` : lapTimeDelta > 0 ? `${driverB} FASTER` : "TIED") : "CALCULATING"}
             </span>
-            <span>{driverB} {lapDataB?.IsPersonalBest ? "★ PB" : ""}</span>
+            <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{driverB} {lapDataB?.IsPersonalBest ? "★ PB" : ""}</span>
           </div>
         </div>
 
         {/* Card 2: Sector Times Breakdown */}
-        <div className="panel" style={{ padding: "14px 18px" }}>
-          <div style={{ fontSize: 10, color: "#888", letterSpacing: "0.08em", marginBottom: 6 }}>
+        <div
+          className="panel"
+          style={{
+            padding: "16px 18px",
+            minHeight: 128,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between",
+            boxSizing: "border-box",
+            borderRadius: 8,
+            background: "linear-gradient(145deg, #13131c 0%, #0d0d13 100%)",
+            border: "1px solid #222230",
+            boxShadow: "0 4px 16px rgba(0,0,0,0.3)",
+            overflow: "hidden",
+            minWidth: 0,
+            width: "100%",
+          }}
+        >
+          <div style={{ fontSize: 10, color: "#888", letterSpacing: "0.08em", marginBottom: 6, whiteSpace: "nowrap" }}>
             SECTOR BREAKDOWN (S1 / S2 / S3)
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 10, fontFamily: "IBM Plex Mono, monospace" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 3, fontSize: 10, fontFamily: "IBM Plex Mono, monospace", fontVariantNumeric: "tabular-nums" }}>
             {/* S1 */}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ color: "#777" }}>S1</span>
-              <span style={{ color: colorA, fontWeight: 600 }}>{s1A ? `${s1A.toFixed(3)}s` : "—"}</span>
-              <span style={{ fontSize: 9, color: s1Delta != null ? (s1Delta < 0 ? colorA : s1Delta > 0 ? colorB : "#888") : "#666" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "20px 1fr auto 1fr", gap: 4, alignItems: "center" }}>
+              <span style={{ color: "#777", fontWeight: 700 }}>S1</span>
+              <span style={{ color: colorA, fontWeight: 700, textAlign: "left", whiteSpace: "nowrap" }}>{s1A ? `${s1A.toFixed(3)}s` : "—"}</span>
+              <span style={{ fontSize: 9, color: s1Delta != null ? (s1Delta < 0 ? colorA : s1Delta > 0 ? colorB : "#888") : "#666", textAlign: "center", width: 56, minWidth: 56, maxWidth: 56, padding: "1px 2px", background: "rgba(0,0,0,0.25)", borderRadius: 3, whiteSpace: "nowrap", flexShrink: 0 }}>
                 {s1Delta != null ? `${s1Delta > 0 ? "+" : ""}${s1Delta.toFixed(3)}s` : "—"}
               </span>
-              <span style={{ color: colorB, fontWeight: 600 }}>{s1B ? `${s1B.toFixed(3)}s` : "—"}</span>
+              <span style={{ color: colorB, fontWeight: 700, textAlign: "right", whiteSpace: "nowrap" }}>{s1B ? `${s1B.toFixed(3)}s` : "—"}</span>
             </div>
             {/* S2 */}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ color: "#777" }}>S2</span>
-              <span style={{ color: colorA, fontWeight: 600 }}>{s2A ? `${s2A.toFixed(3)}s` : "—"}</span>
-              <span style={{ fontSize: 9, color: s2Delta != null ? (s2Delta < 0 ? colorA : s2Delta > 0 ? colorB : "#888") : "#666" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "20px 1fr auto 1fr", gap: 4, alignItems: "center" }}>
+              <span style={{ color: "#777", fontWeight: 700 }}>S2</span>
+              <span style={{ color: colorA, fontWeight: 700, textAlign: "left", whiteSpace: "nowrap" }}>{s2A ? `${s2A.toFixed(3)}s` : "—"}</span>
+              <span style={{ fontSize: 9, color: s2Delta != null ? (s2Delta < 0 ? colorA : s2Delta > 0 ? colorB : "#888") : "#666", textAlign: "center", width: 56, minWidth: 56, maxWidth: 56, padding: "1px 2px", background: "rgba(0,0,0,0.25)", borderRadius: 3, whiteSpace: "nowrap", flexShrink: 0 }}>
                 {s2Delta != null ? `${s2Delta > 0 ? "+" : ""}${s2Delta.toFixed(3)}s` : "—"}
               </span>
-              <span style={{ color: colorB, fontWeight: 600 }}>{s2B ? `${s2B.toFixed(3)}s` : "—"}</span>
+              <span style={{ color: colorB, fontWeight: 700, textAlign: "right", whiteSpace: "nowrap" }}>{s2B ? `${s2B.toFixed(3)}s` : "—"}</span>
             </div>
             {/* S3 */}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ color: "#777" }}>S3</span>
-              <span style={{ color: colorA, fontWeight: 600 }}>{s3A ? `${s3A.toFixed(3)}s` : "—"}</span>
-              <span style={{ fontSize: 9, color: s3Delta != null ? (s3Delta < 0 ? colorA : s3Delta > 0 ? colorB : "#888") : "#666" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "20px 1fr auto 1fr", gap: 4, alignItems: "center" }}>
+              <span style={{ color: "#777", fontWeight: 700 }}>S3</span>
+              <span style={{ color: colorA, fontWeight: 700, textAlign: "left", whiteSpace: "nowrap" }}>{s3A ? `${s3A.toFixed(3)}s` : "—"}</span>
+              <span style={{ fontSize: 9, color: s3Delta != null ? (s3Delta < 0 ? colorA : s3Delta > 0 ? colorB : "#888") : "#666", textAlign: "center", width: 56, minWidth: 56, maxWidth: 56, padding: "1px 2px", background: "rgba(0,0,0,0.25)", borderRadius: 3, whiteSpace: "nowrap", flexShrink: 0 }}>
                 {s3Delta != null ? `${s3Delta > 0 ? "+" : ""}${s3Delta.toFixed(3)}s` : "—"}
               </span>
-              <span style={{ color: colorB, fontWeight: 600 }}>{s3B ? `${s3B.toFixed(3)}s` : "—"}</span>
+              <span style={{ color: colorB, fontWeight: 700, textAlign: "right", whiteSpace: "nowrap" }}>{s3B ? `${s3B.toFixed(3)}s` : "—"}</span>
             </div>
           </div>
         </div>
 
         {/* Card 3: Speed Trap & Speeds */}
-        <div className="panel" style={{ padding: "14px 18px" }}>
-          <div style={{ fontSize: 10, color: "#888", letterSpacing: "0.08em", marginBottom: 6 }}>
+        <div
+          className="panel"
+          style={{
+            padding: "16px 18px",
+            minHeight: 128,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between",
+            boxSizing: "border-box",
+            borderRadius: 8,
+            background: "linear-gradient(145deg, #13131c 0%, #0d0d13 100%)",
+            border: "1px solid #222230",
+            boxShadow: "0 4px 16px rgba(0,0,0,0.3)",
+            overflow: "hidden",
+            minWidth: 0,
+            width: "100%",
+          }}
+        >
+          <div style={{ fontSize: 10, color: "#888", letterSpacing: "0.08em", marginBottom: 6, whiteSpace: "nowrap" }}>
             SPEED TRAPS (KM/H)
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 10, fontFamily: "IBM Plex Mono, monospace" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ color: "#777" }}>MAX TRAP (ST)</span>
-              <span style={{ color: colorA, fontWeight: 600 }}>{lapDataA?.SpeedST ? `${lapDataA.SpeedST.toFixed(0)}` : topSpeedA.toFixed(0)}</span>
-              <span style={{ color: "#555" }}>vs</span>
-              <span style={{ color: colorB, fontWeight: 600 }}>{lapDataB?.SpeedST ? `${lapDataB.SpeedST.toFixed(0)}` : topSpeedB.toFixed(0)}</span>
+          <div style={{ display: "flex", flexDirection: "column", gap: 3, fontSize: 10, fontFamily: "IBM Plex Mono, monospace", fontVariantNumeric: "tabular-nums" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "72px 1fr 14px 1fr", gap: 4, alignItems: "center" }}>
+              <span style={{ color: "#777", fontSize: 9, whiteSpace: "nowrap" }}>MAX (ST)</span>
+              <span style={{ color: colorA, fontWeight: 700, textAlign: "left", whiteSpace: "nowrap" }}>{lapDataA?.SpeedST ? `${lapDataA.SpeedST.toFixed(0)}` : topSpeedA.toFixed(0)}</span>
+              <span style={{ color: "#555", fontSize: 9, textAlign: "center" }}>vs</span>
+              <span style={{ color: colorB, fontWeight: 700, textAlign: "right", whiteSpace: "nowrap" }}>{lapDataB?.SpeedST ? `${lapDataB.SpeedST.toFixed(0)}` : topSpeedB.toFixed(0)}</span>
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ color: "#777" }}>FINISH LINE (FL)</span>
-              <span style={{ color: colorA, fontWeight: 600 }}>{lapDataA?.SpeedFL ? `${lapDataA.SpeedFL.toFixed(0)}` : "—"}</span>
-              <span style={{ color: "#555" }}>vs</span>
-              <span style={{ color: colorB, fontWeight: 600 }}>{lapDataB?.SpeedFL ? `${lapDataB.SpeedFL.toFixed(0)}` : "—"}</span>
+            <div style={{ display: "grid", gridTemplateColumns: "72px 1fr 14px 1fr", gap: 4, alignItems: "center" }}>
+              <span style={{ color: "#777", fontSize: 9, whiteSpace: "nowrap" }}>FINISH (FL)</span>
+              <span style={{ color: colorA, fontWeight: 700, textAlign: "left", whiteSpace: "nowrap" }}>{lapDataA?.SpeedFL ? `${lapDataA.SpeedFL.toFixed(0)}` : "—"}</span>
+              <span style={{ color: "#555", fontSize: 9, textAlign: "center" }}>vs</span>
+              <span style={{ color: colorB, fontWeight: 700, textAlign: "right", whiteSpace: "nowrap" }}>{lapDataB?.SpeedFL ? `${lapDataB.SpeedFL.toFixed(0)}` : "—"}</span>
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ color: "#777" }}>INTER 1 (I1)</span>
-              <span style={{ color: colorA, fontWeight: 600 }}>{lapDataA?.SpeedI1 ? `${lapDataA.SpeedI1.toFixed(0)}` : "—"}</span>
-              <span style={{ color: "#555" }}>vs</span>
-              <span style={{ color: colorB, fontWeight: 600 }}>{lapDataB?.SpeedI1 ? `${lapDataB.SpeedI1.toFixed(0)}` : "—"}</span>
+            <div style={{ display: "grid", gridTemplateColumns: "72px 1fr 14px 1fr", gap: 4, alignItems: "center" }}>
+              <span style={{ color: "#777", fontSize: 9, whiteSpace: "nowrap" }}>INTER 1 (I1)</span>
+              <span style={{ color: colorA, fontWeight: 700, textAlign: "left", whiteSpace: "nowrap" }}>{lapDataA?.SpeedI1 ? `${lapDataA.SpeedI1.toFixed(0)}` : "—"}</span>
+              <span style={{ color: "#555", fontSize: 9, textAlign: "center" }}>vs</span>
+              <span style={{ color: colorB, fontWeight: 700, textAlign: "right", whiteSpace: "nowrap" }}>{lapDataB?.SpeedI1 ? `${lapDataB.SpeedI1.toFixed(0)}` : "—"}</span>
             </div>
           </div>
         </div>
 
         {/* Card 4: Tyre Compound & Stint */}
+        {(() => {
+          const compA = lapDataA?.Compound ?? telemetryA?.compound ?? "SOFT";
+          const compB = lapDataB?.Compound ?? telemetryB?.compound ?? "SOFT";
+          const colA = getTyreColour(compA, year);
+          const colB = getTyreColour(compB, year);
+          const txtA = getTyreTextColor(compA, year);
+          const txtB = getTyreTextColor(compB, year);
+          return (
+            <div
+              className="panel"
+              style={{
+                padding: "16px 18px",
+                minHeight: 128,
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+                boxSizing: "border-box",
+                borderRadius: 8,
+                background: "linear-gradient(145deg, #13131c 0%, #0d0d13 100%)",
+                border: "1px solid #222230",
+                borderLeft: `4px solid ${colorB}`,
+                boxShadow: "0 4px 16px rgba(0,0,0,0.3)",
+                overflow: "hidden",
+                minWidth: 0,
+                width: "100%",
+              }}
+            >
+              <div style={{ fontSize: 10, color: "#888", letterSpacing: "0.08em", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ whiteSpace: "nowrap" }}>TYRE COMPOUND & STINT</span>
+                <span style={{ fontFamily: "IBM Plex Mono, monospace", color: "#666", whiteSpace: "nowrap" }}>{year ? `${year} ERA` : ""}</span>
+              </div>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr auto 1fr",
+                  alignItems: "center",
+                  gap: 4,
+                  marginTop: 4,
+                }}
+              >
+                <div style={{ minWidth: 0, overflow: "hidden" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 5, whiteSpace: "nowrap" }}>
+                    <span
+                      style={{
+                        background: colA,
+                        color: txtA,
+                        padding: "1px 5px",
+                        borderRadius: 3,
+                        fontWeight: 800,
+                        fontSize: 10,
+                        fontFamily: "IBM Plex Mono, monospace",
+                        flexShrink: 0,
+                      }}
+                    >
+                      {getTyreShort(compA)}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: 12,
+                        fontWeight: 700,
+                        fontFamily: "IBM Plex Mono, monospace",
+                        color: colA,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                    >
+                      {compA}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: 9, color: "#888", fontFamily: "IBM Plex Mono, monospace", marginTop: 3, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>
+                    L{lapDataA?.TyreLife ?? telemetryA?.tyre_life ?? 1} · STINT {lapDataA?.Stint ?? 1}
+                  </div>
+                </div>
+
+                <div style={{ fontSize: 10, color: "#555", fontFamily: "IBM Plex Mono, monospace", textAlign: "center", width: 14 }}>vs</div>
+
+                <div style={{ textAlign: "right", minWidth: 0, overflow: "hidden" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 5, whiteSpace: "nowrap" }}>
+                    <span
+                      style={{
+                        fontSize: 12,
+                        fontWeight: 700,
+                        fontFamily: "IBM Plex Mono, monospace",
+                        color: colB,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                    >
+                      {compB}
+                    </span>
+                    <span
+                      style={{
+                        background: colB,
+                        color: txtB,
+                        padding: "1px 5px",
+                        borderRadius: 3,
+                        fontWeight: 800,
+                        fontSize: 10,
+                        fontFamily: "IBM Plex Mono, monospace",
+                        flexShrink: 0,
+                      }}
+                    >
+                      {getTyreShort(compB)}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: 9, color: "#888", fontFamily: "IBM Plex Mono, monospace", marginTop: 3, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>
+                    L{lapDataB?.TyreLife ?? telemetryB?.tyre_life ?? 1} · STINT {lapDataB?.Stint ?? 1}
+                  </div>
+                </div>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4, fontSize: 9, fontFamily: "IBM Plex Mono, monospace", color: "#666", whiteSpace: "nowrap" }}>
+                <span>{lapDataA?.PitInTime ? "IN-LAP" : lapDataA?.PitOutTime ? "OUT-LAP" : "FLYING"}</span>
+                <span>{lapDataB?.PitInTime ? "IN-LAP" : lapDataB?.PitOutTime ? "OUT-LAP" : "FLYING"}</span>
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* Card 5: Live Cursor Telemetry */}
         <div
           className="panel"
           style={{
-            padding: "14px 18px",
-            borderLeft: `4px solid ${colorB}`,
-            background: "linear-gradient(135deg, rgba(255,255,255,0.02) 0%, rgba(0,0,0,0.3) 100%)",
+            padding: "16px 18px",
+            minHeight: 128,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between",
+            boxSizing: "border-box",
+            borderRadius: 8,
+            background: "linear-gradient(145deg, #13131c 0%, #0d0d13 100%)",
+            border: "1px solid #222230",
+            boxShadow: "0 4px 16px rgba(0,0,0,0.3)",
+            overflow: "hidden",
+            minWidth: 0,
+            width: "100%",
           }}
         >
-          <div style={{ fontSize: 10, color: "#888", letterSpacing: "0.08em" }}>
-            TYRE COMPOUND & STINT
+          <div style={{ fontSize: 10, color: "#888", letterSpacing: "0.08em", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ whiteSpace: "nowrap" }}>LIVE SPEED AT CURSOR</span>
+            <span style={{ fontFamily: "IBM Plex Mono, monospace", fontVariantNumeric: "tabular-nums", color: "#aaa", textAlign: "right", whiteSpace: "nowrap" }}>
+              {currentDist != null ? `${currentDist.toFixed(0)}m` : "—"}
+            </span>
           </div>
           <div
             style={{
-              display: "flex",
-              justifyContent: "space-between",
+              display: "grid",
+              gridTemplateColumns: "1fr auto 1fr",
               alignItems: "baseline",
+              gap: 4,
               marginTop: 6,
-            }}
-          >
-            <div>
-              <div
-                style={{
-                  fontSize: 14,
-                  fontWeight: 700,
-                  fontFamily: "IBM Plex Mono, monospace",
-                  color: TYRE_COLOURS[lapDataA?.Compound ?? telemetryA?.compound ?? ""] ?? "#eee",
-                }}
-              >
-                {lapDataA?.Compound ?? telemetryA?.compound ?? "SOFT"}
-              </div>
-              <div style={{ fontSize: 9, color: "#777", fontFamily: "IBM Plex Mono, monospace", marginTop: 2 }}>
-                L{lapDataA?.TyreLife ?? telemetryA?.tyre_life ?? 1} · STINT {lapDataA?.Stint ?? 1}
-              </div>
-            </div>
-
-            <div style={{ fontSize: 10, color: "#555", fontFamily: "IBM Plex Mono, monospace" }}>vs</div>
-
-            <div style={{ textAlign: "right" }}>
-              <div
-                style={{
-                  fontSize: 14,
-                  fontWeight: 700,
-                  fontFamily: "IBM Plex Mono, monospace",
-                  color: TYRE_COLOURS[lapDataB?.Compound ?? telemetryB?.compound ?? ""] ?? "#eee",
-                }}
-              >
-                {lapDataB?.Compound ?? telemetryB?.compound ?? "SOFT"}
-              </div>
-              <div style={{ fontSize: 9, color: "#777", fontFamily: "IBM Plex Mono, monospace", marginTop: 2 }}>
-                L{lapDataB?.TyreLife ?? telemetryB?.tyre_life ?? 1} · STINT {lapDataB?.Stint ?? 1}
-              </div>
-            </div>
-          </div>
-          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6, fontSize: 9, fontFamily: "IBM Plex Mono, monospace", color: "#666" }}>
-            <span>{lapDataA?.PitInTime ? "IN-LAP" : lapDataA?.PitOutTime ? "OUT-LAP" : "FLYING"}</span>
-            <span>{lapDataB?.PitInTime ? "IN-LAP" : lapDataB?.PitOutTime ? "OUT-LAP" : "FLYING"}</span>
-          </div>
-        </div>
-
-        {/* Card 5: Live Cursor Telemetry */}
-        <div className="panel" style={{ padding: "14px 18px" }}>
-          <div style={{ fontSize: 10, color: "#888", letterSpacing: "0.08em" }}>
-            LIVE SPEED ({currentDist.toFixed(0)}m)
-          </div>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "baseline",
-              marginTop: 6,
+              width: "100%",
             }}
           >
             <div
               style={{
-                fontSize: 18,
-                fontWeight: 700,
+                fontSize: 16,
+                fontWeight: 800,
                 fontFamily: "IBM Plex Mono, monospace",
+                fontVariantNumeric: "tabular-nums",
                 color: colorA,
+                textAlign: "left",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
               }}
             >
-              {cursorPointA?.Speed.toFixed(0) ?? 0} km/h
+              <span>{cursorPointA?.Speed != null ? cursorPointA.Speed.toFixed(0) : "0"}</span>
+              <span style={{ fontSize: 9, fontWeight: 500, color: "#888", marginLeft: 2 }}>km/h</span>
             </div>
             <div
               style={{
-                fontSize: 11,
+                fontSize: 10,
                 color:
                   (cursorPointA?.Speed ?? 0) >= (cursorPointB?.Speed ?? 0)
                     ? colorA
                     : colorB,
                 fontFamily: "IBM Plex Mono, monospace",
+                fontVariantNumeric: "tabular-nums",
                 fontWeight: 700,
+                textAlign: "center",
+                width: 68,
+                minWidth: 68,
+                maxWidth: 68,
+                padding: "2px 4px",
+                background: "rgba(255,255,255,0.03)",
+                borderRadius: 4,
+                border: "1px solid #252535",
+                whiteSpace: "nowrap",
+                boxSizing: "border-box",
+                flexShrink: 0,
               }}
             >
               {((cursorPointA?.Speed ?? 0) - (cursorPointB?.Speed ?? 0) > 0 ? "+" : "") +
@@ -1359,28 +1592,42 @@ export default function DriverComparison({
             </div>
             <div
               style={{
-                fontSize: 18,
-                fontWeight: 700,
+                fontSize: 16,
+                fontWeight: 800,
                 fontFamily: "IBM Plex Mono, monospace",
+                fontVariantNumeric: "tabular-nums",
                 color: colorB,
+                textAlign: "right",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
               }}
             >
-              {cursorPointB?.Speed.toFixed(0) ?? 0} km/h
+              <span>{cursorPointB?.Speed != null ? cursorPointB.Speed.toFixed(0) : "0"}</span>
+              <span style={{ fontSize: 9, fontWeight: 500, color: "#888", marginLeft: 2 }}>km/h</span>
             </div>
           </div>
-          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4, fontSize: 9, fontFamily: "IBM Plex Mono, monospace" }}>
-            <span style={{ color: colorA }}>G{cursorPointA?.nGear ?? 8} · {cursorPointA?.Throttle.toFixed(0) ?? 0}% TH</span>
-            <span style={{ color: "#666" }}>vs</span>
-            <span style={{ color: colorB }}>G{cursorPointB?.nGear ?? 8} · {cursorPointB?.Throttle.toFixed(0) ?? 0}% TH</span>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", gap: 4, marginTop: 4, fontSize: 9, fontFamily: "IBM Plex Mono, monospace", fontVariantNumeric: "tabular-nums", alignItems: "center" }}>
+            <span style={{ color: colorA, textAlign: "left", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>G{cursorPointA?.nGear ?? 8} · {cursorPointA?.Throttle != null ? cursorPointA.Throttle.toFixed(0) : "0"}% TH</span>
+            <span style={{ color: "#555", textAlign: "center", width: 14 }}>vs</span>
+            <span style={{ color: colorB, textAlign: "right", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>G{cursorPointB?.nGear ?? 8} · {cursorPointB?.Throttle != null ? cursorPointB.Throttle.toFixed(0) : "0"}% TH</span>
           </div>
         </div>
       </div>
 
       {/* ── Multi-Channel Overlaid / Split SVG Graphs ── */}
-      <div className="panel" style={{ padding: "20px 24px" }}>
+      <div
+        className="panel"
+        style={{
+          padding: "24px 28px",
+          background: "linear-gradient(180deg, #121219 0%, #0c0c11 100%)",
+          border: "1px solid #20202c",
+          borderRadius: 8,
+          boxShadow: "0 8px 24px rgba(0,0,0,0.35)",
+        }}
+      >
         <div
           className="panel-title"
-          style={{ marginBottom: 14, display: "flex", justifyContent: "space-between", alignItems: "center" }}
+          style={{ marginBottom: 16, display: "flex", justifyContent: "space-between", alignItems: "center" }}
         >
           <div>
             <h2>{layoutMode === "overlay" ? "OVERLAID TELEMETRY TRACES" : "SEPARATE SYNCHRONIZED TRACKS"}</h2>
@@ -1483,7 +1730,19 @@ export default function DriverComparison({
 
             <div style={{ display: "flex", gap: 12, color: "#888", alignItems: "center" }}>
               <span>0m</span>
-              <span>CURSOR: <strong style={{ color: "#fff" }}>{cursorDist != null ? `${Math.round(cursorDist)}m` : "—"}</strong></span>
+              <span>
+                CURSOR:{" "}
+                <strong
+                  style={{
+                    color: "#fff",
+                    display: "inline-block",
+                    minWidth: 46,
+                    fontVariantNumeric: "tabular-nums",
+                  }}
+                >
+                  {cursorDist != null ? `${Math.round(cursorDist)}m` : "—"}
+                </strong>
+              </span>
               <span>{Math.round(trackLength)}m</span>
               {zoomLevel > 1 && (
                 <button
@@ -1619,6 +1878,22 @@ export default function DriverComparison({
                 y={PAD.top}
                 width={W - PAD.left - PAD.right}
                 height={totalHeight - PAD.top - PAD.bottom}
+              />
+            </clipPath>
+            <clipPath id="splitClipA">
+              <rect
+                x={PAD.left}
+                y={PAD.top}
+                width={W - PAD.left - PAD.right}
+                height={H_SPLIT_HEIGHT}
+              />
+            </clipPath>
+            <clipPath id="splitClipB">
+              <rect
+                x={PAD.left}
+                y={PAD.top}
+                width={W - PAD.left - PAD.right}
+                height={H_SPLIT_HEIGHT}
               />
             </clipPath>
           </defs>
@@ -1780,11 +2055,37 @@ export default function DriverComparison({
                 x={PAD.left}
                 y={PAD.top}
                 width={W - PAD.left - PAD.right}
-                height={130}
+                height={H_SPLIT_HEIGHT}
                 fill="#0a0a0d"
                 stroke="#1c1c24"
               />
-              <g clipPath="url(#chartPlotClip)">
+              {/* Speed reference grid lines Driver A */}
+              {[100, 200, 300].filter((s) => s <= maxSpeed).map((s) => {
+                const y = scaleSpeedY(s, H_SPLIT_TRACK);
+                return (
+                  <g key={`splitA-${s}`}>
+                    <line
+                      x1={PAD.left}
+                      y1={y}
+                      x2={W - PAD.right}
+                      y2={y}
+                      stroke="#1e1e2c"
+                      strokeDasharray="3 3"
+                    />
+                    <text
+                      x={PAD.left - 8}
+                      y={y + 3}
+                      fill="#888899"
+                      fontSize="8"
+                      textAnchor="end"
+                      fontFamily="IBM Plex Mono, monospace"
+                    >
+                      {s}
+                    </text>
+                  </g>
+                );
+              })}
+              <g clipPath="url(#splitClipA)">
                 <path
                   d={speedPathSplitA}
                   fill="none"
@@ -1796,7 +2097,7 @@ export default function DriverComparison({
                 {cursorPointA && cursorPointA.Distance >= viewStart && cursorPointA.Distance <= viewEnd && (
                   <circle
                     cx={scaleX(cursorPointA.Distance)}
-                    cy={scaleSpeedY(cursorPointA.Speed, 160)}
+                    cy={scaleSpeedY(cursorPointA.Speed, H_SPLIT_TRACK)}
                     r={4.5}
                     fill={colorA}
                     stroke="#fff"
@@ -1805,20 +2106,46 @@ export default function DriverComparison({
                 )}
               </g>
               <text x={PAD.left + 8} y={PAD.top + 14} fill={colorA} fontSize="10" fontFamily="IBM Plex Mono, monospace" fontWeight="700">
-                {driverA} SPEED ({cursorPointA?.Speed.toFixed(0)} KM/H)
+                {driverA} SPEED: {cursorPointA != null ? `${cursorPointA.Speed.toFixed(0)} KM/H` : "—"}
               </text>
 
               {/* Panel Driver B */}
-              <g transform="translate(0, 150)">
+              <g transform={`translate(0, ${H_SPLIT_HEIGHT + H_SPLIT_GAP})`}>
                 <rect
                   x={PAD.left}
                   y={PAD.top}
                   width={W - PAD.left - PAD.right}
-                  height={130}
+                  height={H_SPLIT_HEIGHT}
                   fill="#0a0a0d"
                   stroke="#1c1c24"
                 />
-                <g clipPath="url(#chartPlotClip)">
+                {/* Speed reference grid lines Driver B */}
+                {[100, 200, 300].filter((s) => s <= maxSpeed).map((s) => {
+                  const y = scaleSpeedY(s, H_SPLIT_TRACK);
+                  return (
+                    <g key={`splitB-${s}`}>
+                      <line
+                        x1={PAD.left}
+                        y1={y}
+                        x2={W - PAD.right}
+                        y2={y}
+                        stroke="#1e1e2c"
+                        strokeDasharray="3 3"
+                      />
+                      <text
+                        x={PAD.left - 8}
+                        y={y + 3}
+                        fill="#888899"
+                        fontSize="8"
+                        textAnchor="end"
+                        fontFamily="IBM Plex Mono, monospace"
+                      >
+                        {s}
+                      </text>
+                    </g>
+                  );
+                })}
+                <g clipPath="url(#splitClipB)">
                   <path
                     d={speedPathSplitB}
                     fill="none"
@@ -1831,10 +2158,10 @@ export default function DriverComparison({
                   {cursorPointB && cursorPointB.Distance >= viewStart && cursorPointB.Distance <= viewEnd && (
                     <rect
                       x={scaleX(cursorPointB.Distance) - 4}
-                      y={scaleSpeedY(cursorPointB.Speed, 160) - 4}
+                      y={scaleSpeedY(cursorPointB.Speed, H_SPLIT_TRACK) - 4}
                       width={8}
                       height={8}
-                      transform={`rotate(45, ${scaleX(cursorPointB.Distance)}, ${scaleSpeedY(cursorPointB.Speed, 160)})`}
+                      transform={`rotate(45, ${scaleX(cursorPointB.Distance)}, ${scaleSpeedY(cursorPointB.Speed, H_SPLIT_TRACK)})`}
                       fill={colorB}
                       stroke="#fff"
                       strokeWidth="1.5"
@@ -1842,7 +2169,7 @@ export default function DriverComparison({
                   )}
                 </g>
                 <text x={PAD.left + 8} y={PAD.top + 14} fill={colorB} fontSize="10" fontFamily="IBM Plex Mono, monospace" fontWeight="700">
-                  {driverB} SPEED ({cursorPointB?.Speed.toFixed(0)} KM/H)
+                  {driverB} SPEED: {cursorPointB != null ? `${cursorPointB.Speed.toFixed(0)} KM/H` : "—"}
                 </text>
               </g>
             </g>
@@ -2096,29 +2423,24 @@ export default function DriverComparison({
             />
           )}
 
-          {/* ── Tooltip Bubble ── */}
+          {/* ── Stationary Telemetry HUD Box ── */}
           {cursorDist !== null && cursorDist >= viewStart && cursorDist <= viewEnd && cursorPointA && cursorPointB && (
-            <g
-              transform={`translate(${Math.min(
-                W - 200,
-                Math.max(PAD.left + 10, scaleX(cursorDist) - 95)
-              )}, ${PAD.top + 10})`}
-            >
+            <g transform={`translate(${W - PAD.right - 220}, ${PAD.top + 8})`}>
               <rect
-                width="190"
-                height="78"
-                rx="6"
-                fill="#101015"
+                width="216"
+                height="72"
+                rx="4"
+                fill="#0d0d12"
                 stroke="#2a2a35"
-                opacity="0.96"
-                filter="drop-shadow(0 4px 12px rgba(0,0,0,0.7))"
+                opacity="0.95"
+                filter="drop-shadow(0 4px 10px rgba(0,0,0,0.6))"
               />
-              <text x="12" y="16" fill="#dedee8" fontSize="9" fontFamily="IBM Plex Mono, monospace" fontWeight="600">
-                DISTANCE: {cursorDist.toFixed(0)}m / {trackLength.toFixed(0)}m
+              <text x="10" y="15" fill="#8e8ea0" fontSize="9" fontFamily="IBM Plex Mono, monospace" fontWeight="600">
+                POINT: {cursorDist.toFixed(0)}m / {trackLength.toFixed(0)}m
               </text>
               <text
-                x="12"
-                y="38"
+                x="10"
+                y="36"
                 fill={colorA}
                 fontSize="11"
                 fontWeight="700"
@@ -2127,8 +2449,8 @@ export default function DriverComparison({
                 — {driverA}: {cursorPointA.Speed.toFixed(0)} km/h · G{cursorPointA.nGear} · {cursorPointA.Throttle.toFixed(0)}% TH
               </text>
               <text
-                x="12"
-                y="58"
+                x="10"
+                y="56"
                 fill={colorB}
                 fontSize="11"
                 fontWeight="700"
@@ -2142,8 +2464,17 @@ export default function DriverComparison({
       </div>
 
       {/* ── Turn Apex Speed Comparison Table ── */}
-      <div className="panel">
-        <div className="panel-title">
+      <div
+        className="panel"
+        style={{
+          padding: "24px 28px",
+          background: "linear-gradient(180deg, #121219 0%, #0c0c11 100%)",
+          border: "1px solid #20202c",
+          borderRadius: 8,
+          boxShadow: "0 8px 24px rgba(0,0,0,0.35)",
+        }}
+      >
+        <div className="panel-title" style={{ marginBottom: 16 }}>
           <div>
             <h2>CORNER MINIMUM SPEED BREAKDOWN</h2>
             <span>APEX SPEED DELTAS ACROSS ALL {turns.length} CORNERS</span>

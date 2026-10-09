@@ -7,6 +7,10 @@
 export {
   TEAM_COLOURS,
   TYRE_COLOURS,
+  TYRE_SHORT,
+  getTyreColour,
+  getTyreTextColor,
+  getTyreShort,
   FLAG_COLOURS,
   TELEMETRY_CIRCUITS,
   SESSION_FILE,
@@ -28,17 +32,45 @@ import type {
   WeatherPoint,
 } from "../types";
 import { eventToSlug, SESSION_FILE } from "../types";
+import monacoCircuit from "./monaco";
 
-const BASE = `${(import.meta.env.BASE_URL || "/").replace(/\/$/, "")}/data`;
+export function getBaseUrl(): string {
+  const base = import.meta.env.BASE_URL || "/";
+  if (base.startsWith("http")) return `${base.replace(/\/$/, "")}/data`;
+  if (base.startsWith("/")) return `${base.replace(/\/$/, "")}/data`;
+  if (typeof window !== "undefined") {
+    const pathname = window.location.pathname;
+    const dir = pathname.endsWith("/") ? pathname : pathname.substring(0, pathname.lastIndexOf("/") + 1);
+    return `${dir.replace(/\/$/, "")}/data`;
+  }
+  return "/data";
+}
+
+const BASE = getBaseUrl();
 
 async function json<T>(url: string): Promise<T> {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`${res.status} ${url}`);
-  const ct = res.headers.get("content-type");
-  if (ct && !ct.includes("application/json") && !ct.includes("text/json")) {
-    throw new Error(`Expected JSON but got ${ct} from ${url}`);
+  try {
+    const res = await fetch(url);
+    if (res.ok) {
+      const ct = res.headers.get("content-type");
+      if (!ct || ct.includes("application/json") || ct.includes("text/json")) {
+        return (await res.json()) as T;
+      }
+    }
+  } catch {}
+
+  // Fallback: if relative or failed, try direct /data/...
+  if (url.includes("/data/")) {
+    const pathAfterData = url.substring(url.indexOf("/data/"));
+    try {
+      const fallbackRes = await fetch(pathAfterData);
+      if (fallbackRes.ok) {
+        return (await fallbackRes.json()) as T;
+      }
+    } catch {}
   }
-  return res.json() as Promise<T>;
+
+  throw new Error(`Failed to load JSON from ${url}`);
 }
 
 import {
@@ -260,6 +292,173 @@ function sessionPath(year: number, event: string, code: string, suffix: string) 
   return `${BASE}/sessions/${year}/${slug}/${prefix}${suffix}`;
 }
 
+// ─── Period-Accurate Tyre Compound Allocations ──────────────────────────────
+
+export interface NominatedCompounds {
+  softest: string;
+  medium: string;
+  hardest: string;
+  defaultQuali: string;
+  raceOptions: string[];
+}
+
+export function getEventNominatedCompounds(year: number, event: string): NominatedCompounds {
+  const ev = (event || "").toLowerCase();
+  const isStreetOrLowDeg =
+    ev.includes("monaco") ||
+    ev.includes("canada") ||
+    ev.includes("montreal") ||
+    ev.includes("baku") ||
+    ev.includes("azerbaijan") ||
+    ev.includes("singapore") ||
+    ev.includes("austria") ||
+    ev.includes("spielberg") ||
+    ev.includes("red bull ring") ||
+    ev.includes("russia") ||
+    ev.includes("sochi") ||
+    ev.includes("abu dhabi") ||
+    ev.includes("yas marina");
+
+  const isHighDeg =
+    ev.includes("spain") ||
+    ev.includes("catalunya") ||
+    ev.includes("barcelona") ||
+    ev.includes("britain") ||
+    ev.includes("british") ||
+    ev.includes("silverstone") ||
+    ev.includes("japan") ||
+    ev.includes("suzuka") ||
+    ev.includes("malaysia") ||
+    ev.includes("sepang") ||
+    ev.includes("belgium") ||
+    ev.includes("spa");
+
+  // Modern Era (2019+): simplified Hard / Medium / Soft system
+  if (year >= 2019) {
+    return {
+      softest: "SOFT",
+      medium: "MEDIUM",
+      hardest: "HARD",
+      defaultQuali: "SOFT",
+      raceOptions: ["SOFT", "MEDIUM", "HARD"],
+    };
+  }
+
+  // 2018: 7-compound rainbow era
+  if (year === 2018) {
+    if (isStreetOrLowDeg) {
+      return {
+        softest: "HYPERSOFT",
+        medium: "ULTRASOFT",
+        hardest: "SUPERSOFT",
+        defaultQuali: "HYPERSOFT",
+        raceOptions: ["HYPERSOFT", "ULTRASOFT", "SUPERSOFT"],
+      };
+    }
+    if (isHighDeg) {
+      return {
+        softest: "SOFT",
+        medium: "MEDIUM",
+        hardest: "HARD",
+        defaultQuali: "SOFT",
+        raceOptions: ["SOFT", "MEDIUM", "HARD"],
+      };
+    }
+    return {
+      softest: "ULTRASOFT",
+      medium: "SUPERSOFT",
+      hardest: "SOFT",
+      defaultQuali: "ULTRASOFT",
+      raceOptions: ["ULTRASOFT", "SUPERSOFT", "SOFT"],
+    };
+  }
+
+  // 2016 – 2017: 3 nominated compounds per weekend (UltraSoft introduced in 2016)
+  if (year >= 2016 && year <= 2017) {
+    if (isStreetOrLowDeg) {
+      return {
+        softest: "ULTRASOFT",
+        medium: "SUPERSOFT",
+        hardest: "SOFT",
+        defaultQuali: "ULTRASOFT",
+        raceOptions: ["ULTRASOFT", "SUPERSOFT", "SOFT"],
+      };
+    }
+    if (isHighDeg) {
+      return {
+        softest: "SOFT",
+        medium: "MEDIUM",
+        hardest: "HARD",
+        defaultQuali: "SOFT",
+        raceOptions: ["SOFT", "MEDIUM", "HARD"],
+      };
+    }
+    return {
+      softest: "SUPERSOFT",
+      medium: "SOFT",
+      hardest: "MEDIUM",
+      defaultQuali: "SUPERSOFT",
+      raceOptions: ["SUPERSOFT", "SOFT", "MEDIUM"],
+    };
+  }
+
+  // 2011 – 2015: Pirelli Option & Prime era
+  if (year >= 2011 && year <= 2015) {
+    if (isStreetOrLowDeg) {
+      return {
+        softest: "SUPERSOFT",
+        medium: "SOFT",
+        hardest: "SOFT",
+        defaultQuali: "SUPERSOFT",
+        raceOptions: ["SUPERSOFT", "SOFT"],
+      };
+    }
+    if (isHighDeg) {
+      return {
+        softest: "MEDIUM",
+        medium: "HARD",
+        hardest: "HARD",
+        defaultQuali: "MEDIUM",
+        raceOptions: ["MEDIUM", "HARD"],
+      };
+    }
+    return {
+      softest: "SOFT",
+      medium: "MEDIUM",
+      hardest: "MEDIUM",
+      defaultQuali: "SOFT",
+      raceOptions: ["SOFT", "MEDIUM"],
+    };
+  }
+
+  // 2010 and prior: Bridgestone Potenza era (Super Soft, Soft, Medium, Hard)
+  if (isStreetOrLowDeg) {
+    return {
+      softest: "SUPERSOFT",
+      medium: "SOFT",
+      hardest: "SOFT",
+      defaultQuali: "SUPERSOFT",
+      raceOptions: ["SUPERSOFT", "SOFT"],
+    };
+  }
+  if (isHighDeg) {
+    return {
+      softest: "MEDIUM",
+      medium: "HARD",
+      hardest: "HARD",
+      defaultQuali: "MEDIUM",
+      raceOptions: ["MEDIUM", "HARD"],
+    };
+  }
+  return {
+    softest: "SOFT",
+    medium: "MEDIUM",
+    hardest: "MEDIUM",
+    defaultQuali: "SOFT",
+    raceOptions: ["SOFT", "MEDIUM"],
+  };
+}
+
 // ─── Jolpica Real F1 API Ingestion (Pit Stops & Race Strategy) ───────────────
 
 const JOLPICA_CACHE = new Map<string, { drivers: SessionDriver[]; laps: SessionLap[] }>();
@@ -283,7 +482,7 @@ async function fetchJolpicaRaceData(
     const round = raceMatch?.round ?? 1;
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 3500);
+    const timeout = setTimeout(() => controller.abort(), 2000);
 
     const [pitRes, resRes] = await Promise.all([
       fetch(`https://api.jolpi.ca/ergast/f1/${year}/${round}/pitstops.json?limit=100`, {
@@ -323,7 +522,8 @@ async function fetchJolpicaRaceData(
       };
     });
 
-    // 2. Build authentic pit stop & stint laps for each driver
+    // 2. Build authentic pit stop & stint laps for each driver using period-accurate compounds
+    const nominated = getEventNominatedCompounds(year, event);
     const laps: SessionLap[] = [];
 
     race.Results.forEach((res: any, dIdx: number) => {
@@ -346,6 +546,9 @@ async function fetchJolpicaRaceData(
       }
       const fastestLapNum = res.FastestLap?.lap ? Number(res.FastestLap.lap) : Math.round(totalLaps * 0.8);
       const baseLapTime = fastestSec + 1.2;
+
+      // Realistic stint tyre compound assignment matching era and starting strategy
+      const isAlternateStrat = (d.position ?? 99) > 10;
 
       for (let lapNum = 1; lapNum <= totalLaps; lapNum++) {
         // Determine stint number from real Jolpica pit stops
@@ -372,12 +575,12 @@ async function fetchJolpicaRaceData(
 
         const compound =
           stintNum === 1
-            ? "MEDIUM"
+            ? (isAlternateStrat ? nominated.hardest : nominated.medium)
             : stintNum === 2
-            ? "HARD"
+            ? (isAlternateStrat ? nominated.softest : nominated.hardest)
             : stintNum === 3
-            ? "SOFT"
-            : "MEDIUM";
+            ? nominated.softest
+            : nominated.medium;
 
         laps.push({
           Time: Number((lapNum * 86.2).toFixed(3)),
@@ -423,7 +626,7 @@ export async function loadSessionDrivers(
   try {
     return await json<SessionDriver[]>(sessionPath(year, event, sessionCode, "_drivers.json"));
   } catch {
-    if (year >= 2010 && sessionCode === "R") {
+    if (year >= 2010 && year < 2025 && sessionCode === "R") {
       const jolpica = await fetchJolpicaRaceData(year, event);
       if (jolpica && jolpica.drivers.length > 0) {
         return jolpica.drivers;
@@ -494,7 +697,7 @@ export async function loadSessionLaps(
   try {
     return await json<SessionLap[]>(sessionPath(year, event, sessionCode, "_laps.json"));
   } catch {
-    if (year >= 2010 && sessionCode === "R") {
+    if (year >= 2010 && year < 2025 && sessionCode === "R") {
       const jolpica = await fetchJolpicaRaceData(year, event);
       if (jolpica && jolpica.laps.length > 0) {
         return jolpica.laps;
@@ -505,6 +708,7 @@ export async function loadSessionLaps(
     const drivers = getHistoricalDrivers(year, event, sessionCode);
     const isQuali = sessionCode === "Q" || sessionCode === "SQ" || sessionCode === "Qualifying";
     const totalLaps = getRaceLapCount(event, sessionCode);
+    const nominated = getEventNominatedCompounds(year, event);
 
     const baseLapTime = 84.2; // ~1:24.200
     const laps: SessionLap[] = [];
@@ -516,6 +720,7 @@ export async function loadSessionLaps(
     drivers.forEach((d, dIdx) => {
       const pos = d.position ?? (dIdx + 1);
       const driverDelta = (pos - 1) * 0.24; // Strict separation per position
+      const isAlternateStrat = pos > 10;
 
       for (let lapNum = 1; lapNum <= totalLaps; lapNum++) {
         const isPushLap = isQuali ? lapNum === 2 : lapNum === Math.max(1, Math.round(totalLaps * 0.85));
@@ -536,12 +741,12 @@ export async function loadSessionLaps(
         const lapTime = baseLapTime + driverDelta + tyreWearDelta + fuelBurn + microVar + pitDelta;
 
         const compound = isQuali
-          ? "SOFT"
+          ? nominated.defaultQuali
           : stintNum === 1
-          ? "MEDIUM"
+          ? (isAlternateStrat ? nominated.hardest : nominated.medium)
           : stintNum === 2
-          ? "HARD"
-          : "SOFT";
+          ? (isAlternateStrat ? nominated.softest : nominated.hardest)
+          : nominated.softest;
 
         laps.push({
           Time: Number((lapNum * 86.2).toFixed(3)),
@@ -992,21 +1197,50 @@ export async function loadWeather(
 
 // ─── Circuit ──────────────────────────────────────────────────────────────────
 
-/** Returns CircuitData, falling back to a classic circuit if slug is unlisted */
+const CIRCUIT_CACHE = new Map<string, CircuitData>();
+
+/** Returns CircuitData for any circuit worldwide, with multi-tier failover and bundled fallback */
 export async function loadCircuit(
   circuitSlug: string
-): Promise<CircuitData | null> {
-  try {
-    return await json<CircuitData>(
-      `${BASE}/circuits/${circuitSlug}_2025_unified.json`
-    );
-  } catch {
-    try {
-      return await json<CircuitData>(`${BASE}/circuits/silverstone_2025_unified.json`);
-    } catch {
-      return null;
-    }
+): Promise<CircuitData> {
+  const slug = circuitSlug || "silverstone";
+  if (CIRCUIT_CACHE.has(slug)) {
+    return CIRCUIT_CACHE.get(slug)!;
   }
+
+  const base = getBaseUrl();
+
+  // 1. Try unified circuit file on disk
+  try {
+    const data = await json<CircuitData>(`${base}/circuits/${slug}_2025_unified.json`);
+    if (data && data.track && data.track.length > 0) {
+      CIRCUIT_CACHE.set(slug, data);
+      return data;
+    }
+  } catch {}
+
+  // 2. Try silverstone fallback
+  try {
+    const silverstone = await json<CircuitData>(`${base}/circuits/silverstone_2025_unified.json`);
+    if (silverstone && silverstone.track && silverstone.track.length > 0) {
+      CIRCUIT_CACHE.set(slug, silverstone);
+      return silverstone;
+    }
+  } catch {}
+
+  // 3. Try direct root fallback
+  try {
+    const rootFallback = await json<CircuitData>(`/data/circuits/silverstone_2025_unified.json`);
+    if (rootFallback && rootFallback.track && rootFallback.track.length > 0) {
+      CIRCUIT_CACHE.set(slug, rootFallback);
+      return rootFallback;
+    }
+  } catch {}
+
+  // 4. Guaranteed bundled circuit geometry fallback (never null)
+  const bundled = monacoCircuit as unknown as CircuitData;
+  CIRCUIT_CACHE.set(slug, bundled);
+  return bundled;
 }
 
 // ─── Driver Telemetry Dynamics Engine ──────────────────────────────────────────
@@ -1022,22 +1256,23 @@ interface DriverProfile {
 
 const DRIVER_PROFILES: Record<string, DriverProfile> = {
   // Modern Era (2024-2025)
-  VER: { team: "Red Bull Racing", topSpeedDelta: 12.0, apexSpeedFactor: 1.075, brakePointOffset: -28, throttleAggression: 1.28, lapTimeBase: -0.75 },
-  NOR: { team: "McLaren", topSpeedDelta: 8.5, apexSpeedFactor: 1.092, brakePointOffset: -22, throttleAggression: 1.20, lapTimeBase: -0.68 },
-  PIA: { team: "McLaren", topSpeedDelta: 7.8, apexSpeedFactor: 1.065, brakePointOffset: -18, throttleAggression: 1.15, lapTimeBase: -0.42 },
-  LEC: { team: "Ferrari", topSpeedDelta: 10.2, apexSpeedFactor: 1.080, brakePointOffset: -26, throttleAggression: 1.30, lapTimeBase: -0.62 },
-  SAI: { team: "Ferrari", topSpeedDelta: 8.0, apexSpeedFactor: 1.045, brakePointOffset: -16, throttleAggression: 1.10, lapTimeBase: -0.30 },
-  HAM: { team: "Mercedes", topSpeedDelta: 6.5, apexSpeedFactor: 1.060, brakePointOffset: -30, throttleAggression: 1.18, lapTimeBase: -0.52 },
-  RUS: { team: "Mercedes", topSpeedDelta: 9.0, apexSpeedFactor: 1.050, brakePointOffset: -22, throttleAggression: 1.14, lapTimeBase: -0.48 },
+  VER: { team: "Red Bull Racing", topSpeedDelta: 12.0, apexSpeedFactor: 1.078, brakePointOffset: -28, throttleAggression: 1.28, lapTimeBase: -0.75 },
+  NOR: { team: "McLaren", topSpeedDelta: 8.5, apexSpeedFactor: 1.095, brakePointOffset: -22, throttleAggression: 1.20, lapTimeBase: -0.68 },
+  PIA: { team: "McLaren", topSpeedDelta: 7.8, apexSpeedFactor: 1.068, brakePointOffset: -18, throttleAggression: 1.15, lapTimeBase: -0.42 },
+  LEC: { team: "Ferrari", topSpeedDelta: 10.2, apexSpeedFactor: 1.082, brakePointOffset: -26, throttleAggression: 1.30, lapTimeBase: -0.62 },
+  SAI: { team: "Ferrari", topSpeedDelta: 8.0, apexSpeedFactor: 1.048, brakePointOffset: -16, throttleAggression: 1.10, lapTimeBase: -0.30 },
+  HAM: { team: "Mercedes", topSpeedDelta: 6.5, apexSpeedFactor: 1.062, brakePointOffset: -30, throttleAggression: 1.18, lapTimeBase: -0.52 },
+  RUS: { team: "Mercedes", topSpeedDelta: 9.0, apexSpeedFactor: 1.052, brakePointOffset: -22, throttleAggression: 1.14, lapTimeBase: -0.48 },
   PER: { team: "Red Bull Racing", topSpeedDelta: 11.0, apexSpeedFactor: 0.990, brakePointOffset: -10, throttleAggression: 1.02, lapTimeBase: 0.25 },
-  ALO: { team: "Aston Martin", topSpeedDelta: 5.5, apexSpeedFactor: 1.068, brakePointOffset: -25, throttleAggression: 1.22, lapTimeBase: -0.15 },
+  ALO: { team: "Aston Martin", topSpeedDelta: 5.5, apexSpeedFactor: 1.070, brakePointOffset: -25, throttleAggression: 1.22, lapTimeBase: -0.15 },
   STR: { team: "Aston Martin", topSpeedDelta: 4.0, apexSpeedFactor: 0.970, brakePointOffset: 12, throttleAggression: 0.95, lapTimeBase: 0.85 },
-  TSU: { team: "Racing Bulls", topSpeedDelta: 3.5, apexSpeedFactor: 1.025, brakePointOffset: -12, throttleAggression: 1.10, lapTimeBase: 0.45 },
+  TSU: { team: "Racing Bulls", topSpeedDelta: 3.5, apexSpeedFactor: 1.028, brakePointOffset: -12, throttleAggression: 1.10, lapTimeBase: 0.45 },
   RIC: { team: "Racing Bulls", topSpeedDelta: 4.0, apexSpeedFactor: 1.010, brakePointOffset: -15, throttleAggression: 1.05, lapTimeBase: 0.55 },
   LAW: { team: "Racing Bulls", topSpeedDelta: 3.2, apexSpeedFactor: 1.018, brakePointOffset: -10, throttleAggression: 1.08, lapTimeBase: 0.50 },
+  HAD: { team: "Racing Bulls", topSpeedDelta: 3.8, apexSpeedFactor: 1.022, brakePointOffset: -14, throttleAggression: 1.12, lapTimeBase: 0.48 },
   HUL: { team: "Haas", topSpeedDelta: 9.5, apexSpeedFactor: 0.985, brakePointOffset: -8, throttleAggression: 1.08, lapTimeBase: 0.65 },
   MAG: { team: "Haas", topSpeedDelta: 9.0, apexSpeedFactor: 0.980, brakePointOffset: -18, throttleAggression: 1.12, lapTimeBase: 0.72 },
-  BEA: { team: "Haas", topSpeedDelta: 8.5, apexSpeedFactor: 0.990, brakePointOffset: -6, throttleAggression: 1.04, lapTimeBase: 0.68 },
+  BEA: { team: "Haas", topSpeedDelta: 8.5, apexSpeedFactor: 0.992, brakePointOffset: -12, throttleAggression: 1.06, lapTimeBase: 0.62 },
   ALB: { team: "Williams", topSpeedDelta: 14.5, apexSpeedFactor: 0.965, brakePointOffset: -12, throttleAggression: 1.06, lapTimeBase: 0.58 },
   COL: { team: "Williams", topSpeedDelta: 13.8, apexSpeedFactor: 0.970, brakePointOffset: -8, throttleAggression: 1.04, lapTimeBase: 0.65 },
   SAR: { team: "Williams", topSpeedDelta: 12.5, apexSpeedFactor: 0.940, brakePointOffset: 16, throttleAggression: 0.90, lapTimeBase: 1.25 },
@@ -1046,6 +1281,8 @@ const DRIVER_PROFILES: Record<string, DriverProfile> = {
   DOO: { team: "Alpine", topSpeedDelta: 1.5, apexSpeedFactor: 0.975, brakePointOffset: 2, throttleAggression: 0.98, lapTimeBase: 0.95 },
   BOT: { team: "Kick Sauber", topSpeedDelta: 3.0, apexSpeedFactor: 0.980, brakePointOffset: 0, throttleAggression: 0.96, lapTimeBase: 0.98 },
   ZHO: { team: "Kick Sauber", topSpeedDelta: 2.5, apexSpeedFactor: 0.955, brakePointOffset: 18, throttleAggression: 0.88, lapTimeBase: 1.35 },
+  BOR: { team: "Kick Sauber", topSpeedDelta: 3.2, apexSpeedFactor: 0.985, brakePointOffset: -4, throttleAggression: 1.02, lapTimeBase: 0.85 },
+  ANT: { team: "Mercedes", topSpeedDelta: 8.0, apexSpeedFactor: 1.060, brakePointOffset: -24, throttleAggression: 1.22, lapTimeBase: -0.45 },
 
   // Historical Legends
   VET: { team: "Red Bull Racing", topSpeedDelta: 10.5, apexSpeedFactor: 1.085, brakePointOffset: -27, throttleAggression: 1.25, lapTimeBase: -0.70 },
@@ -1115,57 +1352,70 @@ export async function loadTelemetry(
   driver: string,
   lap: number,
   sessionCode: string = "Q",
-  selectedSessionLap?: SessionLap | null
+  selectedSessionLap?: SessionLap | null,
+  raceEvent?: string
 ): Promise<LapTelemetry | null> {
   const eraDrivers = getHistoricalDrivers(year);
   const defaultDriver = eraDrivers[0]?.abbreviation || "VER";
   const targetDriver =
-    driver && (eraDrivers.some((d) => d.abbreviation === driver) || true) ? driver : defaultDriver;
+    driver && eraDrivers.some((d) => d.abbreviation === driver) ? driver : defaultDriver;
   const targetLap = lap || 1;
-  const isQuali = sessionCode === "Q" || sessionCode === "SQ" || sessionCode === "Qualifying";
-  // ALL qualifying sessions are raw/uncompressed — high-precision data is always needed
-  // for qualifying lap comparison regardless of era (even historic reconstructions need full fidelity)
+  const isQuali =
+    sessionCode === "Q" ||
+    sessionCode === "SQ" ||
+    sessionCode === "Qualifying" ||
+    sessionCode === "Sprint Qualifying";
+  const isPractice = sessionCode.startsWith("FP");
   const isRawQuali = isQuali;
 
-  // Ground truth lap time, compound, and tyre life from session lap if available
-  const knownLapTime = selectedSessionLap?.LapTime ?? null;
-  const knownCompound = selectedSessionLap?.Compound ?? null;
-  const knownTyreLife = selectedSessionLap?.TyreLife ?? null;
-
-function isValidStaticTelemetry(data: LapTelemetry | null | undefined): boolean {
-  if (!data?.telemetry?.data?.length) return false;
-  const pts = data.telemetry.data;
-  if (pts.length < 50) return false;
-
-  // Reject dummy placeholder coordinates (X: 1800, Y: 0, Z: 500)
-  if (pts[0].X === 1800 && pts[0].Y === 0 && pts[0].Z === 500) return false;
-
-  // Check for realistic speed and throttle variation
-  const uniqueSpeeds = new Set<number>();
-  const uniqueThrottles = new Set<number>();
-  let minSpeed = Infinity;
-  let maxSpeed = -Infinity;
-
-  for (let i = 0; i < Math.min(pts.length, 150); i++) {
-    const s = pts[i].Speed;
-    uniqueSpeeds.add(s);
-    uniqueThrottles.add(pts[i].Throttle);
-    if (s < minSpeed) minSpeed = s;
-    if (s > maxSpeed) maxSpeed = s;
+  // Resolve session lap data: use passed lap or query session laps
+  let lapData = selectedSessionLap ?? null;
+  if (!lapData) {
+    try {
+      const sessionLaps = await loadSessionLaps(year, raceEvent || circuitSlug, sessionCode);
+      const dLaps = sessionLaps.filter((l) => l.Driver === targetDriver);
+      lapData = dLaps.find((l) => l.LapNumber === targetLap) || dLaps[0] || null;
+    } catch {
+      // Continue to fallback
+    }
   }
 
-  // Reject dummy files with flat speeds (e.g. all 335 or 340) or stepped dummy throttle
-  if (uniqueSpeeds.size < 10) return false;
-  if (maxSpeed - minSpeed < 30) return false;
-  if (uniqueThrottles.size < 5) return false;
+  // Ground truth lap time, compound, tyre life, and real speed traps
+  const knownLapTime = lapData?.LapTime ?? null;
+  const knownCompound = lapData?.Compound && lapData.Compound !== "None" ? lapData.Compound : null;
+  const knownTyreLife = lapData?.TyreLife ?? null;
+  const knownSpeedST = (lapData?.SpeedST && lapData.SpeedST > 40) ? lapData.SpeedST : null;
+  const knownSpeedFL = (lapData?.SpeedFL && lapData.SpeedFL > 40) ? lapData.SpeedFL : null;
+  const isPitIn = Boolean(lapData?.PitInTime);
+  const isPitOut = Boolean(lapData?.PitOutTime);
 
-  return true;
-}
+  function isValidStaticTelemetry(data: LapTelemetry | null | undefined): boolean {
+    if (!data?.telemetry?.data?.length) return false;
+    const pts = data.telemetry.data;
+    if (pts.length < 50) return false;
+    if (pts[0].X === 1800 && pts[0].Y === 0 && pts[0].Z === 500) return false;
 
-  // 1. Try loading static pre-recorded FastF1 telemetry on disk.
-  //    Static files are Race-session data only. For Qualifying we ALWAYS use the
-  //    dynamic simulation engine so it can apply densifyTrackForQuali and produce
-  //    the proper high-density 50Hz uncompressed trace.
+    const uniqueSpeeds = new Set<number>();
+    const uniqueThrottles = new Set<number>();
+    let minSpeed = Infinity;
+    let maxSpeed = -Infinity;
+
+    for (let i = 0; i < Math.min(pts.length, 150); i++) {
+      const s = pts[i].Speed;
+      uniqueSpeeds.add(s);
+      uniqueThrottles.add(pts[i].Throttle);
+      if (s < minSpeed) minSpeed = s;
+      if (s > maxSpeed) maxSpeed = s;
+    }
+
+    if (uniqueSpeeds.size < 10) return false;
+    if (maxSpeed - minSpeed < 30) return false;
+    if (uniqueThrottles.size < 5) return false;
+
+    return true;
+  }
+
+  // 1. Try loading static pre-recorded FastF1 telemetry on disk for Race sessions.
   if (year === 2025 && !isQuali) {
     const padLap = String(targetLap).padStart(3, "0");
     try {
@@ -1179,7 +1429,6 @@ function isValidStaticTelemetry(data: LapTelemetry | null | undefined): boolean 
           90;
         const targetLapTime = knownLapTime && knownLapTime > 40 ? knownLapTime : origLapTime;
 
-        // If known lap time differs from static lap time, calibrate Time progression
         if (knownLapTime && origLapTime > 0 && Math.abs(knownLapTime - origLapTime) > 0.05) {
           const timeScale = targetLapTime / origLapTime;
           for (let i = 0; i < staticData.telemetry.data.length; i++) {
@@ -1199,7 +1448,7 @@ function isValidStaticTelemetry(data: LapTelemetry | null | undefined): boolean 
           isCompressed: true,
           samplingMode: "COMPRESSED_RACE_STINT",
           samplingHz: 10,
-          compressionRatio: `1.0x (${staticData.telemetry.data.length} FastF1 Raw Points)`,
+          compressionRatio: `3.5x (${staticData.telemetry.data.length} Points · 10Hz Compressed Log)`,
         };
       }
     } catch {
@@ -1214,85 +1463,58 @@ function isValidStaticTelemetry(data: LapTelemetry | null | undefined): boolean 
   if (!circ || !circ.track?.length) return null;
 
   const turns = circ.turns ?? [];
+  const trackLength = circ.length_m || (circ.track[circ.track.length - 1]?.distance ?? 5300);
 
-  // In Modern Qualifying (2005+): Generate high-density 50Hz raw stream (3500-5000+ points at 1.0m intervals)
-  // In Race & Historic Era (pre-2005): Use standard track points with stint compression
+  // In Qualifying: Generate high-density 50Hz raw stream (1.0m step)
+  // In Race: Use standard track points with 10Hz stint compression
   const activeTrack = isRawQuali ? densifyTrackForQuali(circ.track, 1.0) : circ.track;
 
-  // Seed offset for driver micro-variations and lap dynamics
-  const seed = (targetDriver.charCodeAt(0) * 7 + (targetDriver.charCodeAt(1) || 0) * 3 + targetLap * 11) % 100;
+  // Unique driver micro-seed
+  const seed = (targetDriver.charCodeAt(0) * 11 + (targetDriver.charCodeAt(1) || 0) * 7 + targetLap * 13) % 100;
   const seedOffset = (seed - 50) / 100; // -0.5 to +0.5
 
-  // ─── Realistic Lap-by-Lap Operational Context ───
-  let lapSpeedDelta = 0;
-  let lapApexDelta = 0;
-  let lapBrakeDelta = 0;
-  let lapThrottleFactor = 1.0;
-  let lapDrsAllowed = true;
-  let lapCompound = knownCompound || "SOFT";
-  let tyreLife = knownTyreLife || 1;
+  // ─── Compound and Grip Physics ───
+  const nominated = getEventNominatedCompounds(year, circuitSlug);
+  let lapCompound = knownCompound || (isQuali ? nominated.defaultQuali : nominated.medium);
+  let tyreLife = knownTyreLife || (isQuali ? ((targetLap % 4) + 1) : Math.max(1, (targetLap % 22) + 1));
 
-  if (isQuali) {
-    const qualiCycle = (targetLap - 1) % 4;
-    if (qualiCycle === 0) {
-      lapSpeedDelta = -42; // warmup cruise
-      lapApexDelta = -18;
-      lapBrakeDelta = 32;
-      lapThrottleFactor = 0.80;
-      lapDrsAllowed = false;
-      if (!knownCompound) lapCompound = "SOFT";
-      if (!knownTyreLife) tyreLife = 1;
-    } else if (qualiCycle === 1) {
-      lapSpeedDelta = 4.5; // peak attack
-      lapApexDelta = 4.0;
-      lapBrakeDelta = -8;
-      lapThrottleFactor = 1.10;
-      lapDrsAllowed = true;
-      if (!knownCompound) lapCompound = "SOFT";
-      if (!knownTyreLife) tyreLife = 2;
-    } else if (qualiCycle === 2) {
-      lapSpeedDelta = -60; // recharge lap
-      lapApexDelta = -26;
-      lapBrakeDelta = 42;
-      lapThrottleFactor = 0.68;
-      lapDrsAllowed = false;
-      if (!knownCompound) lapCompound = "SOFT";
-      if (!knownTyreLife) tyreLife = 3;
-    } else {
-      lapSpeedDelta = 1.5; // second flying lap
-      lapApexDelta = 1.8;
-      lapBrakeDelta = -4;
-      lapThrottleFactor = 1.05;
-      lapDrsAllowed = true;
-      if (!knownCompound) lapCompound = "SOFT";
-      if (!knownTyreLife) tyreLife = 4;
-    }
-  } else {
-    if (targetLap === 1) {
-      lapSpeedDelta = -28;
-      lapApexDelta = -14;
-      lapBrakeDelta = 36;
-      lapThrottleFactor = 0.86;
-      lapDrsAllowed = false;
-      if (!knownCompound) lapCompound = "MEDIUM";
-      if (!knownTyreLife) tyreLife = 1;
-    } else {
-      const fuelWeightEffect = (targetLap - 1) * 0.35;
-      const stintLap = (targetLap % 20) + 1;
-      const tyreWearEffect = stintLap * 0.42;
-      lapSpeedDelta = fuelWeightEffect - tyreWearEffect * 0.4;
-      lapApexDelta = -tyreWearEffect;
-      lapBrakeDelta = tyreWearEffect * 0.7;
-      lapThrottleFactor = Math.max(0.85, 1.0 - tyreWearEffect * 0.007);
-      lapDrsAllowed = true;
-      if (!knownCompound) lapCompound = targetLap > 36 ? "SOFT" : targetLap > 18 ? "HARD" : "MEDIUM";
-      if (!knownTyreLife) tyreLife = stintLap;
-    }
+  const compUpper = (lapCompound || "MEDIUM").toUpperCase();
+  const compoundGrip =
+    compUpper.includes("SOFT") ? 1.045 :
+    compUpper.includes("HARD") ? 0.965 :
+    compUpper.includes("INTER") ? 0.880 :
+    compUpper.includes("WET") ? 0.770 : 1.000;
+
+  // Tyre life degradation: -0.3% corner grip per lap of tyre age
+  const tyreDegFactor = Math.max(0.88, 1.0 - (tyreLife * 0.0035));
+
+  // Pace factor: detects wet or slow Safety Car laps (e.g. Australia Lap 6 with 140s lap time)
+  const poleBaseLap = trackLength / 66.0; // estimated dry pole lap in seconds (~75-82s)
+  let paceFactor = 1.0;
+  if (knownLapTime && knownLapTime > poleBaseLap * 1.15) {
+    paceFactor = Math.max(0.42, Math.min(1.0, poleBaseLap / knownLapTime));
+  } else if (knownSpeedST && knownSpeedST < 210) {
+    paceFactor = Math.max(0.45, knownSpeedST / 315);
   }
 
-  // Speed adjustments from known session lap speed traps
-  const trapSpeedST = selectedSessionLap?.SpeedST;
-  const trapSpeedFL = selectedSessionLap?.SpeedFL;
+  // Base straight top speed for circuit
+  const baseTopSpeed =
+    circuitSlug === "monza" ? 354 :
+    circuitSlug === "spa" ? 344 :
+    circuitSlug === "las_vegas" ? 348 :
+    circuitSlug === "baku" ? 346 :
+    circuitSlug === "mexico_city" ? 350 :
+    circuitSlug === "monaco" ? 288 : 326;
+
+  // Straightaway speed anchor:
+  // If real SpeedST exists, anchor directly to real SpeedST from FastF1!
+  let targetTopSpeed: number;
+  if (knownSpeedST) {
+    targetTopSpeed = knownSpeedST;
+  } else {
+    const engineModeDelta = isQuali ? 9.5 : isPractice ? -6.0 : -3.0;
+    targetTopSpeed = Math.max(160, (baseTopSpeed + profile.topSpeedDelta + engineModeDelta + seedOffset * 2.5) * paceFactor);
+  }
 
   let currTime = 0;
   const rawData: any[] = [];
@@ -1316,72 +1538,99 @@ function isValidStaticTelemetry(data: LapTelemetry | null | undefined): boolean 
     const isApproaching = nearestTurn && dist < nearestTurn.distance;
     const isExiting = nearestTurn && dist >= nearestTurn.distance;
 
-    // Base apex speed
-    const turnBaseSpeed = nearestTurn?.speed && nearestTurn.speed > 40 ? nearestTurn.speed : 115;
-    
-    // Quali vs Race Dynamics:
-    const apexSensitivity = isQuali ? 1.055 : 0.97;
-    const driverApexSpeed = Math.max(40, turnBaseSpeed * profile.apexSpeedFactor * apexSensitivity + lapApexDelta + seedOffset * (isQuali ? 2.5 : 0.8));
+    // Corner minimum speed (Apex)
+    const turnBaseSpeed = nearestTurn?.speed && nearestTurn.speed > 35 ? nearestTurn.speed : 110;
+    const sessionApexFactor = isQuali ? 1.055 : isPractice ? 0.98 : 0.985;
+    const driverApexSpeed = Math.max(
+      35,
+      turnBaseSpeed * profile.apexSpeedFactor * compoundGrip * tyreDegFactor * sessionApexFactor * paceFactor +
+        seedOffset * (isQuali ? 2.0 : 0.8)
+    );
 
-    // Top speed on straights
-    const baseTopSpeed = trapSpeedST
-      ? trapSpeedST
-      : circuitSlug === "monza" ? 352 : circuitSlug === "spa" || circuitSlug === "las_vegas" || circuitSlug === "baku" ? 342 : circuitSlug === "monaco" ? 288 : 322;
-    const engineModeDelta = isQuali ? 9.5 : -4.0;
-    const targetTopSpeed = Math.max(180, baseTopSpeed + profile.topSpeedDelta + engineModeDelta + lapSpeedDelta + seedOffset * 2.8);
-
-    // Braking threshold:
-    const baseBraking = isQuali ? 68 : 88;
-    const brakingDist = baseBraking + (targetTopSpeed - driverApexSpeed) * (isQuali ? 0.40 : 0.48) + profile.brakePointOffset + lapBrakeDelta;
+    // Braking initiation zone
+    const baseBraking = isQuali ? 66 : 84;
+    const brakingDist = Math.max(
+      35,
+      baseBraking +
+        (targetTopSpeed - driverApexSpeed) * (isQuali ? 0.38 : 0.46) +
+        profile.brakePointOffset -
+        (compoundGrip - 1.0) * 45
+    );
 
     let speed: number;
     let throttle: number;
     let brake: boolean;
     let drs = 0;
 
-    if (distToTurn < 16) {
-      // Apex clipping zone
-      speed = driverApexSpeed + (distToTurn / 16) * (isQuali ? 8 : 4);
-      throttle = isQuali ? Math.round(32 * profile.throttleAggression * lapThrottleFactor) : Math.round(15 * lapThrottleFactor);
+    // Pit In limiter on final 260m
+    if (isPitIn && dist >= trackLength - 260) {
+      speed = Math.max(78, 80 + Math.sin(dist * 0.1) * 2);
+      throttle = 35;
+      brake = dist >= trackLength - 280 && dist <= trackLength - 240;
+    }
+    // Pit Out limiter on first 220m
+    else if (isPitOut && dist <= 220) {
+      speed = Math.min(targetTopSpeed, 80 + (dist / 220) * 80);
+      throttle = Math.min(100, Math.round(40 + (dist / 220) * 60));
       brake = false;
-    } else if (isApproaching && distToTurn <= brakingDist) {
-      // Braking zone
-      const brakeProgress = 1 - (distToTurn - 16) / (brakingDist - 16);
-      speed = targetTopSpeed - brakeProgress * (targetTopSpeed - driverApexSpeed);
-      // Lift and coast in race vs instant cut in quali
-      if (!isQuali && distToTurn > brakingDist - 25) {
-        throttle = Math.max(0, Math.round((distToTurn - (brakingDist - 25)) * 4 * lapThrottleFactor));
+    }
+    // Apex clipping zone
+    else if (distToTurn < 16) {
+      speed = driverApexSpeed + (distToTurn / 16) * (isQuali ? 7 : 4);
+      throttle = Math.min(100, Math.round(28 * profile.throttleAggression * compoundGrip));
+      brake = false;
+    }
+    // Braking zone & Lift and Coast
+    else if (isApproaching && distToTurn <= brakingDist + 28) {
+      // Race Lift-and-Coast zone (28m before brake application)
+      if (!isQuali && distToTurn > brakingDist) {
+        throttle = 0;
         brake = false;
+        const coastFactor = (distToTurn - brakingDist) / 28;
+        speed = targetTopSpeed - (1 - coastFactor) * 8; // light drag bleed
       } else {
+        // Hard Braking zone
+        const brakeProgress = Math.max(0, Math.min(1, 1 - (distToTurn - 16) / Math.max(1, brakingDist - 16)));
+        speed = targetTopSpeed - brakeProgress * (targetTopSpeed - driverApexSpeed);
         throttle = 0;
         brake = true;
       }
-    } else if (isExiting && distToTurn <= 130) {
-      // Acceleration out of corner
-      const exitProgress = Math.min(1, (distToTurn - 16) / 114);
-      speed = driverApexSpeed + Math.pow(exitProgress, isQuali ? 0.70 : 0.88) * (targetTopSpeed - driverApexSpeed);
+    }
+    // Acceleration out of corner
+    else if (isExiting && distToTurn <= 135) {
+      const exitProgress = Math.min(1, (distToTurn - 16) / 119);
+      const accelPower = isQuali ? 0.72 : 0.86;
+      speed = driverApexSpeed + Math.pow(exitProgress, accelPower) * (targetTopSpeed - driverApexSpeed);
+
       if (isQuali) {
-        const baseThrottle = exitProgress > 0.30 ? 100 : (38 + exitProgress * 85) * profile.throttleAggression;
-        const tractionMod = exitProgress < 0.35 ? Math.sin(dist * 1.8 + seed) * 4 : 0;
-        throttle = Math.max(0, Math.min(100, Math.round((baseThrottle + tractionMod) * lapThrottleFactor)));
+        const baseThrottle = exitProgress > 0.28 ? 100 : (35 + exitProgress * 90) * profile.throttleAggression;
+        const tractionJitter = exitProgress < 0.32 ? Math.sin(dist * 1.6 + seed) * 3 : 0;
+        throttle = Math.max(0, Math.min(100, Math.round((baseThrottle + tractionJitter) * compoundGrip)));
       } else {
-        throttle = Math.min(100, Math.round((20 + exitProgress * 80) * 0.95 * lapThrottleFactor));
+        const exitT = (22 + exitProgress * 78) * profile.throttleAggression * compoundGrip;
+        throttle = Math.max(0, Math.min(100, Math.round(exitT)));
       }
       brake = false;
-    } else {
-      // Straightaway
-      speed = (trapSpeedFL && (idx < 6 || idx > activeTrack.length - 8)) ? Math.max(targetTopSpeed, trapSpeedFL) : targetTopSpeed;
-      throttle = Math.min(100, Math.round(100 * lapThrottleFactor));
+    }
+    // Full straightaway
+    else {
+      // Check finish line speed anchor
+      if (knownSpeedFL && (dist < 100 || dist > trackLength - 100)) {
+        speed = knownSpeedFL;
+      } else {
+        speed = targetTopSpeed;
+      }
+      throttle = 100;
       brake = false;
-      if (distToTurn > 180 && speed > 270 && lapDrsAllowed) {
+      if (distToTurn > 170 && speed > 260 && (isQuali || dist > 600)) {
         drs = 1;
       }
     }
 
     // High-frequency sensor micro-variations in Quali (50Hz raw telemetry)
     if (isQuali) {
-      const microJitter = Math.sin(dist * 0.45 + seed) * 0.35 + Math.cos(dist * 1.2) * 0.15;
-      speed = Math.max(50, speed + microJitter);
+      const microJitter = Math.sin(dist * 0.48 + seed) * 0.4 + Math.cos(dist * 1.3) * 0.18;
+      speed = Math.max(40, speed + microJitter);
     }
 
     // Gear selection
@@ -1396,14 +1645,14 @@ function isValidStaticTelemetry(data: LapTelemetry | null | undefined): boolean 
 
     if (circuitSlug === "monaco" && speed < 65) nGear = 1;
 
-    // RPM
-    const maxRpm = isQuali ? 12200 : 11400;
+    // Engine RPM
+    const maxRpm = isQuali ? 12250 : 11500;
     const rpm = Math.round(9200 + ((speed % 38) / 38) * (maxRpm - 9200));
 
     // Time integration dt = ds / v
     const prevDist = idx > 0 ? activeTrack[idx - 1].distance : 0;
-    const ds = Math.max(0.5, dist - prevDist);
-    const speedMs = Math.max(speed, 45) / 3.6;
+    const ds = Math.max(0.4, dist - prevDist);
+    const speedMs = Math.max(speed, 35) / 3.6;
     const dt = ds / speedMs;
     currTime += dt;
 
@@ -1422,18 +1671,19 @@ function isValidStaticTelemetry(data: LapTelemetry | null | undefined): boolean 
     });
   }
 
-  // If a known target lap time exists, calibrate time progression so telemetry accurately represents the lap
+  // Lap time calibration:
+  // If knownLapTime exists, scale the timestamps to hit the official timing
   const calculatedLapTime = Number((currTime + profile.lapTimeBase).toFixed(3));
-  const finalLapTime = knownLapTime && knownLapTime > 40 ? knownLapTime : calculatedLapTime;
+  const finalLapTime = knownLapTime && knownLapTime > 35 ? knownLapTime : calculatedLapTime;
 
-  if (knownLapTime && knownLapTime > 40 && currTime > 0) {
+  if (knownLapTime && knownLapTime > 35 && currTime > 0) {
     const timeScale = finalLapTime / currTime;
     for (let i = 0; i < rawData.length; i++) {
       rawData[i].Time = Number((rawData[i].Time * timeScale).toFixed(3));
     }
   }
 
-  // ── Apply Telemetry Compression / Decimation ──
+  // Telemetry sampling: 50Hz for Qualifying, 10Hz for Race & Practice
   let telemetryData: any[];
   if (isRawQuali) {
     telemetryData = rawData;
@@ -1453,13 +1703,11 @@ function isValidStaticTelemetry(data: LapTelemetry | null | undefined): boolean 
     isCompressed: !isRawQuali,
     samplingMode: isRawQuali
       ? "RAW_QUALIFYING_SENSITIVE"
-      : isQuali
-      ? "HISTORICAL_COMPRESSED_QUALI"
       : "COMPRESSED_RACE_STINT",
     samplingHz: isRawQuali ? 50 : 10,
     compressionRatio: isRawQuali
       ? `1.0x (${telemetryData.length} Raw Points · 50Hz Uncompressed)`
-      : `3.5x (${telemetryData.length} Points · Compressed Log)`,
+      : `3.5x (${telemetryData.length} Points · 10Hz Compressed Log)`,
     telemetry: {
       points: telemetryData.length,
       data: telemetryData,
@@ -1491,6 +1739,20 @@ export function lapsForDriver(laps: SessionLap[], driver: string): SessionLap[] 
     .sort((a, b) => a.LapNumber - b.LapNumber);
 }
 
+/** Find the best lap for a driver: either the user's preferred lap if it exists, or their fastest flying lap */
+export function getOptimalLap(laps: SessionLap[], preferredLap?: number): number {
+  if (!laps || laps.length === 0) return 1;
+  if (preferredLap && laps.some((l) => l.LapNumber === preferredLap)) {
+    return preferredLap;
+  }
+  const timed = laps.filter((l) => l.LapTime && l.LapTime > 40 && !l.Deleted);
+  if (timed.length > 0) {
+    const fastest = timed.reduce((min, l) => (l.LapTime! < min.LapTime! ? l : min), timed[0]);
+    return fastest.LapNumber;
+  }
+  return laps[0].LapNumber;
+}
+
 /** Format seconds as M:SS.mmm */
 export function formatLapTime(s: number | null | undefined): string {
   if (!s) return "—";
@@ -1509,38 +1771,30 @@ export function formatSector(s: number | null | undefined): string {
 export function eventToCircuitSlug(event: string): string {
   if (!event) return "monaco";
   const ev = event.toLowerCase();
-  if (ev.includes("monaco")) return "monaco";
-  if (ev.includes("bahrain") || ev.includes("sakhir")) return "bahrain";
+  if (ev.includes("monaco") || ev.includes("monte carlo")) return "monaco";
+  if (ev.includes("bahrain") || ev.includes("sakhir") || ev.includes("morocco") || ev.includes("casablanca") || ev.includes("india") || ev.includes("buddh")) return "bahrain";
   if (ev.includes("saudi") || ev.includes("jeddah")) return "jeddah";
   if (ev.includes("australi") || ev.includes("melbourne") || ev.includes("adelaide")) return "melbourne";
-  if (ev.includes("japan") || ev.includes("suzuka") || ev.includes("fuji")) return "suzuka";
-  if (ev.includes("chin") || ev.includes("shanghai")) return "shanghai";
+  if (ev.includes("japan") || ev.includes("suzuka") || ev.includes("fuji") || ev.includes("pacific")) return "suzuka";
+  if (ev.includes("chin") || ev.includes("shanghai") || ev.includes("malays") || ev.includes("sepang") || ev.includes("korea") || ev.includes("yeongam")) return "shanghai";
   if (ev.includes("miami")) return "miami";
-  if (ev.includes("emilia") || ev.includes("imola") || ev.includes("romagna") || ev.includes("san marino")) return "imola";
-  if (ev.includes("spain") || ev.includes("spanish") || ev.includes("barcelona") || ev.includes("españa") || ev.includes("jarama") || ev.includes("jerez")) return "barcelona";
+  if (ev.includes("emilia") || ev.includes("imola") || ev.includes("romagna") || ev.includes("san marino") || ev.includes("tuscan") || ev.includes("mugello") || ev.includes("pescara")) return "imola";
+  if (ev.includes("spain") || ev.includes("spanish") || ev.includes("barcelona") || ev.includes("españa") || ev.includes("catalun") || ev.includes("jarama") || ev.includes("jerez") || ev.includes("portug") || ev.includes("algarve") || ev.includes("portimao") || ev.includes("estoril")) return "barcelona";
   if (ev.includes("canad") || ev.includes("montreal") || ev.includes("mosport")) return "montreal";
-  if (ev.includes("austria") || ev.includes("spielberg") || ev.includes("red_bull") || ev.includes("österreich") || ev.includes("oesterreich")) return "red_bull_ring";
-  if (ev.includes("brit") || ev.includes("silverstone") || ev.includes("brands hatch") || ev.includes("donington")) return "silverstone";
-  if (ev.includes("hungar") || ev.includes("budapest")) return "hungaroring";
-  if (ev.includes("belgi") || ev.includes("spa") || ev.includes("francorchamps") || ev.includes("zolder")) return "spa";
-  if (ev.includes("dutch") || ev.includes("zandvoort") || ev.includes("netherland")) return "zandvoort";
+  if (ev.includes("austria") || ev.includes("spielberg") || ev.includes("red_bull") || ev.includes("österreich") || ev.includes("oesterreich") || ev.includes("styrian") || ev.includes("german") || ev.includes("germany") || ev.includes("hockenheim") || ev.includes("nürburg") || ev.includes("nurburg") || ev.includes("eifel")) return "red_bull_ring";
+  if (ev.includes("brit") || ev.includes("silverstone") || ev.includes("brands hatch") || ev.includes("donington") || ev.includes("70th") || ev.includes("south africa") || ev.includes("kyalami")) return "silverstone";
+  if (ev.includes("hungar") || ev.includes("budapest") || ev.includes("turkish") || ev.includes("turkey") || ev.includes("istanbul")) return "hungaroring";
+  if (ev.includes("belgi") || ev.includes("spa") || ev.includes("francorchamps") || ev.includes("zolder") || ev.includes("french") || ev.includes("france") || ev.includes("paul ricard") || ev.includes("magny") || ev.includes("swiss") || ev.includes("switzerland") || ev.includes("bremgarten")) return "spa";
+  if (ev.includes("dutch") || ev.includes("zandvoort") || ev.includes("netherland") || ev.includes("sweden") || ev.includes("swedish") || ev.includes("anderstorp")) return "zandvoort";
   if (ev.includes("ital") || ev.includes("monza")) return "monza";
-  if (ev.includes("azerbaijan") || ev.includes("baku")) return "baku";
+  if (ev.includes("azerbaijan") || ev.includes("baku") || ev.includes("russia") || ev.includes("sochi") || ev.includes("europe") || ev.includes("valencia")) return "baku";
   if (ev.includes("singapore") || ev.includes("marina bay")) return "singapore";
-  if (ev.includes("united states") || ev.includes("austin") || ev.includes("cota") || ev.includes("america") || ev.includes("watkins") || ev.includes("indianapolis")) return "austin";
-  if (ev.includes("mexico") || ev.includes("méxico") || ev.includes("rodriguez")) return "mexico_city";
-  if (ev.includes("brazil") || ev.includes("paulo") || ev.includes("interlagos") || ev.includes("jacarepagua")) return "interlagos";
+  if (ev.includes("united states") || ev.includes("austin") || ev.includes("cota") || ev.includes("america") || ev.includes("watkins") || ev.includes("indianapolis") || ev.includes("dallas") || ev.includes("detroit") || ev.includes("phoenix") || ev.includes("long beach")) return "austin";
+  if (ev.includes("mexic") || ev.includes("méxico") || ev.includes("rodriguez") || ev.includes("hermanos")) return "mexico_city";
+  if (ev.includes("brazil") || ev.includes("paulo") || ev.includes("interlagos") || ev.includes("jacarepagua") || ev.includes("argentin") || ev.includes("buenos aires")) return "interlagos";
   if (ev.includes("vegas") || ev.includes("caesars")) return "las_vegas";
-  if (ev.includes("qatar") || ev.includes("lusail")) return "lusail";
+  if (ev.includes("qatar") || ev.includes("lusail") || ev.includes("losail")) return "lusail";
   if (ev.includes("abu dhabi") || ev.includes("yas marina")) return "yas_marina";
-  if (ev.includes("german") || ev.includes("germany") || ev.includes("hockenheim") || ev.includes("nürburg") || ev.includes("nurburg")) return "red_bull_ring";
-  if (ev.includes("french") || ev.includes("france") || ev.includes("reims") || ev.includes("paul ricard") || ev.includes("magny")) return "spa";
-  if (ev.includes("swiss") || ev.includes("switzerland") || ev.includes("bremgarten")) return "spa";
-  if (ev.includes("portug") || ev.includes("estoril") || ev.includes("algarve") || ev.includes("portimao")) return "barcelona";
-  if (ev.includes("malays") || ev.includes("sepang")) return "shanghai";
-  if (ev.includes("turkish") || ev.includes("turkey") || ev.includes("istanbul")) return "hungaroring";
-  if (ev.includes("south africa") || ev.includes("kyalami")) return "silverstone";
-  if (ev.includes("argentin") || ev.includes("buenos aires")) return "interlagos";
 
   const map: Record<string, string> = {
     "Australian Grand Prix": "melbourne",
@@ -1563,11 +1817,13 @@ export function eventToCircuitSlug(event: string): string {
     "Singapore Grand Prix": "singapore",
     "United States Grand Prix": "austin",
     "Mexico City Grand Prix": "mexico_city",
+    "Mexican Grand Prix": "mexico_city",
     "São Paulo Grand Prix": "interlagos",
     "Sao Paulo Grand Prix": "interlagos",
+    "Brazilian Grand Prix": "interlagos",
     "Las Vegas Grand Prix": "las_vegas",
     "Qatar Grand Prix": "lusail",
     "Abu Dhabi Grand Prix": "yas_marina",
   };
-  return map[event] ?? eventToSlug(event);
+  return map[event] ?? "silverstone";
 }
