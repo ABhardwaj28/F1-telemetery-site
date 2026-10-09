@@ -333,26 +333,56 @@ export function getEventNominatedCompounds(year: number, event: string): Nominat
     ev.includes("belgium") ||
     ev.includes("spa");
 
-  // Modern Era (2019+): simplified Hard / Medium / Soft system
-  if (year >= 2019) {
+  // Pre-1971: Classic Treaded era (Dunlop / Firestone / Goodyear cross-ply, no slicks)
+  if (year < 1971) {
+    return {
+      softest: "STANDARD",
+      medium: "STANDARD",
+      hardest: "STANDARD",
+      defaultQuali: "STANDARD",
+      raceOptions: ["STANDARD"],
+    };
+  }
+
+  // 1971 – 1997: Classic Slicks & Turbo Qualifying Tyres era
+  if (year >= 1971 && year <= 1997) {
+    const qCompound = year >= 1980 ? "QUALIFYING" : "SUPERSOFT";
+    if (isStreetOrLowDeg) {
+      return {
+        softest: "SUPERSOFT",
+        medium: "SOFT",
+        hardest: "MEDIUM",
+        defaultQuali: qCompound,
+        raceOptions: ["SUPERSOFT", "SOFT", "MEDIUM"],
+      };
+    }
+    if (isHighDeg) {
+      return {
+        softest: "SOFT",
+        medium: "MEDIUM",
+        hardest: "HARD",
+        defaultQuali: qCompound,
+        raceOptions: ["SOFT", "MEDIUM", "HARD"],
+      };
+    }
     return {
       softest: "SOFT",
       medium: "MEDIUM",
       hardest: "HARD",
-      defaultQuali: "SOFT",
+      defaultQuali: qCompound,
       raceOptions: ["SOFT", "MEDIUM", "HARD"],
     };
   }
 
-  // 2018: 7-compound rainbow era
-  if (year === 2018) {
+  // 1998 – 2006: Grooved Tyre War era (Bridgestone vs Michelin)
+  if (year >= 1998 && year <= 2006) {
     if (isStreetOrLowDeg) {
       return {
-        softest: "HYPERSOFT",
-        medium: "ULTRASOFT",
-        hardest: "SUPERSOFT",
-        defaultQuali: "HYPERSOFT",
-        raceOptions: ["HYPERSOFT", "ULTRASOFT", "SUPERSOFT"],
+        softest: "SUPERSOFT",
+        medium: "SOFT",
+        hardest: "MEDIUM",
+        defaultQuali: "SUPERSOFT",
+        raceOptions: ["SUPERSOFT", "SOFT", "MEDIUM"],
       };
     }
     if (isHighDeg) {
@@ -365,15 +395,73 @@ export function getEventNominatedCompounds(year: number, event: string): Nominat
       };
     }
     return {
-      softest: "ULTRASOFT",
-      medium: "SUPERSOFT",
-      hardest: "SOFT",
-      defaultQuali: "ULTRASOFT",
-      raceOptions: ["ULTRASOFT", "SUPERSOFT", "SOFT"],
+      softest: "SOFT",
+      medium: "MEDIUM",
+      hardest: "HARD",
+      defaultQuali: "SOFT",
+      raceOptions: ["SOFT", "MEDIUM", "HARD"],
     };
   }
 
-  // 2016 – 2017: 3 nominated compounds per weekend (UltraSoft introduced in 2016)
+  // 2007 – 2010: Bridgestone Potenza Option & Prime era (White stripe / green groove)
+  if (year >= 2007 && year <= 2010) {
+    if (isStreetOrLowDeg) {
+      return {
+        softest: "SUPERSOFT", // Option
+        medium: "SOFT",       // Prime
+        hardest: "SOFT",      // Prime
+        defaultQuali: "SUPERSOFT",
+        raceOptions: ["SUPERSOFT", "SOFT"],
+      };
+    }
+    if (isHighDeg) {
+      return {
+        softest: "MEDIUM",    // Option
+        medium: "HARD",       // Prime
+        hardest: "HARD",      // Prime
+        defaultQuali: "MEDIUM",
+        raceOptions: ["MEDIUM", "HARD"],
+      };
+    }
+    return {
+      softest: "SOFT",        // Option
+      medium: "MEDIUM",      // Prime
+      hardest: "MEDIUM",     // Prime
+      defaultQuali: "SOFT",
+      raceOptions: ["SOFT", "MEDIUM"],
+    };
+  }
+
+  // 2011 – 2015: Pirelli Option & Prime era (Strictly 2 dry compounds per race)
+  if (year >= 2011 && year <= 2015) {
+    if (isStreetOrLowDeg) {
+      return {
+        softest: "SUPERSOFT", // Option (Red)
+        medium: "SOFT",       // Prime (Yellow)
+        hardest: "SOFT",      // Prime
+        defaultQuali: "SUPERSOFT",
+        raceOptions: ["SUPERSOFT", "SOFT"],
+      };
+    }
+    if (isHighDeg) {
+      return {
+        softest: "MEDIUM",    // Option (White)
+        medium: "HARD",       // Prime (Orange / Silver)
+        hardest: "HARD",      // Prime
+        defaultQuali: "MEDIUM",
+        raceOptions: ["MEDIUM", "HARD"],
+      };
+    }
+    return {
+      softest: "SOFT",        // Option (Yellow)
+      medium: "MEDIUM",      // Prime (White)
+      hardest: "MEDIUM",     // Prime
+      defaultQuali: "SOFT",
+      raceOptions: ["SOFT", "MEDIUM"],
+    };
+  }
+
+  // 2016 – 2017: Pirelli 3-Compound era (UltraSoft introduced in 2016)
   if (year >= 2016 && year <= 2017) {
     if (isStreetOrLowDeg) {
       return {
@@ -402,61 +490,135 @@ export function getEventNominatedCompounds(year: number, event: string): Nominat
     };
   }
 
-  // 2011 – 2015: Pirelli Option & Prime era
-  if (year >= 2011 && year <= 2015) {
+  // 2018: 7-Compound "Rainbow" era (HyperSoft & SuperHard introduced)
+  if (year === 2018) {
     if (isStreetOrLowDeg) {
       return {
-        softest: "SUPERSOFT",
-        medium: "SOFT",
-        hardest: "SOFT",
-        defaultQuali: "SUPERSOFT",
-        raceOptions: ["SUPERSOFT", "SOFT"],
+        softest: "HYPERSOFT",
+        medium: "ULTRASOFT",
+        hardest: "SUPERSOFT",
+        defaultQuali: "HYPERSOFT",
+        raceOptions: ["HYPERSOFT", "ULTRASOFT", "SUPERSOFT"],
       };
     }
     if (isHighDeg) {
       return {
-        softest: "MEDIUM",
-        medium: "HARD",
+        softest: "SOFT",
+        medium: "MEDIUM",
         hardest: "HARD",
-        defaultQuali: "MEDIUM",
-        raceOptions: ["MEDIUM", "HARD"],
+        defaultQuali: "SOFT",
+        raceOptions: ["SOFT", "MEDIUM", "HARD"],
       };
     }
     return {
-      softest: "SOFT",
-      medium: "MEDIUM",
-      hardest: "MEDIUM",
-      defaultQuali: "SOFT",
-      raceOptions: ["SOFT", "MEDIUM"],
+      softest: "ULTRASOFT",
+      medium: "SUPERSOFT",
+      hardest: "SOFT",
+      defaultQuali: "ULTRASOFT",
+      raceOptions: ["ULTRASOFT", "SUPERSOFT", "SOFT"],
     };
   }
 
-  // 2010 and prior: Bridgestone Potenza era (Super Soft, Soft, Medium, Hard)
-  if (isStreetOrLowDeg) {
-    return {
-      softest: "SUPERSOFT",
-      medium: "SOFT",
-      hardest: "SOFT",
-      defaultQuali: "SUPERSOFT",
-      raceOptions: ["SUPERSOFT", "SOFT"],
-    };
-  }
-  if (isHighDeg) {
-    return {
-      softest: "MEDIUM",
-      medium: "HARD",
-      hardest: "HARD",
-      defaultQuali: "MEDIUM",
-      raceOptions: ["MEDIUM", "HARD"],
-    };
-  }
+  // Modern Era (2019+): simplified Hard / Medium / Soft system (C1-C5 under the hood)
   return {
     softest: "SOFT",
     medium: "MEDIUM",
-    hardest: "MEDIUM",
+    hardest: "HARD",
     defaultQuali: "SOFT",
-    raceOptions: ["SOFT", "MEDIUM"],
+    raceOptions: ["SOFT", "MEDIUM", "HARD"],
   };
+}
+
+/**
+ * Period-accurate stint tyre compound generator.
+ * Accurately models the exact compounds available and strategic allocations for each era.
+ */
+export function getStintCompound(
+  year: number,
+  event: string,
+  stintNum: number,
+  isAlternateStrat = false,
+  isQuali = false
+): string {
+  const nominated = getEventNominatedCompounds(year, event);
+  if (isQuali) {
+    return nominated.defaultQuali;
+  }
+
+  // Pre-1971: Treaded cross-ply / radial era - single durable compound
+  if (year < 1971) {
+    return "STANDARD";
+  }
+
+  // 2007–2015: 2-compound Option & Prime era
+  if (year >= 2007 && year <= 2015) {
+    const option = nominated.softest;
+    const prime = nominated.hardest;
+
+    if (isAlternateStrat) {
+      // Alternate strategy: starts on Prime to run long
+      return stintNum === 1 ? prime : stintNum === 2 ? option : stintNum % 2 === 1 ? prime : option;
+    } else {
+      // Standard Top 10 strategy: starts on Option
+      return stintNum === 1 ? option : stintNum === 2 ? prime : stintNum % 2 === 1 ? option : prime;
+    }
+  }
+
+  // Street / Low-deg circuits (Monaco, Singapore, etc.)
+  const ev = (event || "").toLowerCase();
+  const isStreetOrLowDeg =
+    ev.includes("monaco") ||
+    ev.includes("canada") ||
+    ev.includes("montreal") ||
+    ev.includes("baku") ||
+    ev.includes("azerbaijan") ||
+    ev.includes("singapore") ||
+    ev.includes("austria") ||
+    ev.includes("spielberg") ||
+    ev.includes("red bull ring") ||
+    ev.includes("russia") ||
+    ev.includes("sochi") ||
+    ev.includes("abu dhabi") ||
+    ev.includes("yas marina");
+
+  if (isStreetOrLowDeg) {
+    if (isAlternateStrat) {
+      return stintNum === 1
+        ? nominated.hardest
+        : stintNum === 2
+        ? nominated.softest
+        : stintNum === 3
+        ? nominated.medium
+        : nominated.softest;
+    } else {
+      return stintNum === 1
+        ? nominated.softest
+        : stintNum === 2
+        ? nominated.medium
+        : stintNum === 3
+        ? nominated.softest
+        : nominated.hardest;
+    }
+  }
+
+  // Standard 3-compound eras (2016+, 1971–2006)
+  if (isAlternateStrat) {
+    return stintNum === 1
+      ? nominated.hardest
+      : stintNum === 2
+      ? nominated.medium
+      : stintNum === 3
+      ? nominated.softest
+      : nominated.medium;
+  } else {
+    return stintNum === 1
+      ? nominated.medium
+      : stintNum === 2
+      ? nominated.hardest
+      : stintNum === 3
+      ? nominated.softest
+      : nominated.medium;
+  }
 }
 
 // ─── Jolpica Real F1 API Ingestion (Pit Stops & Race Strategy) ───────────────
@@ -523,7 +685,6 @@ async function fetchJolpicaRaceData(
     });
 
     // 2. Build authentic pit stop & stint laps for each driver using period-accurate compounds
-    const nominated = getEventNominatedCompounds(year, event);
     const laps: SessionLap[] = [];
 
     race.Results.forEach((res: any, dIdx: number) => {
@@ -573,14 +734,7 @@ async function fetchJolpicaRaceData(
 
         const lapTime = baseLapTime + (d.position! - 1) * 0.18 + tyreWear + fuelBurn + microVar + pitDelta;
 
-        const compound =
-          stintNum === 1
-            ? (isAlternateStrat ? nominated.hardest : nominated.medium)
-            : stintNum === 2
-            ? (isAlternateStrat ? nominated.softest : nominated.hardest)
-            : stintNum === 3
-            ? nominated.softest
-            : nominated.medium;
+        const compound = getStintCompound(year, event, stintNum, isAlternateStrat, false);
 
         laps.push({
           Time: Number((lapNum * 86.2).toFixed(3)),
@@ -708,7 +862,6 @@ export async function loadSessionLaps(
     const drivers = getHistoricalDrivers(year, event, sessionCode);
     const isQuali = sessionCode === "Q" || sessionCode === "SQ" || sessionCode === "Qualifying";
     const totalLaps = getRaceLapCount(event, sessionCode);
-    const nominated = getEventNominatedCompounds(year, event);
 
     const baseLapTime = 84.2; // ~1:24.200
     const laps: SessionLap[] = [];
@@ -740,13 +893,7 @@ export async function loadSessionLaps(
 
         const lapTime = baseLapTime + driverDelta + tyreWearDelta + fuelBurn + microVar + pitDelta;
 
-        const compound = isQuali
-          ? nominated.defaultQuali
-          : stintNum === 1
-          ? (isAlternateStrat ? nominated.hardest : nominated.medium)
-          : stintNum === 2
-          ? (isAlternateStrat ? nominated.softest : nominated.hardest)
-          : nominated.softest;
+        const compound = getStintCompound(year, event, stintNum, isAlternateStrat, isQuali);
 
         laps.push({
           Time: Number((lapNum * 86.2).toFixed(3)),
@@ -1475,7 +1622,11 @@ export async function loadTelemetry(
 
   // ─── Compound and Grip Physics ───
   const nominated = getEventNominatedCompounds(year, circuitSlug);
-  let lapCompound = knownCompound || (isQuali ? nominated.defaultQuali : nominated.medium);
+  let lapCompound =
+    knownCompound ||
+    (isQuali
+      ? nominated.defaultQuali
+      : getStintCompound(year, circuitSlug, Math.min(3, Math.floor(targetLap / 22) + 1), false, false));
   let tyreLife = knownTyreLife || (isQuali ? ((targetLap % 4) + 1) : Math.max(1, (targetLap % 22) + 1));
 
   const compUpper = (lapCompound || "MEDIUM").toUpperCase();

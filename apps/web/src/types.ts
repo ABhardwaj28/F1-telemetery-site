@@ -279,6 +279,8 @@ export const TYRE_COLOURS: Record<string, string> = {
   ULTRASOFT: "#b138dd",
   SUPERSOFT: "#e10600",
   SUPERHARD: "#ea580c",
+  QUALIFYING: "#ec4899",
+  STANDARD: "#cbd5e1",
   // Wet weather
   INTER: "#2e9668",
   INTERMEDIATE: "#2e9668",
@@ -294,6 +296,8 @@ export const TYRE_SHORT: Record<string, string> = {
   MEDIUM: "M",
   HARD: "H",
   SUPERHARD: "SH",
+  QUALIFYING: "Q",
+  STANDARD: "STD",
   INTER: "I",
   INTERMEDIATE: "I",
   WET: "W",
@@ -304,11 +308,13 @@ export const TYRE_SHORT: Record<string, string> = {
  * Before 2019:
  *  - SOFT was Yellow (#ffd12e)
  *  - MEDIUM was White (#f0f0f0)
- *  - HARD was Orange (#ff8000) (Ice Blue #00bfff in 2018)
+ *  - HARD was Orange (#ff8000) (2013-2017), Silver/Grey (#c0c0c0 in 2011-2012, #94a3b8 pre-2011), Ice Blue (#00bfff in 2018)
  *  - ULTRASOFT was Purple (#b138dd)
  *  - SUPERSOFT was Red (#e10600)
  *  - HYPERSOFT was Pink (#ff87b4)
  *  - SUPERHARD was Orange (#ea580c)
+ *  - QUALIFYING was Magenta (#ec4899)
+ *  - STANDARD was Light Slate (#cbd5e1)
  * From 2019+:
  *  - SOFT is Red (#e10600)
  *  - MEDIUM is Yellow (#ffd12e)
@@ -320,6 +326,8 @@ export function getTyreColour(compound?: string | null, year?: number): string {
 
   if (norm === "INTER" || norm === "INTERMEDIATE") return "#2e9668";
   if (norm === "WET") return "#336fae";
+  if (norm === "QUALIFYING") return "#ec4899";
+  if (norm === "STANDARD") return "#cbd5e1";
 
   if (year && year < 2019) {
     switch (norm) {
@@ -334,7 +342,13 @@ export function getTyreColour(compound?: string | null, year?: number): string {
       case "MEDIUM":
         return "#f0f0f0"; // White in pre-2019
       case "HARD":
-        return year === 2018 ? "#00bfff" : "#ff8000"; // Ice Blue in 2018, Orange in 2013-2017
+        return year === 2018
+          ? "#00bfff" // Ice Blue in 2018
+          : year >= 2013
+          ? "#ff8000" // Orange in 2013-2017
+          : year >= 2011
+          ? "#c0c0c0" // Silver / Grey in 2011-2012
+          : "#94a3b8"; // Slate / Grey in pre-2011
       case "SUPERHARD":
         return "#ea580c";
       default:
@@ -356,7 +370,9 @@ export function getTyreTextColor(compound?: string | null, year?: number): strin
     col === "#ffffff" ||
     col === "#00bfff" ||
     col === "#ff87b4" ||
-    col === "#c0c0c0"
+    col === "#c0c0c0" ||
+    col === "#cbd5e1" ||
+    col === "#94a3b8"
   ) {
     return "#0f172a";
   }

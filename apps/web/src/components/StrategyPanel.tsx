@@ -120,11 +120,23 @@ export default function StrategyPanel({
       });
     });
     if (!set.size) {
+      if (year && year < 1971) {
+        return ["STANDARD"];
+      }
+      if (year && year >= 1971 && year <= 1997) {
+        return ["QUALIFYING", "SUPERSOFT", "SOFT", "MEDIUM", "HARD"];
+      }
+      if (year && year >= 1998 && year <= 2006) {
+        return ["SUPERSOFT", "SOFT", "MEDIUM", "HARD"];
+      }
+      if (year && year >= 2007 && year <= 2015) {
+        return ["SUPERSOFT", "SOFT", "MEDIUM", "HARD"];
+      }
+      if (year && year >= 2016 && year <= 2017) {
+        return ["ULTRASOFT", "SUPERSOFT", "SOFT", "MEDIUM", "HARD"];
+      }
       if (year && year === 2018) {
         return ["HYPERSOFT", "ULTRASOFT", "SUPERSOFT", "SOFT", "MEDIUM", "HARD"];
-      }
-      if (year && year < 2018) {
-        return ["ULTRASOFT", "SUPERSOFT", "SOFT", "MEDIUM"];
       }
       return ["SOFT", "MEDIUM", "HARD", "INTER", "WET"];
     }
