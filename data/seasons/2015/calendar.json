@@ -1,0 +1,595 @@
+{
+  "year": 2015,
+  "race_count": 19,
+  "events": [
+    {
+      "round": 1,
+      "event": "Australian Grand Prix",
+      "country": "Australia",
+      "location": "Melbourne",
+      "official_name": "2015 Australian Grand Prix",
+      "date": "2015-03-15T05:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 2,
+      "event": "Malaysian Grand Prix",
+      "country": "Malaysia",
+      "location": "Kuala Lumpur",
+      "official_name": "2015 Malaysian Grand Prix",
+      "date": "2015-03-29T07:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 3,
+      "event": "Chinese Grand Prix",
+      "country": "China",
+      "location": "Shanghai",
+      "official_name": "2015 Chinese Grand Prix",
+      "date": "2015-04-12T06:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 4,
+      "event": "Bahrain Grand Prix",
+      "country": "Bahrain",
+      "location": "Sakhir",
+      "official_name": "2015 Bahrain Grand Prix",
+      "date": "2015-04-19T15:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 5,
+      "event": "Spanish Grand Prix",
+      "country": "Spain",
+      "location": "Barcelona",
+      "official_name": "2015 Spanish Grand Prix",
+      "date": "2015-05-10T12:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 6,
+      "event": "Monaco Grand Prix",
+      "country": "Monaco",
+      "location": "Monte Carlo",
+      "official_name": "2015 Monaco Grand Prix",
+      "date": "2015-05-24T12:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 7,
+      "event": "Canadian Grand Prix",
+      "country": "Canada",
+      "location": "Montreal",
+      "official_name": "2015 Canadian Grand Prix",
+      "date": "2015-06-07T18:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 8,
+      "event": "Austrian Grand Prix",
+      "country": "Austria",
+      "location": "Spielberg",
+      "official_name": "2015 Austrian Grand Prix",
+      "date": "2015-06-21T12:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 9,
+      "event": "British Grand Prix",
+      "country": "UK",
+      "location": "Silverstone",
+      "official_name": "2015 British Grand Prix",
+      "date": "2015-07-05T12:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 10,
+      "event": "Hungarian Grand Prix",
+      "country": "Hungary",
+      "location": "Budapest",
+      "official_name": "2015 Hungarian Grand Prix",
+      "date": "2015-07-26T12:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 11,
+      "event": "Belgian Grand Prix",
+      "country": "Belgium",
+      "location": "Spa",
+      "official_name": "2015 Belgian Grand Prix",
+      "date": "2015-08-23T12:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 12,
+      "event": "Italian Grand Prix",
+      "country": "Italy",
+      "location": "Monza",
+      "official_name": "2015 Italian Grand Prix",
+      "date": "2015-09-06T12:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 13,
+      "event": "Singapore Grand Prix",
+      "country": "Singapore",
+      "location": "Marina Bay",
+      "official_name": "2015 Singapore Grand Prix",
+      "date": "2015-09-20T12:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 14,
+      "event": "Japanese Grand Prix",
+      "country": "Japan",
+      "location": "Suzuka",
+      "official_name": "2015 Japanese Grand Prix",
+      "date": "2015-09-27T05:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 15,
+      "event": "Russian Grand Prix",
+      "country": "Russia",
+      "location": "Sochi",
+      "official_name": "2015 Russian Grand Prix",
+      "date": "2015-10-11T11:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 16,
+      "event": "United States Grand Prix",
+      "country": "USA",
+      "location": "Austin",
+      "official_name": "2015 United States Grand Prix",
+      "date": "2015-10-25T19:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 17,
+      "event": "Mexican Grand Prix",
+      "country": "Mexico",
+      "location": "Mexico City",
+      "official_name": "2015 Mexican Grand Prix",
+      "date": "2015-11-01T19:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 18,
+      "event": "Brazilian Grand Prix",
+      "country": "Brazil",
+      "location": "S\u00e3o Paulo",
+      "official_name": "2015 Brazilian Grand Prix",
+      "date": "2015-11-15T16:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 19,
+      "event": "Abu Dhabi Grand Prix",
+      "country": "UAE",
+      "location": "Abu Dhabi",
+      "official_name": "2015 Abu Dhabi Grand Prix",
+      "date": "2015-11-29T13:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    }
+  ]
+}

@@ -38,7 +38,6 @@ interface OvertakeEvent {
   toPos: number;
   type: "OVERTAKE" | "DEFENSE_LOSS" | "PIT_LOSS" | "PIT_OVERCUT_GAIN" | "RETIREMENT_GAIN";
   targetDriver?: string;
-  targetTeam?: string;
   details: string;
 }
 
@@ -60,21 +59,16 @@ export default function RaceStoryPanel({
   year = 2025,
   eventName = "Grand Prix",
 }: RaceStoryPanelProps) {
-  // Active driver state
+  // Controlled driver fallback
   const [internalDriver, setInternalDriver] = useState<string>(drivers[0]?.abbreviation ?? "LEC");
-  const activeDriver =
-    controlledDriver && drivers.some((d) => d.abbreviation === controlledDriver)
-      ? controlledDriver
-      : drivers.some((d) => d.abbreviation === internalDriver)
-      ? internalDriver
-      : drivers[0]?.abbreviation ?? "";
+  const activeDriver = controlledDriver || internalDriver;
 
   const handleSelectDriver = (d: string) => {
     setInternalDriver(d);
     onSelectDriver?.(d);
   };
 
-  // Comparison driver state (optional overlay on charts)
+  // Optional benchmark driver overlay on charts
   const [compareDriver, setCompareDriver] = useState<string | null>(null);
 
   // Table filter state
@@ -83,14 +77,88 @@ export default function RaceStoryPanel({
   // Hovered lap in charts
   const [hoveredLap, setHoveredLap] = useState<number | null>(null);
 
-  // Active driver object
+  // ── High Performance Pre-Indexing (Single O(N) pass across all laps) ──
+  const { lapsByDriver, positionsByLap, maxRaceLaps, overallFastestLap } = useMemo(() => {
+    const byDriver = new Map<string, SessionLap[]>();
+    const byLap = new Map<number, Map<string, number>>();
+    let maxLap = 1;
+    let fastest: SessionLap | null = null;
+
+    for (let i = 0; i < laps.length; i++) {
+      const l = laps[i];
+      if (l.LapNumber <= 0) continue;
+
+      if (l.LapNumber > maxLap) maxLap = l.LapNumber;
+
+      // Group by driver
+      let drvList = byDriver.get(l.Driver);
+      if (!drvList) {
+        drvList = [];
+        byDriver.set(l.Driver, drvList);
+      }
+      drvList.push(l);
+
+      // Track fastest lap overall
+      if (l.LapTime && l.LapTime > 0) {
+        if (!fastest || l.LapTime < (fastest.LapTime ?? 999)) {
+          fastest = l;
+        }
+      }
+
+      // Group positions by lap
+      if (l.Position !== null && l.Position !== undefined) {
+        let lapMap = byLap.get(l.LapNumber);
+        if (!lapMap) {
+          lapMap = new Map<string, number>();
+          byLap.set(l.LapNumber, lapMap);
+        }
+        lapMap.set(l.Driver, l.Position);
+      }
+    }
+
+    // Sort each driver's laps by LapNumber once
+    for (const [, list] of byDriver) {
+      list.sort((a, b) => a.LapNumber - b.LapNumber);
+    }
+
+    return {
+      lapsByDriver: byDriver,
+      positionsByLap: byLap,
+      maxRaceLaps: maxLap,
+      overallFastestLap: fastest,
+    };
+  }, [laps]);
+
+  // Precomputed driver summaries for instantaneous ribbon rendering
+  const driverSummaries = useMemo(() => {
+    return drivers.map((d) => {
+      const dLaps = lapsByDriver.get(d.abbreviation) || [];
+      const dStart = dLaps[0]?.Position ?? d.position ?? 10;
+      const dEnd = dLaps[dLaps.length - 1]?.Position ?? d.position ?? 10;
+      const dNet = dStart - dEnd;
+      const dTeamCol = TEAM_COLOURS[d.team] ?? "#888";
+      return {
+        driver: d,
+        startPos: dStart,
+        endPos: dEnd,
+        netDelta: dNet,
+        teamCol: dTeamCol,
+      };
+    });
+  }, [drivers, lapsByDriver]);
+
+  // Active driver object & laps
   const driverObj = useMemo(() => {
     return drivers.find((d) => d.abbreviation === activeDriver) || drivers[0];
   }, [drivers, activeDriver]);
 
   const teamCol = TEAM_COLOURS[driverObj?.team ?? ""] ?? "#60a5fa";
 
-  // Comparison driver object
+  const driverLaps = useMemo(() => {
+    return lapsByDriver.get(activeDriver) || [];
+  }, [lapsByDriver, activeDriver]);
+
+  // Comparison driver laps
   const compareDriverObj = useMemo(() => {
     if (!compareDriver) return null;
     return drivers.find((d) => d.abbreviation === compareDriver) || null;
@@ -98,33 +166,10 @@ export default function RaceStoryPanel({
 
   const compareTeamCol = compareDriverObj ? TEAM_COLOURS[compareDriverObj.team] ?? "#f59e0b" : "#f59e0b";
 
-  // Max laps in this session
-  const maxRaceLaps = useMemo(() => {
-    if (!laps.length) return 57;
-    return Math.max(...laps.map((l) => l.LapNumber), 1);
-  }, [laps]);
-
-  // All laps for the active driver sorted by lap number
-  const driverLaps = useMemo(() => {
-    return laps
-      .filter((l) => l.Driver === activeDriver && l.LapNumber > 0)
-      .sort((a, b) => a.LapNumber - b.LapNumber);
-  }, [laps, activeDriver]);
-
-  // Comparison driver laps
   const compareLaps = useMemo(() => {
     if (!compareDriver) return [];
-    return laps
-      .filter((l) => l.Driver === compareDriver && l.LapNumber > 0)
-      .sort((a, b) => a.LapNumber - b.LapNumber);
-  }, [laps, compareDriver]);
-
-  // Overall session fastest lap
-  const overallFastestLap = useMemo(() => {
-    const valid = laps.filter((l) => l.LapTime && l.LapTime > 0);
-    if (!valid.length) return null;
-    return valid.reduce((best, cur) => ((cur.LapTime ?? 999) < (best.LapTime ?? 999) ? cur : best), valid[0]);
-  }, [laps]);
+    return lapsByDriver.get(compareDriver) || [];
+  }, [lapsByDriver, compareDriver]);
 
   // Driver personal best lap
   const bestLapObj = useMemo(() => {
@@ -142,7 +187,8 @@ export default function RaceStoryPanel({
     let current: StintInfo | null = null;
     const stintLapsMap = new Map<number, number[]>();
 
-    driverLaps.forEach((l) => {
+    for (let i = 0; i < driverLaps.length; i++) {
+      const l = driverLaps[i];
       const isNewStint =
         !current ||
         (l.Stint && l.Stint !== current.stint) ||
@@ -176,7 +222,7 @@ export default function RaceStoryPanel({
           }
         }
       }
-    });
+    }
     if (current) stints.push(current);
 
     // Compute average for each stint
@@ -190,23 +236,7 @@ export default function RaceStoryPanel({
     return stints;
   }, [driverLaps]);
 
-  // Positions on each lap for every driver to calculate overtakes accurately
-  const lapPositionsMap = useMemo(() => {
-    const map = new Map<number, Map<string, number>>();
-    for (let lapNum = 1; lapNum <= maxRaceLaps; lapNum++) {
-      const lapLaps = laps.filter((l) => l.LapNumber === lapNum);
-      const posMap = new Map<string, number>();
-      lapLaps.forEach((l) => {
-        if (l.Position !== null && l.Position !== undefined) {
-          posMap.set(l.Driver, l.Position);
-        }
-      });
-      map.set(lapNum, posMap);
-    }
-    return map;
-  }, [laps, maxRaceLaps]);
-
-  // Calculate Grid / Start position, Final position, and Net Position Delta
+  // Start / Finish Position & Delta
   const startPos = useMemo(() => {
     if (driverLaps.length > 0 && driverLaps[0].Position !== null) {
       return driverLaps[0].Position;
@@ -224,30 +254,32 @@ export default function RaceStoryPanel({
 
   const netPositionsGained = (startPos ?? 10) - (finishPos ?? 10);
 
-  // Overtakes & Position Battles Engine
+  // Fast Overtakes Calculation (O(Laps) with O(1) map lookups)
   const overtakesData = useMemo(() => {
     const events: OvertakeEvent[] = [];
     let overtakesMadeCount = 0;
     let overtakesSufferedCount = 0;
 
+    const lapByNumberMap = new Map<number, SessionLap>();
+    driverLaps.forEach((l) => lapByNumberMap.set(l.LapNumber, l));
+
     for (let lapNum = 2; lapNum <= maxRaceLaps; lapNum++) {
-      const prevMap = lapPositionsMap.get(lapNum - 1);
-      const currMap = lapPositionsMap.get(lapNum);
+      const prevMap = positionsByLap.get(lapNum - 1);
+      const currMap = positionsByLap.get(lapNum);
       if (!prevMap || !currMap) continue;
 
       const pPos = prevMap.get(activeDriver);
       const cPos = currMap.get(activeDriver);
       if (pPos === undefined || cPos === undefined || pPos === cPos) continue;
 
-      const thisLap = driverLaps.find((l) => l.LapNumber === lapNum);
+      const thisLap = lapByNumberMap.get(lapNum);
       const isPitLap = thisLap?.PitInTime !== null || (thisLap?.PitOutTime !== null && lapNum > 1);
 
       if (cPos < pPos) {
-        // Position improved (e.g. P5 -> P4)
         const diff = pPos - cPos;
         overtakesMadeCount += diff;
 
-        // Check which drivers were passed
+        // Find which drivers dropped behind
         const passedDrivers: string[] = [];
         for (let targetP = cPos; targetP < pPos; targetP++) {
           for (const [drv, prevP] of prevMap.entries()) {
@@ -260,23 +292,19 @@ export default function RaceStoryPanel({
           }
         }
 
-        const targetName = passedDrivers.length > 0 ? passedDrivers.join(", ") : `P${cPos} battle`;
-        const targetObj = drivers.find((d) => d.abbreviation === passedDrivers[0]);
-
+        const targetName = passedDrivers.length > 0 ? passedDrivers.join(", ") : `P${cPos} position`;
         events.push({
           lap: lapNum,
           fromPos: pPos,
           toPos: cPos,
           type: isPitLap ? "PIT_OVERCUT_GAIN" : "OVERTAKE",
           targetDriver: targetName,
-          targetTeam: targetObj?.team,
           details:
             diff === 1
               ? `Overtook ${targetName} for P${cPos}`
               : `Gained ${diff} positions up to P${cPos} (passed ${targetName})`,
         });
       } else {
-        // Position dropped (e.g. P3 -> P5)
         const diff = cPos - pPos;
         overtakesSufferedCount += diff;
 
@@ -298,7 +326,7 @@ export default function RaceStoryPanel({
       overtakesSufferedCount,
       netOvertakes: overtakesMadeCount - overtakesSufferedCount,
     };
-  }, [lapPositionsMap, maxRaceLaps, activeDriver, driverLaps, drivers]);
+  }, [driverLaps, maxRaceLaps, positionsByLap, activeDriver]);
 
   // Penalties and Stewards Inquiries
   const driverPenalties: PenaltyItem[] = useMemo(() => {
@@ -307,8 +335,9 @@ export default function RaceStoryPanel({
     const abbr = driverObj?.abbreviation;
     const full = driverObj?.full_name?.toLowerCase();
 
-    // 1. Scan race control messages
-    raceControl.forEach((m) => {
+    // Scan race control messages
+    for (let i = 0; i < raceControl.length; i++) {
+      const m = raceControl[i];
       const msgUpper = (m.Message || "").toUpperCase();
       const cat = (m.Category || "").toUpperCase();
 
@@ -347,10 +376,11 @@ export default function RaceStoryPanel({
           severity,
         });
       }
-    });
+    }
 
-    // 2. Scan deleted laps for track limits
-    driverLaps.forEach((l) => {
+    // Scan deleted laps for track limits
+    for (let i = 0; i < driverLaps.length; i++) {
+      const l = driverLaps[i];
       if (l.Deleted) {
         list.push({
           time: `Lap ${l.LapNumber}`,
@@ -360,19 +390,23 @@ export default function RaceStoryPanel({
           severity: "WARNING",
         });
       }
-    });
+    }
 
     return list;
   }, [raceControl, driverObj, driverLaps]);
 
   // Average race lap time (excluding pit in/out laps)
   const avgRacePace = useMemo(() => {
-    const cleanLaps = driverLaps.filter(
-      (l) => l.LapTime && l.LapTime > 0 && l.PitInTime === null && l.PitOutTime === null
-    );
-    if (!cleanLaps.length) return null;
-    const sum = cleanLaps.reduce((acc, l) => acc + l.LapTime!, 0);
-    return sum / cleanLaps.length;
+    let sum = 0;
+    let count = 0;
+    for (let i = 0; i < driverLaps.length; i++) {
+      const l = driverLaps[i];
+      if (l.LapTime && l.LapTime > 0 && l.PitInTime === null && l.PitOutTime === null) {
+        sum += l.LapTime;
+        count++;
+      }
+    }
+    return count > 0 ? sum / count : null;
   }, [driverLaps]);
 
   // Filtered laps for the detailed table
@@ -410,7 +444,10 @@ export default function RaceStoryPanel({
   const PAD = { top: 25, right: 30, bottom: 35, left: 65 };
 
   // Pace Chart Scales
-  const validPaceTimes = driverLaps.map((l) => l.LapTime!).filter((t) => t > 0);
+  const validPaceTimes = useMemo(() => {
+    return driverLaps.map((l) => l.LapTime!).filter((t) => t > 0);
+  }, [driverLaps]);
+
   const minPaceTime = validPaceTimes.length ? Math.min(...validPaceTimes) * 0.985 : 75;
   const maxPaceTime = validPaceTimes.length
     ? Math.min(Math.max(...validPaceTimes), minPaceTime * 1.28)
@@ -447,7 +484,7 @@ export default function RaceStoryPanel({
       .join(" ");
   }, [compareLaps, maxRaceLaps, minPaceTime, maxPaceTime]);
 
-  // Position Chart Scales (P1 at top, P20 at bottom)
+  // Position Chart Scales
   const minPos = 1;
   const maxPos = Math.max(20, drivers.length);
   const scalePosX = (lapNum: number) =>
@@ -488,7 +525,7 @@ export default function RaceStoryPanel({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      {/* ── Top Hero & Driver Ribbon ── */}
+      {/* ── Top Hero & Driver Header ── */}
       <div className="hero-section" style={{ minHeight: 90, padding: "20px 28px" }}>
         <div>
           <div className="eyebrow">
@@ -547,7 +584,7 @@ export default function RaceStoryPanel({
         </div>
       </div>
 
-      {/* ── Driver Switcher Ribbon ── */}
+      {/* ── Ultra-Fast Driver Switcher Ribbon ── */}
       <div className="panel" style={{ padding: "12px 16px" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -599,7 +636,7 @@ export default function RaceStoryPanel({
           </div>
         </div>
 
-        {/* Driver pill buttons */}
+        {/* Precomputed Driver pill buttons for zero-lag switching */}
         <div
           style={{
             display: "flex",
@@ -609,13 +646,8 @@ export default function RaceStoryPanel({
             scrollbarWidth: "thin",
           }}
         >
-          {drivers.map((d) => {
+          {driverSummaries.map(({ driver: d, netDelta: dNet, teamCol: dTeamCol }) => {
             const isSelected = d.abbreviation === activeDriver;
-            const dTeamCol = TEAM_COLOURS[d.team] ?? "#888";
-            const dLaps = laps.filter((l) => l.Driver === d.abbreviation && l.LapNumber > 0);
-            const dStart = dLaps[0]?.Position ?? d.position ?? 10;
-            const dEnd = dLaps[dLaps.length - 1]?.Position ?? d.position ?? 10;
-            const dNet = dStart - dEnd;
 
             return (
               <button
@@ -631,7 +663,7 @@ export default function RaceStoryPanel({
                   border: isSelected ? `1.5px solid ${dTeamCol}` : "1px solid rgba(255,255,255,0.06)",
                   cursor: "pointer",
                   flexShrink: 0,
-                  transition: "all 0.15s ease",
+                  transition: "all 0.12s ease",
                 }}
               >
                 <div style={{ width: 3, height: 16, background: dTeamCol, borderRadius: 2 }} />
@@ -1072,7 +1104,7 @@ export default function RaceStoryPanel({
               <h2>POSITION EVOLUTION</h2>
               <span>LAP-BY-LAP TRACK POSITION (P1 AT TOP)</span>
             </div>
-            {/* Optional benchmark driver overlay selector */}
+            {/* Benchmark driver overlay selector */}
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <span style={{ fontSize: 10, color: "#85858b", fontFamily: "IBM Plex Mono, monospace" }}>
                 OVERLAY:

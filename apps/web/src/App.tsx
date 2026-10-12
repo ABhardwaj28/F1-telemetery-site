@@ -308,32 +308,38 @@ export default function App() {
           const targetB = initialTargetDriverBRef.current;
           if (initialTargetDriverBRef.current) initialTargetDriverBRef.current = null;
 
-          setSelectedDriver((currA: string) => {
-            const desired = targetA || currA;
-            const hasA = dList.some((d) => d.abbreviation === desired);
-            if (hasA) return desired;
+          let determinedA = currentDriverRef.current;
+          const desiredA = targetA || determinedA;
+          if (dList.some((d) => d.abbreviation === desiredA)) {
+            determinedA = desiredA;
+          } else {
             const leclerc = dList.find(
               (d) => d.abbreviation === "LEC" || d.full_name?.toLowerCase().includes("leclerc")
             );
-            return leclerc ? leclerc.abbreviation : dList[0].abbreviation;
-          });
+            determinedA = leclerc ? leclerc.abbreviation : dList[0].abbreviation;
+          }
+          setSelectedDriver(determinedA);
+          currentDriverRef.current = determinedA;
 
-          setSelectedDriverB((currB: string) => {
-            const desired = targetB || currB;
-            const hasB = dList.some((d) => d.abbreviation === desired);
-            if (hasB) return desired;
+          let determinedB = currentDriverBRef.current;
+          const desiredB = targetB || determinedB;
+          if (dList.some((d) => d.abbreviation === desiredB)) {
+            determinedB = desiredB;
+          } else {
             const verstappen = dList.find(
               (d) => d.abbreviation === "VER" || d.full_name?.toLowerCase().includes("verstappen")
             );
-            return verstappen ? verstappen.abbreviation : (dList[1]?.abbreviation ?? dList[0].abbreviation);
-          });
+            determinedB = verstappen ? verstappen.abbreviation : (dList[1]?.abbreviation ?? dList[0].abbreviation);
+          }
+          setSelectedDriverB(determinedB);
+          currentDriverBRef.current = determinedB;
         }
       }
 
       if (lp.status === "fulfilled") {
         const lapsData = lp.value;
         setSessionLaps(lapsData);
-        // Read current lap/driver from refs to avoid circular deps
+        // Read current lap and synchronously determined driver
         const currLap = currentLapRef.current;
         const currLapB = currentLapBRef.current;
         const currDriver = currentDriverRef.current;
@@ -413,8 +419,12 @@ export default function App() {
 
   // ── Load telemetry when driver / lap / session / race changes ──────────
   useEffect(() => {
-    if (!selectedRace || !hasTelemetry || !selectedDriver) {
-      setTelemetry(null);
+    if (
+      !selectedRace ||
+      !hasTelemetry ||
+      !selectedDriver ||
+      (page !== "Race Explorer" && page !== "Driver Comparison")
+    ) {
       return;
     }
     let cancelled = false;
@@ -437,12 +447,11 @@ export default function App() {
     return () => {
       cancelled = true;
     };
-  }, [selectedRace, selectedDriver, selectedLap, hasTelemetry, selectedYear, selectedSessionCode, selectedLapObjA]);
+  }, [selectedRace, selectedDriver, selectedLap, hasTelemetry, selectedYear, selectedSessionCode, selectedLapObjA, page]);
 
   // ── Load telemetry for Driver B ───────────────────────────────────────
   useEffect(() => {
-    if (!selectedRace || !hasTelemetry || !selectedDriverB) {
-      setTelemetryB(null);
+    if (!selectedRace || !hasTelemetry || !selectedDriverB || page !== "Driver Comparison") {
       return;
     }
     let cancelled = false;
@@ -459,7 +468,7 @@ export default function App() {
     return () => {
       cancelled = true;
     };
-  }, [selectedRace, selectedDriverB, selectedLapB, hasTelemetry, selectedYear, selectedSessionCode, selectedLapObjB]);
+  }, [selectedRace, selectedDriverB, selectedLapB, hasTelemetry, selectedYear, selectedSessionCode, selectedLapObjB, page]);
 
   // ── Derived ────────────────────────────────────────────────────────────
   const trackLength = circuit?.length_m ?? 3293;
