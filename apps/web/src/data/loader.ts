@@ -780,7 +780,7 @@ export async function loadSessionDrivers(
   try {
     return await json<SessionDriver[]>(sessionPath(year, event, sessionCode, "_drivers.json"));
   } catch {
-    if (year >= 2010 && year < 2025 && sessionCode === "R") {
+    if (year >= 2010 && year <= 2025 && sessionCode === "R") {
       const jolpica = await fetchJolpicaRaceData(year, event);
       if (jolpica && jolpica.drivers.length > 0) {
         return jolpica.drivers;
@@ -851,7 +851,7 @@ export async function loadSessionLaps(
   try {
     return await json<SessionLap[]>(sessionPath(year, event, sessionCode, "_laps.json"));
   } catch {
-    if (year >= 2010 && year < 2025 && sessionCode === "R") {
+    if (year >= 2010 && year <= 2025 && sessionCode === "R") {
       const jolpica = await fetchJolpicaRaceData(year, event);
       if (jolpica && jolpica.laps.length > 0) {
         return jolpica.laps;

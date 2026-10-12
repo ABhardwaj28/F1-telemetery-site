@@ -587,7 +587,7 @@ export default function App() {
                 </div>
                 <div className="metric">
                   <span>FORMAT</span>
-                  <strong>{selectedRace?.format === "sprint_qualifying" ? "SPRINT" : "CONV"}</strong>
+                  <strong>{selectedRace?.format && selectedRace.format !== "conventional" ? "SPRINT" : "CONV"}</strong>
                 </div>
               </>
             )}

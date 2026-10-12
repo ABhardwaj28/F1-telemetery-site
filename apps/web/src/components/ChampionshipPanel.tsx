@@ -276,15 +276,15 @@ export default function ChampionshipPanel({ calendar, year }: ChampionshipPanelP
                     <td style={{ padding: "0 16px", textAlign: "right" }}>
                       <span
                         style={{
-                          background: r.format === "sprint_qualifying" ? "rgba(245, 197, 24, 0.15)" : "rgba(255,255,255,0.05)",
-                          color: r.format === "sprint_qualifying" ? "#f5c518" : "#888",
+                          background: r.format !== "conventional" ? "rgba(245, 197, 24, 0.15)" : "rgba(255,255,255,0.05)",
+                          color: r.format !== "conventional" ? "#f5c518" : "#888",
                           padding: "2px 6px",
                           borderRadius: 2,
                           fontSize: 9,
                           fontWeight: 700,
                         }}
                       >
-                        {r.format === "sprint_qualifying" ? "SPRINT" : "CONVENTIONAL"}
+                        {r.format !== "conventional" ? "SPRINT" : "CONVENTIONAL"}
                       </span>
                     </td>
                   </tr>

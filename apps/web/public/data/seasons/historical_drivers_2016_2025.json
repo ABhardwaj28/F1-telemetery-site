@@ -1,0 +1,1798 @@
+{
+  "2016": [
+    {
+      "driver_number": "6",
+      "abbreviation": "ROS",
+      "full_name": "Nico Rosberg",
+      "team": "Mercedes",
+      "position": 1,
+      "points": 385
+    },
+    {
+      "driver_number": "44",
+      "abbreviation": "HAM",
+      "full_name": "Lewis Hamilton",
+      "team": "Mercedes",
+      "position": 2,
+      "points": 380
+    },
+    {
+      "driver_number": "3",
+      "abbreviation": "RIC",
+      "full_name": "Daniel Ricciardo",
+      "team": "Red Bull Racing",
+      "position": 3,
+      "points": 256
+    },
+    {
+      "driver_number": "5",
+      "abbreviation": "VET",
+      "full_name": "Sebastian Vettel",
+      "team": "Ferrari",
+      "position": 4,
+      "points": 212
+    },
+    {
+      "driver_number": "3",
+      "abbreviation": "VER",
+      "full_name": "Max Verstappen",
+      "team": "Toro Rosso",
+      "position": 5,
+      "points": 204
+    },
+    {
+      "driver_number": "7",
+      "abbreviation": "RAI",
+      "full_name": "Kimi R\u00e4ikk\u00f6nen",
+      "team": "Ferrari",
+      "position": 6,
+      "points": 186
+    },
+    {
+      "driver_number": "11",
+      "abbreviation": "PER",
+      "full_name": "Sergio P\u00e9rez",
+      "team": "Force India",
+      "position": 7,
+      "points": 101
+    },
+    {
+      "driver_number": "77",
+      "abbreviation": "BOT",
+      "full_name": "Valtteri Bottas",
+      "team": "Williams",
+      "position": 8,
+      "points": 85
+    },
+    {
+      "driver_number": "27",
+      "abbreviation": "HUL",
+      "full_name": "Nico H\u00fclkenberg",
+      "team": "Force India",
+      "position": 9,
+      "points": 72
+    },
+    {
+      "driver_number": "14",
+      "abbreviation": "ALO",
+      "full_name": "Fernando Alonso",
+      "team": "McLaren",
+      "position": 10,
+      "points": 54
+    },
+    {
+      "driver_number": "19",
+      "abbreviation": "MAS",
+      "full_name": "Felipe Massa",
+      "team": "Williams",
+      "position": 11,
+      "points": 53
+    },
+    {
+      "driver_number": "55",
+      "abbreviation": "SAI",
+      "full_name": "Carlos Sainz",
+      "team": "Toro Rosso",
+      "position": 12,
+      "points": 46
+    },
+    {
+      "driver_number": "8",
+      "abbreviation": "GRO",
+      "full_name": "Romain Grosjean",
+      "team": "Haas",
+      "position": 13,
+      "points": 29
+    },
+    {
+      "driver_number": "26",
+      "abbreviation": "KVY",
+      "full_name": "Daniil Kvyat",
+      "team": "Red Bull Racing",
+      "position": 14,
+      "points": 25
+    },
+    {
+      "driver_number": "22",
+      "abbreviation": "BUT",
+      "full_name": "Jenson Button",
+      "team": "McLaren",
+      "position": 15,
+      "points": 21
+    },
+    {
+      "driver_number": "20",
+      "abbreviation": "MAG",
+      "full_name": "Kevin Magnussen",
+      "team": "Renault",
+      "position": 16,
+      "points": 7
+    },
+    {
+      "driver_number": "12",
+      "abbreviation": "NAS",
+      "full_name": "Felipe Nasr",
+      "team": "Sauber",
+      "position": 17,
+      "points": 2
+    },
+    {
+      "driver_number": "30",
+      "abbreviation": "PAL",
+      "full_name": "Jolyon Palmer",
+      "team": "Renault",
+      "position": 18,
+      "points": 1
+    },
+    {
+      "driver_number": "94",
+      "abbreviation": "WEH",
+      "full_name": "Pascal Wehrlein",
+      "team": "Manor Marussia",
+      "position": 19,
+      "points": 1
+    },
+    {
+      "driver_number": "2",
+      "abbreviation": "VAN",
+      "full_name": "Stoffel Vandoorne",
+      "team": "McLaren",
+      "position": 20,
+      "points": 1
+    },
+    {
+      "driver_number": "21",
+      "abbreviation": "GUT",
+      "full_name": "Esteban Guti\u00e9rrez",
+      "team": "Haas",
+      "position": 21,
+      "points": 0
+    },
+    {
+      "driver_number": "9",
+      "abbreviation": "ERI",
+      "full_name": "Marcus Ericsson",
+      "team": "Sauber",
+      "position": 22,
+      "points": 0
+    },
+    {
+      "driver_number": "31",
+      "abbreviation": "OCO",
+      "full_name": "Esteban Ocon",
+      "team": "Manor Marussia",
+      "position": 23,
+      "points": 0
+    },
+    {
+      "driver_number": "88",
+      "abbreviation": "HAR",
+      "full_name": "Rio Haryanto",
+      "team": "Manor Marussia",
+      "position": 24,
+      "points": 0
+    }
+  ],
+  "2017": [
+    {
+      "driver_number": "44",
+      "abbreviation": "HAM",
+      "full_name": "Lewis Hamilton",
+      "team": "Mercedes",
+      "position": 1,
+      "points": 363
+    },
+    {
+      "driver_number": "5",
+      "abbreviation": "VET",
+      "full_name": "Sebastian Vettel",
+      "team": "Ferrari",
+      "position": 2,
+      "points": 317
+    },
+    {
+      "driver_number": "77",
+      "abbreviation": "BOT",
+      "full_name": "Valtteri Bottas",
+      "team": "Mercedes",
+      "position": 3,
+      "points": 305
+    },
+    {
+      "driver_number": "7",
+      "abbreviation": "RAI",
+      "full_name": "Kimi R\u00e4ikk\u00f6nen",
+      "team": "Ferrari",
+      "position": 4,
+      "points": 205
+    },
+    {
+      "driver_number": "3",
+      "abbreviation": "RIC",
+      "full_name": "Daniel Ricciardo",
+      "team": "Red Bull Racing",
+      "position": 5,
+      "points": 200
+    },
+    {
+      "driver_number": "3",
+      "abbreviation": "VER",
+      "full_name": "Max Verstappen",
+      "team": "Red Bull Racing",
+      "position": 6,
+      "points": 168
+    },
+    {
+      "driver_number": "11",
+      "abbreviation": "PER",
+      "full_name": "Sergio P\u00e9rez",
+      "team": "Force India",
+      "position": 7,
+      "points": 100
+    },
+    {
+      "driver_number": "31",
+      "abbreviation": "OCO",
+      "full_name": "Esteban Ocon",
+      "team": "Force India",
+      "position": 8,
+      "points": 87
+    },
+    {
+      "driver_number": "55",
+      "abbreviation": "SAI",
+      "full_name": "Carlos Sainz",
+      "team": "Toro Rosso",
+      "position": 9,
+      "points": 54
+    },
+    {
+      "driver_number": "27",
+      "abbreviation": "HUL",
+      "full_name": "Nico H\u00fclkenberg",
+      "team": "Renault",
+      "position": 10,
+      "points": 43
+    },
+    {
+      "driver_number": "19",
+      "abbreviation": "MAS",
+      "full_name": "Felipe Massa",
+      "team": "Williams",
+      "position": 11,
+      "points": 43
+    },
+    {
+      "driver_number": "18",
+      "abbreviation": "STR",
+      "full_name": "Lance Stroll",
+      "team": "Williams",
+      "position": 12,
+      "points": 40
+    },
+    {
+      "driver_number": "8",
+      "abbreviation": "GRO",
+      "full_name": "Romain Grosjean",
+      "team": "Haas",
+      "position": 13,
+      "points": 28
+    },
+    {
+      "driver_number": "20",
+      "abbreviation": "MAG",
+      "full_name": "Kevin Magnussen",
+      "team": "Haas",
+      "position": 14,
+      "points": 19
+    },
+    {
+      "driver_number": "14",
+      "abbreviation": "ALO",
+      "full_name": "Fernando Alonso",
+      "team": "McLaren",
+      "position": 15,
+      "points": 17
+    },
+    {
+      "driver_number": "2",
+      "abbreviation": "VAN",
+      "full_name": "Stoffel Vandoorne",
+      "team": "McLaren",
+      "position": 16,
+      "points": 13
+    },
+    {
+      "driver_number": "30",
+      "abbreviation": "PAL",
+      "full_name": "Jolyon Palmer",
+      "team": "Renault",
+      "position": 17,
+      "points": 8
+    },
+    {
+      "driver_number": "94",
+      "abbreviation": "WEH",
+      "full_name": "Pascal Wehrlein",
+      "team": "Sauber",
+      "position": 18,
+      "points": 5
+    },
+    {
+      "driver_number": "26",
+      "abbreviation": "KVY",
+      "full_name": "Daniil Kvyat",
+      "team": "Toro Rosso",
+      "position": 19,
+      "points": 5
+    },
+    {
+      "driver_number": "9",
+      "abbreviation": "ERI",
+      "full_name": "Marcus Ericsson",
+      "team": "Sauber",
+      "position": 20,
+      "points": 0
+    },
+    {
+      "driver_number": "10",
+      "abbreviation": "GAS",
+      "full_name": "Pierre Gasly",
+      "team": "Toro Rosso",
+      "position": 21,
+      "points": 0
+    },
+    {
+      "driver_number": "99",
+      "abbreviation": "GIO",
+      "full_name": "Antonio Giovinazzi",
+      "team": "Sauber",
+      "position": 22,
+      "points": 0
+    },
+    {
+      "driver_number": "28",
+      "abbreviation": "HAR",
+      "full_name": "Brendon Hartley",
+      "team": "Toro Rosso",
+      "position": 23,
+      "points": 0
+    },
+    {
+      "driver_number": "22",
+      "abbreviation": "BUT",
+      "full_name": "Jenson Button",
+      "team": "McLaren",
+      "position": 0,
+      "points": 0
+    },
+    {
+      "driver_number": "40",
+      "abbreviation": "DIR",
+      "full_name": "Paul di Resta",
+      "team": "Williams",
+      "position": 0,
+      "points": 0
+    }
+  ],
+  "2018": [
+    {
+      "driver_number": "44",
+      "abbreviation": "HAM",
+      "full_name": "Lewis Hamilton",
+      "team": "Mercedes",
+      "position": 1,
+      "points": 408
+    },
+    {
+      "driver_number": "5",
+      "abbreviation": "VET",
+      "full_name": "Sebastian Vettel",
+      "team": "Ferrari",
+      "position": 2,
+      "points": 320
+    },
+    {
+      "driver_number": "7",
+      "abbreviation": "RAI",
+      "full_name": "Kimi R\u00e4ikk\u00f6nen",
+      "team": "Ferrari",
+      "position": 3,
+      "points": 251
+    },
+    {
+      "driver_number": "3",
+      "abbreviation": "VER",
+      "full_name": "Max Verstappen",
+      "team": "Red Bull Racing",
+      "position": 4,
+      "points": 249
+    },
+    {
+      "driver_number": "77",
+      "abbreviation": "BOT",
+      "full_name": "Valtteri Bottas",
+      "team": "Mercedes",
+      "position": 5,
+      "points": 247
+    },
+    {
+      "driver_number": "3",
+      "abbreviation": "RIC",
+      "full_name": "Daniel Ricciardo",
+      "team": "Red Bull Racing",
+      "position": 6,
+      "points": 170
+    },
+    {
+      "driver_number": "27",
+      "abbreviation": "HUL",
+      "full_name": "Nico H\u00fclkenberg",
+      "team": "Renault",
+      "position": 7,
+      "points": 69
+    },
+    {
+      "driver_number": "11",
+      "abbreviation": "PER",
+      "full_name": "Sergio P\u00e9rez",
+      "team": "Force India",
+      "position": 8,
+      "points": 62
+    },
+    {
+      "driver_number": "20",
+      "abbreviation": "MAG",
+      "full_name": "Kevin Magnussen",
+      "team": "Haas",
+      "position": 9,
+      "points": 56
+    },
+    {
+      "driver_number": "55",
+      "abbreviation": "SAI",
+      "full_name": "Carlos Sainz",
+      "team": "Renault",
+      "position": 10,
+      "points": 53
+    },
+    {
+      "driver_number": "14",
+      "abbreviation": "ALO",
+      "full_name": "Fernando Alonso",
+      "team": "McLaren",
+      "position": 11,
+      "points": 50
+    },
+    {
+      "driver_number": "31",
+      "abbreviation": "OCO",
+      "full_name": "Esteban Ocon",
+      "team": "Force India",
+      "position": 12,
+      "points": 49
+    },
+    {
+      "driver_number": "16",
+      "abbreviation": "LEC",
+      "full_name": "Charles Leclerc",
+      "team": "Sauber",
+      "position": 13,
+      "points": 39
+    },
+    {
+      "driver_number": "8",
+      "abbreviation": "GRO",
+      "full_name": "Romain Grosjean",
+      "team": "Haas",
+      "position": 14,
+      "points": 37
+    },
+    {
+      "driver_number": "10",
+      "abbreviation": "GAS",
+      "full_name": "Pierre Gasly",
+      "team": "Toro Rosso",
+      "position": 15,
+      "points": 29
+    },
+    {
+      "driver_number": "2",
+      "abbreviation": "VAN",
+      "full_name": "Stoffel Vandoorne",
+      "team": "McLaren",
+      "position": 16,
+      "points": 12
+    },
+    {
+      "driver_number": "9",
+      "abbreviation": "ERI",
+      "full_name": "Marcus Ericsson",
+      "team": "Sauber",
+      "position": 17,
+      "points": 9
+    },
+    {
+      "driver_number": "18",
+      "abbreviation": "STR",
+      "full_name": "Lance Stroll",
+      "team": "Williams",
+      "position": 18,
+      "points": 6
+    },
+    {
+      "driver_number": "28",
+      "abbreviation": "HAR",
+      "full_name": "Brendon Hartley",
+      "team": "Toro Rosso",
+      "position": 19,
+      "points": 4
+    },
+    {
+      "driver_number": "35",
+      "abbreviation": "SIR",
+      "full_name": "Sergey Sirotkin",
+      "team": "Williams",
+      "position": 20,
+      "points": 1
+    }
+  ],
+  "2019": [
+    {
+      "driver_number": "44",
+      "abbreviation": "HAM",
+      "full_name": "Lewis Hamilton",
+      "team": "Mercedes",
+      "position": 1,
+      "points": 413
+    },
+    {
+      "driver_number": "77",
+      "abbreviation": "BOT",
+      "full_name": "Valtteri Bottas",
+      "team": "Mercedes",
+      "position": 2,
+      "points": 326
+    },
+    {
+      "driver_number": "3",
+      "abbreviation": "VER",
+      "full_name": "Max Verstappen",
+      "team": "Red Bull Racing",
+      "position": 3,
+      "points": 278
+    },
+    {
+      "driver_number": "16",
+      "abbreviation": "LEC",
+      "full_name": "Charles Leclerc",
+      "team": "Ferrari",
+      "position": 4,
+      "points": 264
+    },
+    {
+      "driver_number": "5",
+      "abbreviation": "VET",
+      "full_name": "Sebastian Vettel",
+      "team": "Ferrari",
+      "position": 5,
+      "points": 240
+    },
+    {
+      "driver_number": "55",
+      "abbreviation": "SAI",
+      "full_name": "Carlos Sainz",
+      "team": "McLaren",
+      "position": 6,
+      "points": 96
+    },
+    {
+      "driver_number": "10",
+      "abbreviation": "GAS",
+      "full_name": "Pierre Gasly",
+      "team": "Red Bull Racing",
+      "position": 7,
+      "points": 95
+    },
+    {
+      "driver_number": "23",
+      "abbreviation": "ALB",
+      "full_name": "Alexander Albon",
+      "team": "Toro Rosso",
+      "position": 8,
+      "points": 92
+    },
+    {
+      "driver_number": "3",
+      "abbreviation": "RIC",
+      "full_name": "Daniel Ricciardo",
+      "team": "Renault",
+      "position": 9,
+      "points": 54
+    },
+    {
+      "driver_number": "11",
+      "abbreviation": "PER",
+      "full_name": "Sergio P\u00e9rez",
+      "team": "Racing Point",
+      "position": 10,
+      "points": 52
+    },
+    {
+      "driver_number": "1",
+      "abbreviation": "NOR",
+      "full_name": "Lando Norris",
+      "team": "McLaren",
+      "position": 11,
+      "points": 49
+    },
+    {
+      "driver_number": "7",
+      "abbreviation": "RAI",
+      "full_name": "Kimi R\u00e4ikk\u00f6nen",
+      "team": "Alfa Romeo",
+      "position": 12,
+      "points": 43
+    },
+    {
+      "driver_number": "26",
+      "abbreviation": "KVY",
+      "full_name": "Daniil Kvyat",
+      "team": "Toro Rosso",
+      "position": 13,
+      "points": 37
+    },
+    {
+      "driver_number": "27",
+      "abbreviation": "HUL",
+      "full_name": "Nico H\u00fclkenberg",
+      "team": "Renault",
+      "position": 14,
+      "points": 37
+    },
+    {
+      "driver_number": "18",
+      "abbreviation": "STR",
+      "full_name": "Lance Stroll",
+      "team": "Racing Point",
+      "position": 15,
+      "points": 21
+    },
+    {
+      "driver_number": "20",
+      "abbreviation": "MAG",
+      "full_name": "Kevin Magnussen",
+      "team": "Haas",
+      "position": 16,
+      "points": 20
+    },
+    {
+      "driver_number": "99",
+      "abbreviation": "GIO",
+      "full_name": "Antonio Giovinazzi",
+      "team": "Alfa Romeo",
+      "position": 17,
+      "points": 14
+    },
+    {
+      "driver_number": "8",
+      "abbreviation": "GRO",
+      "full_name": "Romain Grosjean",
+      "team": "Haas",
+      "position": 18,
+      "points": 8
+    },
+    {
+      "driver_number": "88",
+      "abbreviation": "KUB",
+      "full_name": "Robert Kubica",
+      "team": "Williams",
+      "position": 19,
+      "points": 1
+    },
+    {
+      "driver_number": "63",
+      "abbreviation": "RUS",
+      "full_name": "George Russell",
+      "team": "Williams",
+      "position": 20,
+      "points": 0
+    }
+  ],
+  "2020": [
+    {
+      "driver_number": "44",
+      "abbreviation": "HAM",
+      "full_name": "Lewis Hamilton",
+      "team": "Mercedes",
+      "position": 1,
+      "points": 347
+    },
+    {
+      "driver_number": "77",
+      "abbreviation": "BOT",
+      "full_name": "Valtteri Bottas",
+      "team": "Mercedes",
+      "position": 2,
+      "points": 223
+    },
+    {
+      "driver_number": "3",
+      "abbreviation": "VER",
+      "full_name": "Max Verstappen",
+      "team": "Red Bull Racing",
+      "position": 3,
+      "points": 214
+    },
+    {
+      "driver_number": "11",
+      "abbreviation": "PER",
+      "full_name": "Sergio P\u00e9rez",
+      "team": "Racing Point",
+      "position": 4,
+      "points": 125
+    },
+    {
+      "driver_number": "3",
+      "abbreviation": "RIC",
+      "full_name": "Daniel Ricciardo",
+      "team": "Renault",
+      "position": 5,
+      "points": 119
+    },
+    {
+      "driver_number": "55",
+      "abbreviation": "SAI",
+      "full_name": "Carlos Sainz",
+      "team": "McLaren",
+      "position": 6,
+      "points": 105
+    },
+    {
+      "driver_number": "23",
+      "abbreviation": "ALB",
+      "full_name": "Alexander Albon",
+      "team": "Red Bull Racing",
+      "position": 7,
+      "points": 105
+    },
+    {
+      "driver_number": "16",
+      "abbreviation": "LEC",
+      "full_name": "Charles Leclerc",
+      "team": "Ferrari",
+      "position": 8,
+      "points": 98
+    },
+    {
+      "driver_number": "1",
+      "abbreviation": "NOR",
+      "full_name": "Lando Norris",
+      "team": "McLaren",
+      "position": 9,
+      "points": 97
+    },
+    {
+      "driver_number": "10",
+      "abbreviation": "GAS",
+      "full_name": "Pierre Gasly",
+      "team": "AlphaTauri",
+      "position": 10,
+      "points": 75
+    },
+    {
+      "driver_number": "18",
+      "abbreviation": "STR",
+      "full_name": "Lance Stroll",
+      "team": "Racing Point",
+      "position": 11,
+      "points": 75
+    },
+    {
+      "driver_number": "31",
+      "abbreviation": "OCO",
+      "full_name": "Esteban Ocon",
+      "team": "Renault",
+      "position": 12,
+      "points": 62
+    },
+    {
+      "driver_number": "5",
+      "abbreviation": "VET",
+      "full_name": "Sebastian Vettel",
+      "team": "Ferrari",
+      "position": 13,
+      "points": 33
+    },
+    {
+      "driver_number": "26",
+      "abbreviation": "KVY",
+      "full_name": "Daniil Kvyat",
+      "team": "AlphaTauri",
+      "position": 14,
+      "points": 32
+    },
+    {
+      "driver_number": "27",
+      "abbreviation": "HUL",
+      "full_name": "Nico H\u00fclkenberg",
+      "team": "Racing Point",
+      "position": 15,
+      "points": 10
+    },
+    {
+      "driver_number": "7",
+      "abbreviation": "RAI",
+      "full_name": "Kimi R\u00e4ikk\u00f6nen",
+      "team": "Alfa Romeo",
+      "position": 16,
+      "points": 4
+    },
+    {
+      "driver_number": "99",
+      "abbreviation": "GIO",
+      "full_name": "Antonio Giovinazzi",
+      "team": "Alfa Romeo",
+      "position": 17,
+      "points": 4
+    },
+    {
+      "driver_number": "63",
+      "abbreviation": "RUS",
+      "full_name": "George Russell",
+      "team": "Williams",
+      "position": 18,
+      "points": 3
+    },
+    {
+      "driver_number": "8",
+      "abbreviation": "GRO",
+      "full_name": "Romain Grosjean",
+      "team": "Haas",
+      "position": 19,
+      "points": 2
+    },
+    {
+      "driver_number": "20",
+      "abbreviation": "MAG",
+      "full_name": "Kevin Magnussen",
+      "team": "Haas",
+      "position": 20,
+      "points": 1
+    },
+    {
+      "driver_number": "6",
+      "abbreviation": "LAT",
+      "full_name": "Nicholas Latifi",
+      "team": "Williams",
+      "position": 21,
+      "points": 0
+    },
+    {
+      "driver_number": "89",
+      "abbreviation": "AIT",
+      "full_name": "Jack Aitken",
+      "team": "Williams",
+      "position": 22,
+      "points": 0
+    },
+    {
+      "driver_number": "51",
+      "abbreviation": "FIT",
+      "full_name": "Pietro Fittipaldi",
+      "team": "Haas",
+      "position": 23,
+      "points": 0
+    }
+  ],
+  "2021": [
+    {
+      "driver_number": "3",
+      "abbreviation": "VER",
+      "full_name": "Max Verstappen",
+      "team": "Red Bull Racing",
+      "position": 1,
+      "points": 395.5
+    },
+    {
+      "driver_number": "44",
+      "abbreviation": "HAM",
+      "full_name": "Lewis Hamilton",
+      "team": "Mercedes",
+      "position": 2,
+      "points": 387.5
+    },
+    {
+      "driver_number": "77",
+      "abbreviation": "BOT",
+      "full_name": "Valtteri Bottas",
+      "team": "Mercedes",
+      "position": 3,
+      "points": 226
+    },
+    {
+      "driver_number": "11",
+      "abbreviation": "PER",
+      "full_name": "Sergio P\u00e9rez",
+      "team": "Red Bull Racing",
+      "position": 4,
+      "points": 190
+    },
+    {
+      "driver_number": "55",
+      "abbreviation": "SAI",
+      "full_name": "Carlos Sainz",
+      "team": "Ferrari",
+      "position": 5,
+      "points": 164.5
+    },
+    {
+      "driver_number": "1",
+      "abbreviation": "NOR",
+      "full_name": "Lando Norris",
+      "team": "McLaren",
+      "position": 6,
+      "points": 160
+    },
+    {
+      "driver_number": "16",
+      "abbreviation": "LEC",
+      "full_name": "Charles Leclerc",
+      "team": "Ferrari",
+      "position": 7,
+      "points": 159
+    },
+    {
+      "driver_number": "3",
+      "abbreviation": "RIC",
+      "full_name": "Daniel Ricciardo",
+      "team": "McLaren",
+      "position": 8,
+      "points": 115
+    },
+    {
+      "driver_number": "10",
+      "abbreviation": "GAS",
+      "full_name": "Pierre Gasly",
+      "team": "AlphaTauri",
+      "position": 9,
+      "points": 110
+    },
+    {
+      "driver_number": "14",
+      "abbreviation": "ALO",
+      "full_name": "Fernando Alonso",
+      "team": "Alpine",
+      "position": 10,
+      "points": 81
+    },
+    {
+      "driver_number": "31",
+      "abbreviation": "OCO",
+      "full_name": "Esteban Ocon",
+      "team": "Alpine",
+      "position": 11,
+      "points": 74
+    },
+    {
+      "driver_number": "5",
+      "abbreviation": "VET",
+      "full_name": "Sebastian Vettel",
+      "team": "Aston Martin",
+      "position": 12,
+      "points": 43
+    },
+    {
+      "driver_number": "18",
+      "abbreviation": "STR",
+      "full_name": "Lance Stroll",
+      "team": "Aston Martin",
+      "position": 13,
+      "points": 34
+    },
+    {
+      "driver_number": "22",
+      "abbreviation": "TSU",
+      "full_name": "Yuki Tsunoda",
+      "team": "AlphaTauri",
+      "position": 14,
+      "points": 32
+    },
+    {
+      "driver_number": "63",
+      "abbreviation": "RUS",
+      "full_name": "George Russell",
+      "team": "Williams",
+      "position": 15,
+      "points": 16
+    },
+    {
+      "driver_number": "7",
+      "abbreviation": "RAI",
+      "full_name": "Kimi R\u00e4ikk\u00f6nen",
+      "team": "Alfa Romeo",
+      "position": 16,
+      "points": 10
+    },
+    {
+      "driver_number": "6",
+      "abbreviation": "LAT",
+      "full_name": "Nicholas Latifi",
+      "team": "Williams",
+      "position": 17,
+      "points": 7
+    },
+    {
+      "driver_number": "99",
+      "abbreviation": "GIO",
+      "full_name": "Antonio Giovinazzi",
+      "team": "Alfa Romeo",
+      "position": 18,
+      "points": 3
+    },
+    {
+      "driver_number": "47",
+      "abbreviation": "MSC",
+      "full_name": "Mick Schumacher",
+      "team": "Haas",
+      "position": 19,
+      "points": 0
+    },
+    {
+      "driver_number": "88",
+      "abbreviation": "KUB",
+      "full_name": "Robert Kubica",
+      "team": "Alfa Romeo",
+      "position": 20,
+      "points": 0
+    },
+    {
+      "driver_number": "9",
+      "abbreviation": "MAZ",
+      "full_name": "Nikita Mazepin",
+      "team": "Haas",
+      "position": 21,
+      "points": 0
+    }
+  ],
+  "2022": [
+    {
+      "driver_number": "3",
+      "abbreviation": "VER",
+      "full_name": "Max Verstappen",
+      "team": "Red Bull Racing",
+      "position": 1,
+      "points": 454
+    },
+    {
+      "driver_number": "16",
+      "abbreviation": "LEC",
+      "full_name": "Charles Leclerc",
+      "team": "Ferrari",
+      "position": 2,
+      "points": 308
+    },
+    {
+      "driver_number": "11",
+      "abbreviation": "PER",
+      "full_name": "Sergio P\u00e9rez",
+      "team": "Red Bull Racing",
+      "position": 3,
+      "points": 305
+    },
+    {
+      "driver_number": "63",
+      "abbreviation": "RUS",
+      "full_name": "George Russell",
+      "team": "Mercedes",
+      "position": 4,
+      "points": 275
+    },
+    {
+      "driver_number": "55",
+      "abbreviation": "SAI",
+      "full_name": "Carlos Sainz",
+      "team": "Ferrari",
+      "position": 5,
+      "points": 246
+    },
+    {
+      "driver_number": "44",
+      "abbreviation": "HAM",
+      "full_name": "Lewis Hamilton",
+      "team": "Mercedes",
+      "position": 6,
+      "points": 240
+    },
+    {
+      "driver_number": "1",
+      "abbreviation": "NOR",
+      "full_name": "Lando Norris",
+      "team": "McLaren",
+      "position": 7,
+      "points": 122
+    },
+    {
+      "driver_number": "31",
+      "abbreviation": "OCO",
+      "full_name": "Esteban Ocon",
+      "team": "Alpine",
+      "position": 8,
+      "points": 92
+    },
+    {
+      "driver_number": "14",
+      "abbreviation": "ALO",
+      "full_name": "Fernando Alonso",
+      "team": "Alpine",
+      "position": 9,
+      "points": 81
+    },
+    {
+      "driver_number": "77",
+      "abbreviation": "BOT",
+      "full_name": "Valtteri Bottas",
+      "team": "Alfa Romeo",
+      "position": 10,
+      "points": 49
+    },
+    {
+      "driver_number": "3",
+      "abbreviation": "RIC",
+      "full_name": "Daniel Ricciardo",
+      "team": "McLaren",
+      "position": 11,
+      "points": 37
+    },
+    {
+      "driver_number": "5",
+      "abbreviation": "VET",
+      "full_name": "Sebastian Vettel",
+      "team": "Aston Martin",
+      "position": 12,
+      "points": 37
+    },
+    {
+      "driver_number": "20",
+      "abbreviation": "MAG",
+      "full_name": "Kevin Magnussen",
+      "team": "Haas",
+      "position": 13,
+      "points": 25
+    },
+    {
+      "driver_number": "10",
+      "abbreviation": "GAS",
+      "full_name": "Pierre Gasly",
+      "team": "AlphaTauri",
+      "position": 14,
+      "points": 23
+    },
+    {
+      "driver_number": "18",
+      "abbreviation": "STR",
+      "full_name": "Lance Stroll",
+      "team": "Aston Martin",
+      "position": 15,
+      "points": 18
+    },
+    {
+      "driver_number": "47",
+      "abbreviation": "MSC",
+      "full_name": "Mick Schumacher",
+      "team": "Haas",
+      "position": 16,
+      "points": 12
+    },
+    {
+      "driver_number": "22",
+      "abbreviation": "TSU",
+      "full_name": "Yuki Tsunoda",
+      "team": "AlphaTauri",
+      "position": 17,
+      "points": 12
+    },
+    {
+      "driver_number": "24",
+      "abbreviation": "ZHO",
+      "full_name": "Guanyu Zhou",
+      "team": "Alfa Romeo",
+      "position": 18,
+      "points": 6
+    },
+    {
+      "driver_number": "23",
+      "abbreviation": "ALB",
+      "full_name": "Alexander Albon",
+      "team": "Williams",
+      "position": 19,
+      "points": 4
+    },
+    {
+      "driver_number": "6",
+      "abbreviation": "LAT",
+      "full_name": "Nicholas Latifi",
+      "team": "Williams",
+      "position": 20,
+      "points": 2
+    },
+    {
+      "driver_number": "21",
+      "abbreviation": "DEV",
+      "full_name": "Nyck de Vries",
+      "team": "Williams",
+      "position": 21,
+      "points": 2
+    },
+    {
+      "driver_number": "27",
+      "abbreviation": "HUL",
+      "full_name": "Nico H\u00fclkenberg",
+      "team": "Aston Martin",
+      "position": 22,
+      "points": 0
+    }
+  ],
+  "2023": [
+    {
+      "driver_number": "3",
+      "abbreviation": "VER",
+      "full_name": "Max Verstappen",
+      "team": "Red Bull Racing",
+      "position": 1,
+      "points": 575
+    },
+    {
+      "driver_number": "11",
+      "abbreviation": "PER",
+      "full_name": "Sergio P\u00e9rez",
+      "team": "Red Bull Racing",
+      "position": 2,
+      "points": 285
+    },
+    {
+      "driver_number": "44",
+      "abbreviation": "HAM",
+      "full_name": "Lewis Hamilton",
+      "team": "Mercedes",
+      "position": 3,
+      "points": 234
+    },
+    {
+      "driver_number": "14",
+      "abbreviation": "ALO",
+      "full_name": "Fernando Alonso",
+      "team": "Aston Martin",
+      "position": 4,
+      "points": 206
+    },
+    {
+      "driver_number": "16",
+      "abbreviation": "LEC",
+      "full_name": "Charles Leclerc",
+      "team": "Ferrari",
+      "position": 5,
+      "points": 206
+    },
+    {
+      "driver_number": "1",
+      "abbreviation": "NOR",
+      "full_name": "Lando Norris",
+      "team": "McLaren",
+      "position": 6,
+      "points": 205
+    },
+    {
+      "driver_number": "55",
+      "abbreviation": "SAI",
+      "full_name": "Carlos Sainz",
+      "team": "Ferrari",
+      "position": 7,
+      "points": 200
+    },
+    {
+      "driver_number": "63",
+      "abbreviation": "RUS",
+      "full_name": "George Russell",
+      "team": "Mercedes",
+      "position": 8,
+      "points": 175
+    },
+    {
+      "driver_number": "81",
+      "abbreviation": "PIA",
+      "full_name": "Oscar Piastri",
+      "team": "McLaren",
+      "position": 9,
+      "points": 97
+    },
+    {
+      "driver_number": "18",
+      "abbreviation": "STR",
+      "full_name": "Lance Stroll",
+      "team": "Aston Martin",
+      "position": 10,
+      "points": 74
+    },
+    {
+      "driver_number": "10",
+      "abbreviation": "GAS",
+      "full_name": "Pierre Gasly",
+      "team": "Alpine",
+      "position": 11,
+      "points": 62
+    },
+    {
+      "driver_number": "31",
+      "abbreviation": "OCO",
+      "full_name": "Esteban Ocon",
+      "team": "Alpine",
+      "position": 12,
+      "points": 58
+    },
+    {
+      "driver_number": "23",
+      "abbreviation": "ALB",
+      "full_name": "Alexander Albon",
+      "team": "Williams",
+      "position": 13,
+      "points": 27
+    },
+    {
+      "driver_number": "22",
+      "abbreviation": "TSU",
+      "full_name": "Yuki Tsunoda",
+      "team": "AlphaTauri",
+      "position": 14,
+      "points": 17
+    },
+    {
+      "driver_number": "77",
+      "abbreviation": "BOT",
+      "full_name": "Valtteri Bottas",
+      "team": "Alfa Romeo",
+      "position": 15,
+      "points": 10
+    },
+    {
+      "driver_number": "27",
+      "abbreviation": "HUL",
+      "full_name": "Nico H\u00fclkenberg",
+      "team": "Haas",
+      "position": 16,
+      "points": 9
+    },
+    {
+      "driver_number": "3",
+      "abbreviation": "RIC",
+      "full_name": "Daniel Ricciardo",
+      "team": "AlphaTauri",
+      "position": 17,
+      "points": 6
+    },
+    {
+      "driver_number": "24",
+      "abbreviation": "ZHO",
+      "full_name": "Guanyu Zhou",
+      "team": "Alfa Romeo",
+      "position": 18,
+      "points": 6
+    },
+    {
+      "driver_number": "20",
+      "abbreviation": "MAG",
+      "full_name": "Kevin Magnussen",
+      "team": "Haas",
+      "position": 19,
+      "points": 3
+    },
+    {
+      "driver_number": "30",
+      "abbreviation": "LAW",
+      "full_name": "Liam Lawson",
+      "team": "AlphaTauri",
+      "position": 20,
+      "points": 2
+    },
+    {
+      "driver_number": "2",
+      "abbreviation": "SAR",
+      "full_name": "Logan Sargeant",
+      "team": "Williams",
+      "position": 21,
+      "points": 1
+    },
+    {
+      "driver_number": "21",
+      "abbreviation": "DEV",
+      "full_name": "Nyck de Vries",
+      "team": "AlphaTauri",
+      "position": 22,
+      "points": 0
+    }
+  ],
+  "2024": [
+    {
+      "driver_number": "3",
+      "abbreviation": "VER",
+      "full_name": "Max Verstappen",
+      "team": "Red Bull Racing",
+      "position": 1,
+      "points": 437
+    },
+    {
+      "driver_number": "1",
+      "abbreviation": "NOR",
+      "full_name": "Lando Norris",
+      "team": "McLaren",
+      "position": 2,
+      "points": 374
+    },
+    {
+      "driver_number": "16",
+      "abbreviation": "LEC",
+      "full_name": "Charles Leclerc",
+      "team": "Ferrari",
+      "position": 3,
+      "points": 356
+    },
+    {
+      "driver_number": "81",
+      "abbreviation": "PIA",
+      "full_name": "Oscar Piastri",
+      "team": "McLaren",
+      "position": 4,
+      "points": 292
+    },
+    {
+      "driver_number": "55",
+      "abbreviation": "SAI",
+      "full_name": "Carlos Sainz",
+      "team": "Ferrari",
+      "position": 5,
+      "points": 290
+    },
+    {
+      "driver_number": "63",
+      "abbreviation": "RUS",
+      "full_name": "George Russell",
+      "team": "Mercedes",
+      "position": 6,
+      "points": 245
+    },
+    {
+      "driver_number": "44",
+      "abbreviation": "HAM",
+      "full_name": "Lewis Hamilton",
+      "team": "Mercedes",
+      "position": 7,
+      "points": 223
+    },
+    {
+      "driver_number": "11",
+      "abbreviation": "PER",
+      "full_name": "Sergio P\u00e9rez",
+      "team": "Red Bull Racing",
+      "position": 8,
+      "points": 152
+    },
+    {
+      "driver_number": "14",
+      "abbreviation": "ALO",
+      "full_name": "Fernando Alonso",
+      "team": "Aston Martin",
+      "position": 9,
+      "points": 70
+    },
+    {
+      "driver_number": "10",
+      "abbreviation": "GAS",
+      "full_name": "Pierre Gasly",
+      "team": "Alpine",
+      "position": 10,
+      "points": 42
+    },
+    {
+      "driver_number": "27",
+      "abbreviation": "HUL",
+      "full_name": "Nico H\u00fclkenberg",
+      "team": "Haas",
+      "position": 11,
+      "points": 41
+    },
+    {
+      "driver_number": "22",
+      "abbreviation": "TSU",
+      "full_name": "Yuki Tsunoda",
+      "team": "Racing Bulls",
+      "position": 12,
+      "points": 30
+    },
+    {
+      "driver_number": "18",
+      "abbreviation": "STR",
+      "full_name": "Lance Stroll",
+      "team": "Aston Martin",
+      "position": 13,
+      "points": 24
+    },
+    {
+      "driver_number": "31",
+      "abbreviation": "OCO",
+      "full_name": "Esteban Ocon",
+      "team": "Alpine",
+      "position": 14,
+      "points": 23
+    },
+    {
+      "driver_number": "20",
+      "abbreviation": "MAG",
+      "full_name": "Kevin Magnussen",
+      "team": "Haas",
+      "position": 15,
+      "points": 16
+    },
+    {
+      "driver_number": "23",
+      "abbreviation": "ALB",
+      "full_name": "Alexander Albon",
+      "team": "Williams",
+      "position": 16,
+      "points": 12
+    },
+    {
+      "driver_number": "3",
+      "abbreviation": "RIC",
+      "full_name": "Daniel Ricciardo",
+      "team": "Racing Bulls",
+      "position": 17,
+      "points": 12
+    },
+    {
+      "driver_number": "87",
+      "abbreviation": "BEA",
+      "full_name": "Oliver Bearman",
+      "team": "Ferrari",
+      "position": 18,
+      "points": 7
+    },
+    {
+      "driver_number": "43",
+      "abbreviation": "COL",
+      "full_name": "Franco Colapinto",
+      "team": "Williams",
+      "position": 19,
+      "points": 5
+    },
+    {
+      "driver_number": "24",
+      "abbreviation": "ZHO",
+      "full_name": "Guanyu Zhou",
+      "team": "Sauber",
+      "position": 20,
+      "points": 4
+    },
+    {
+      "driver_number": "30",
+      "abbreviation": "LAW",
+      "full_name": "Liam Lawson",
+      "team": "Racing Bulls",
+      "position": 21,
+      "points": 4
+    },
+    {
+      "driver_number": "77",
+      "abbreviation": "BOT",
+      "full_name": "Valtteri Bottas",
+      "team": "Sauber",
+      "position": 22,
+      "points": 0
+    },
+    {
+      "driver_number": "2",
+      "abbreviation": "SAR",
+      "full_name": "Logan Sargeant",
+      "team": "Williams",
+      "position": 23,
+      "points": 0
+    },
+    {
+      "driver_number": "7",
+      "abbreviation": "DOO",
+      "full_name": "Jack Doohan",
+      "team": "Alpine",
+      "position": 24,
+      "points": 0
+    }
+  ],
+  "2025": [
+    {
+      "driver_number": "1",
+      "abbreviation": "NOR",
+      "full_name": "Lando Norris",
+      "team": "McLaren",
+      "position": 1,
+      "points": 423
+    },
+    {
+      "driver_number": "3",
+      "abbreviation": "VER",
+      "full_name": "Max Verstappen",
+      "team": "Red Bull Racing",
+      "position": 2,
+      "points": 421
+    },
+    {
+      "driver_number": "81",
+      "abbreviation": "PIA",
+      "full_name": "Oscar Piastri",
+      "team": "McLaren",
+      "position": 3,
+      "points": 410
+    },
+    {
+      "driver_number": "63",
+      "abbreviation": "RUS",
+      "full_name": "George Russell",
+      "team": "Mercedes",
+      "position": 4,
+      "points": 319
+    },
+    {
+      "driver_number": "16",
+      "abbreviation": "LEC",
+      "full_name": "Charles Leclerc",
+      "team": "Ferrari",
+      "position": 5,
+      "points": 242
+    },
+    {
+      "driver_number": "44",
+      "abbreviation": "HAM",
+      "full_name": "Lewis Hamilton",
+      "team": "Ferrari",
+      "position": 6,
+      "points": 156
+    },
+    {
+      "driver_number": "12",
+      "abbreviation": "ANT",
+      "full_name": "Andrea Kimi Antonelli",
+      "team": "Mercedes",
+      "position": 7,
+      "points": 150
+    },
+    {
+      "driver_number": "23",
+      "abbreviation": "ALB",
+      "full_name": "Alexander Albon",
+      "team": "Williams",
+      "position": 8,
+      "points": 73
+    },
+    {
+      "driver_number": "55",
+      "abbreviation": "SAI",
+      "full_name": "Carlos Sainz",
+      "team": "Williams",
+      "position": 9,
+      "points": 64
+    },
+    {
+      "driver_number": "14",
+      "abbreviation": "ALO",
+      "full_name": "Fernando Alonso",
+      "team": "Aston Martin",
+      "position": 10,
+      "points": 56
+    },
+    {
+      "driver_number": "27",
+      "abbreviation": "HUL",
+      "full_name": "Nico H\u00fclkenberg",
+      "team": "Sauber",
+      "position": 11,
+      "points": 51
+    },
+    {
+      "driver_number": "6",
+      "abbreviation": "HAD",
+      "full_name": "Isack Hadjar",
+      "team": "Racing Bulls",
+      "position": 12,
+      "points": 51
+    },
+    {
+      "driver_number": "87",
+      "abbreviation": "BEA",
+      "full_name": "Oliver Bearman",
+      "team": "Haas",
+      "position": 13,
+      "points": 41
+    },
+    {
+      "driver_number": "30",
+      "abbreviation": "LAW",
+      "full_name": "Liam Lawson",
+      "team": "Red Bull Racing",
+      "position": 14,
+      "points": 38
+    },
+    {
+      "driver_number": "31",
+      "abbreviation": "OCO",
+      "full_name": "Esteban Ocon",
+      "team": "Haas",
+      "position": 15,
+      "points": 38
+    },
+    {
+      "driver_number": "18",
+      "abbreviation": "STR",
+      "full_name": "Lance Stroll",
+      "team": "Aston Martin",
+      "position": 16,
+      "points": 33
+    },
+    {
+      "driver_number": "22",
+      "abbreviation": "TSU",
+      "full_name": "Yuki Tsunoda",
+      "team": "Racing Bulls",
+      "position": 17,
+      "points": 33
+    },
+    {
+      "driver_number": "10",
+      "abbreviation": "GAS",
+      "full_name": "Pierre Gasly",
+      "team": "Alpine",
+      "position": 18,
+      "points": 22
+    },
+    {
+      "driver_number": "5",
+      "abbreviation": "BOR",
+      "full_name": "Gabriel Bortoleto",
+      "team": "Sauber",
+      "position": 19,
+      "points": 19
+    },
+    {
+      "driver_number": "43",
+      "abbreviation": "COL",
+      "full_name": "Franco Colapinto",
+      "team": "Alpine",
+      "position": 20,
+      "points": 0
+    },
+    {
+      "driver_number": "7",
+      "abbreviation": "DOO",
+      "full_name": "Jack Doohan",
+      "team": "Alpine",
+      "position": 21,
+      "points": 0
+    }
+  ]
+}

@@ -1,0 +1,525 @@
+{
+  "year": 2020,
+  "race_count": 17,
+  "events": [
+    {
+      "round": 1,
+      "event": "Austrian Grand Prix",
+      "country": "Austria",
+      "location": "Spielberg",
+      "official_name": "FORMULA 1 ROLEX GROSSER PREIS VON \u00d6STERREICH 2020",
+      "date": "2020-07-05T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 2,
+      "event": "Styrian Grand Prix",
+      "country": "Austria",
+      "location": "Spielberg",
+      "official_name": "FORMULA 1 PIRELLI GROSSER PREIS DER STEIERMARK 2020",
+      "date": "2020-07-12T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 3,
+      "event": "Hungarian Grand Prix",
+      "country": "Hungary",
+      "location": "Budapest",
+      "official_name": "FORMULA 1 ARAMCO MAGYAR NAGYD\u00cdJ 2020",
+      "date": "2020-07-19T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 4,
+      "event": "British Grand Prix",
+      "country": "Great Britain",
+      "location": "Silverstone",
+      "official_name": "FORMULA 1 PIRELLI BRITISH GRAND PRIX 2020",
+      "date": "2020-08-02T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 5,
+      "event": "70th Anniversary Grand Prix",
+      "country": "Great Britain",
+      "location": "Silverstone",
+      "official_name": "EMIRATES FORMULA 1 70TH ANNIVERSARY GRAND PRIX 2020",
+      "date": "2020-08-09T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 6,
+      "event": "Spanish Grand Prix",
+      "country": "Spain",
+      "location": "Barcelona",
+      "official_name": "FORMULA 1 ARAMCO GRAN PREMIO DE ESPA\u00d1A 2020",
+      "date": "2020-08-16T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 7,
+      "event": "Belgian Grand Prix",
+      "country": "Belgium",
+      "location": "Spa-Francorchamps",
+      "official_name": "FORMULA 1 ROLEX BELGIAN GRAND PRIX 2020",
+      "date": "2020-08-30T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 8,
+      "event": "Italian Grand Prix",
+      "country": "Italy",
+      "location": "Monza",
+      "official_name": "FORMULA 1 GRAN PREMIO HEINEKEN D\u2019ITALIA 2020",
+      "date": "2020-09-06T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 9,
+      "event": "Tuscan Grand Prix",
+      "country": "Italy",
+      "location": "Mugello",
+      "official_name": "FORMULA 1 PIRELLI GRAN PREMIO DELLA TOSCANA FERRARI 1000 2020",
+      "date": "2020-09-13T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 10,
+      "event": "Russian Grand Prix",
+      "country": "Russia",
+      "location": "Sochi",
+      "official_name": "FORMULA 1 VTB RUSSIAN GRAND PRIX 2020",
+      "date": "2020-09-27T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 11,
+      "event": "Eifel Grand Prix",
+      "country": "Germany",
+      "location": "N\u00fcrburgring",
+      "official_name": "FORMULA 1 ARAMCO GROSSER PREIS DER EIFEL 2020",
+      "date": "2020-10-11T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 12,
+      "event": "Portuguese Grand Prix",
+      "country": "Portugal",
+      "location": "Portim\u00e3o",
+      "official_name": "FORMULA 1 HEINEKEN GRANDE PR\u00c9MIO DE PORTUGAL 2020",
+      "date": "2020-10-25T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 13,
+      "event": "Emilia Romagna Grand Prix",
+      "country": "Italy",
+      "location": "Imola",
+      "official_name": "FORMULA 1 EMIRATES GRAN PREMIO DELL'EMILIA ROMAGNA 2020",
+      "date": "2020-11-01T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 14,
+      "event": "Turkish Grand Prix",
+      "country": "Turkey",
+      "location": "Istanbul",
+      "official_name": "FORMULA 1 DHL TURKISH GRAND PRIX 2020",
+      "date": "2020-11-15T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 15,
+      "event": "Bahrain Grand Prix",
+      "country": "Bahrain",
+      "location": "Sakhir",
+      "official_name": "FORMULA 1 GULF AIR BAHRAIN GRAND PRIX 2020",
+      "date": "2020-11-29T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 16,
+      "event": "Sakhir Grand Prix",
+      "country": "Bahrain",
+      "location": "Sakhir",
+      "official_name": "FORMULA 1 ROLEX SAKHIR GRAND PRIX 2020",
+      "date": "2020-12-06T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 17,
+      "event": "Abu Dhabi Grand Prix",
+      "country": "Abu Dhabi",
+      "location": "Yas Island",
+      "official_name": "FORMULA 1 ETIHAD AIRWAYS ABU DHABI GRAND PRIX 2020",
+      "date": "2020-12-13T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    }
+  ]
+}

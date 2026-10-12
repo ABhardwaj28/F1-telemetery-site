@@ -12,7 +12,7 @@ export interface CalendarRace {
   location: string;
   official_name: string;
   date: string;
-  format: "conventional" | "sprint_qualifying";
+  format: "conventional" | "sprint_qualifying" | "sprint" | "sprint_shootout";
   sessions: CalendarSession[];
 }
 

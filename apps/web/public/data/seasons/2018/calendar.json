@@ -1,0 +1,657 @@
+{
+  "year": 2018,
+  "race_count": 21,
+  "events": [
+    {
+      "round": 1,
+      "event": "Australian Grand Prix",
+      "country": "Australia",
+      "location": "Melbourne",
+      "official_name": "FORMULA 1 2018 ROLEX AUSTRALIAN GRAND PRIX",
+      "date": "2018-03-25T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 2,
+      "event": "Bahrain Grand Prix",
+      "country": "Bahrain",
+      "location": "Sakhir",
+      "official_name": "FORMULA 1 2018 GULF AIR BAHRAIN GRAND PRIX",
+      "date": "2018-04-08T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 3,
+      "event": "Chinese Grand Prix",
+      "country": "China",
+      "location": "Shanghai",
+      "official_name": "FORMULA 1 2018 HEINEKEN CHINESE GRAND PRIX",
+      "date": "2018-04-15T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 4,
+      "event": "Azerbaijan Grand Prix",
+      "country": "Azerbaijan",
+      "location": "Baku",
+      "official_name": "FORMULA 1 2018 AZERBAIJAN GRAND PRIX",
+      "date": "2018-04-29T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 5,
+      "event": "Spanish Grand Prix",
+      "country": "Spain",
+      "location": "Barcelona",
+      "official_name": "FORMULA 1 GRAN PREMIO DE ESPA\u00d1A EMIRATES 2018",
+      "date": "2018-05-13T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 6,
+      "event": "Monaco Grand Prix",
+      "country": "Monaco",
+      "location": "Monte Carlo",
+      "official_name": "FORMULA 1 GRAND PRIX DE MONACO 2018",
+      "date": "2018-05-27T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 7,
+      "event": "Canadian Grand Prix",
+      "country": "Canada",
+      "location": "Montr\u00e9al",
+      "official_name": "FORMULA 1 GRAND PRIX HEINEKEN DU CANADA 2018",
+      "date": "2018-06-10T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 8,
+      "event": "French Grand Prix",
+      "country": "France",
+      "location": "Le Castellet",
+      "official_name": "FORMULA 1 PIRELLI GRAND PRIX DE FRANCE 2018",
+      "date": "2018-06-24T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 9,
+      "event": "Austrian Grand Prix",
+      "country": "Austria",
+      "location": "Spielberg",
+      "official_name": "FORMULA 1 EYETIME GROSSER PREIS VON \u00d6STERREICH 2018",
+      "date": "2018-07-01T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 10,
+      "event": "British Grand Prix",
+      "country": "Great Britain",
+      "location": "Silverstone",
+      "official_name": "FORMULA 1 2018 ROLEX BRITISH GRAND PRIX",
+      "date": "2018-07-08T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 11,
+      "event": "German Grand Prix",
+      "country": "Germany",
+      "location": "Hockenheim",
+      "official_name": "FORMULA 1 EMIRATES GROSSER PREIS VON DEUTSCHLAND 2018",
+      "date": "2018-07-22T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 12,
+      "event": "Hungarian Grand Prix",
+      "country": "Hungary",
+      "location": "Budapest",
+      "official_name": "FORMULA 1 ROLEX MAGYAR NAGYD\u00cdJ 2018",
+      "date": "2018-07-29T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 13,
+      "event": "Belgian Grand Prix",
+      "country": "Belgium",
+      "location": "Spa-Francorchamps",
+      "official_name": "FORMULA 1 2018 JOHNNIE WALKER BELGIAN GRAND PRIX",
+      "date": "2018-08-26T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 14,
+      "event": "Italian Grand Prix",
+      "country": "Italy",
+      "location": "Monza",
+      "official_name": "FORMULA 1 GRAN PREMIO HEINEKEN D'ITALIA 2018",
+      "date": "2018-09-02T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 15,
+      "event": "Singapore Grand Prix",
+      "country": "Singapore",
+      "location": "Singapore",
+      "official_name": "FORMULA 1 2018 SINGAPORE AIRLINES SINGAPORE GRAND PRIX",
+      "date": "2018-09-16T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 16,
+      "event": "Russian Grand Prix",
+      "country": "Russia",
+      "location": "Sochi",
+      "official_name": "FORMULA 1 2018 VTB RUSSIAN GRAND PRIX",
+      "date": "2018-09-30T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 17,
+      "event": "Japanese Grand Prix",
+      "country": "Japan",
+      "location": "Suzuka",
+      "official_name": "FORMULA 1 2018 HONDA JAPANESE GRAND PRIX",
+      "date": "2018-10-07T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 18,
+      "event": "United States Grand Prix",
+      "country": "United States",
+      "location": "Austin",
+      "official_name": "FORMULA 1 PIRELLI 2018 UNITED STATES GRAND PRIX",
+      "date": "2018-10-21T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 19,
+      "event": "Mexican Grand Prix",
+      "country": "Mexico",
+      "location": "Mexico City",
+      "official_name": "FORMULA 1 GRAN PREMIO DE M\u00c9XICO 2018",
+      "date": "2018-10-28T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 20,
+      "event": "Brazilian Grand Prix",
+      "country": "Brazil",
+      "location": "S\u00e3o Paulo",
+      "official_name": "FORMULA 1 GRANDE PR\u00caMIO HEINEKEN DO BRASIL 2018",
+      "date": "2018-11-11T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 21,
+      "event": "Abu Dhabi Grand Prix",
+      "country": "United Arab Emirates",
+      "location": "Yas Marina",
+      "official_name": "FORMULA 1 2018 ETIHAD AIRWAYS ABU DHABI GRAND PRIX",
+      "date": "2018-11-25T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,688 @@
+{
+  "year": 2022,
+  "race_count": 22,
+  "events": [
+    {
+      "round": 1,
+      "event": "Bahrain Grand Prix",
+      "country": "Bahrain",
+      "location": "Sakhir",
+      "official_name": "FORMULA 1 GULF AIR BAHRAIN GRAND PRIX 2022",
+      "date": "2022-03-20T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 2,
+      "event": "Saudi Arabian Grand Prix",
+      "country": "Saudi Arabia",
+      "location": "Jeddah",
+      "official_name": "FORMULA 1 STC SAUDI ARABIAN GRAND PRIX 2022",
+      "date": "2022-03-27T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 3,
+      "event": "Australian Grand Prix",
+      "country": "Australia",
+      "location": "Melbourne",
+      "official_name": "FORMULA 1 HEINEKEN AUSTRALIAN GRAND PRIX 2022",
+      "date": "2022-04-10T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 4,
+      "event": "Emilia Romagna Grand Prix",
+      "country": "Italy",
+      "location": "Imola",
+      "official_name": "FORMULA 1 ROLEX GRAN PREMIO DEL MADE IN ITALY E DELL'EMILIA-ROMAGNA 2022",
+      "date": "2022-04-24T00:00:00",
+      "format": "sprint",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Sprint",
+          "code": "S"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 5,
+      "event": "Miami Grand Prix",
+      "country": "United States",
+      "location": "Miami",
+      "official_name": "FORMULA 1 CRYPTO.COM MIAMI GRAND PRIX 2022",
+      "date": "2022-05-08T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 6,
+      "event": "Spanish Grand Prix",
+      "country": "Spain",
+      "location": "Barcelona",
+      "official_name": "FORMULA 1 PIRELLI GRAN PREMIO DE ESPA\u00d1A 2022",
+      "date": "2022-05-22T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 7,
+      "event": "Monaco Grand Prix",
+      "country": "Monaco",
+      "location": "Monaco",
+      "official_name": "FORMULA 1 GRAND PRIX DE MONACO 2022",
+      "date": "2022-05-29T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 8,
+      "event": "Azerbaijan Grand Prix",
+      "country": "Azerbaijan",
+      "location": "Baku",
+      "official_name": "FORMULA 1 AZERBAIJAN GRAND PRIX 2022",
+      "date": "2022-06-12T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 9,
+      "event": "Canadian Grand Prix",
+      "country": "Canada",
+      "location": "Montr\u00e9al",
+      "official_name": "FORMULA 1 AWS GRAND PRIX DU CANADA 2022",
+      "date": "2022-06-19T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 10,
+      "event": "British Grand Prix",
+      "country": "Great Britain",
+      "location": "Silverstone",
+      "official_name": "FORMULA 1 LENOVO BRITISH GRAND PRIX 2022",
+      "date": "2022-07-03T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 11,
+      "event": "Austrian Grand Prix",
+      "country": "Austria",
+      "location": "Spielberg",
+      "official_name": "FORMULA 1 ROLEX GROSSER PREIS VON \u00d6STERREICH 2022",
+      "date": "2022-07-10T00:00:00",
+      "format": "sprint",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Sprint",
+          "code": "S"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 12,
+      "event": "French Grand Prix",
+      "country": "France",
+      "location": "Le Castellet",
+      "official_name": "FORMULA 1 LENOVO GRAND PRIX DE FRANCE 2022",
+      "date": "2022-07-24T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 13,
+      "event": "Hungarian Grand Prix",
+      "country": "Hungary",
+      "location": "Budapest",
+      "official_name": "FORMULA 1 ARAMCO MAGYAR NAGYD\u00cdJ 2022",
+      "date": "2022-07-31T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 14,
+      "event": "Belgian Grand Prix",
+      "country": "Belgium",
+      "location": "Spa-Francorchamps",
+      "official_name": "FORMULA 1 ROLEX BELGIAN GRAND PRIX 2022",
+      "date": "2022-08-28T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 15,
+      "event": "Dutch Grand Prix",
+      "country": "Netherlands",
+      "location": "Zandvoort",
+      "official_name": "FORMULA 1 HEINEKEN DUTCH GRAND PRIX 2022",
+      "date": "2022-09-04T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 16,
+      "event": "Italian Grand Prix",
+      "country": "Italy",
+      "location": "Monza",
+      "official_name": "FORMULA 1 PIRELLI GRAN PREMIO D\u2019ITALIA 2022",
+      "date": "2022-09-11T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 17,
+      "event": "Singapore Grand Prix",
+      "country": "Singapore",
+      "location": "Marina Bay",
+      "official_name": "FORMULA 1 SINGAPORE AIRLINES SINGAPORE GRAND PRIX 2022",
+      "date": "2022-10-02T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 18,
+      "event": "Japanese Grand Prix",
+      "country": "Japan",
+      "location": "Suzuka",
+      "official_name": "FORMULA 1 HONDA JAPANESE GRAND PRIX 2022",
+      "date": "2022-10-09T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 19,
+      "event": "United States Grand Prix",
+      "country": "United States",
+      "location": "Austin",
+      "official_name": "FORMULA 1 ARAMCO UNITED STATES GRAND PRIX 2022",
+      "date": "2022-10-23T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 20,
+      "event": "Mexico City Grand Prix",
+      "country": "Mexico",
+      "location": "Mexico City",
+      "official_name": "FORMULA 1 HEINEKEN GRAN PREMIO DE LA CIUDAD DE M\u00c9XICO 2022",
+      "date": "2022-10-30T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 21,
+      "event": "S\u00e3o Paulo Grand Prix",
+      "country": "Brazil",
+      "location": "S\u00e3o Paulo",
+      "official_name": "FORMULA 1 HEINEKEN GRANDE PR\u00caMIO DE S\u00c3O PAULO 2022",
+      "date": "2022-11-13T00:00:00",
+      "format": "sprint",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Sprint",
+          "code": "S"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    },
+    {
+      "round": 22,
+      "event": "Abu Dhabi Grand Prix",
+      "country": "Abu Dhabi",
+      "location": "Yas Island",
+      "official_name": "FORMULA 1 ETIHAD AIRWAYS ABU DHABI GRAND PRIX 2022",
+      "date": "2022-11-20T00:00:00",
+      "format": "conventional",
+      "sessions": [
+        {
+          "name": "Practice 1",
+          "code": "FP1"
+        },
+        {
+          "name": "Practice 2",
+          "code": "FP2"
+        },
+        {
+          "name": "Practice 3",
+          "code": "FP3"
+        },
+        {
+          "name": "Qualifying",
+          "code": "Q"
+        },
+        {
+          "name": "Race",
+          "code": "R"
+        }
+      ]
+    }
+  ]
+}
