@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap");
 
 :root {
   font-family: "Space Grotesk", sans-serif;
@@ -316,9 +316,16 @@ button {
 }
 
 .hero-metrics {
-  display: flex;
-  gap: 35px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(110px, 1fr));
+  gap: 24px;
   padding-left: 40px;
+  flex-shrink: 0;
+}
+
+.metric {
+  min-width: 110px;
+  box-sizing: border-box;
 }
 
 .metric span {
@@ -328,12 +335,16 @@ button {
   font-family: "IBM Plex Mono", monospace;
   font-size: 7px;
   letter-spacing: 0.12em;
+  white-space: nowrap;
 }
 
 .metric strong {
   color: #ededee;
   font-family: "IBM Plex Mono", monospace;
   font-size: 17px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  display: block;
 }
 
 /* PANELS */
@@ -638,10 +649,14 @@ button {
 }
 
 .readout {
+  height: 90px;
   min-height: 90px;
+  max-height: 90px;
   padding: 15px;
   border-right: 1px solid #19191c;
   border-bottom: 1px solid #19191c;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .readout:nth-child(4n) {
@@ -655,12 +670,18 @@ button {
   font-family: "IBM Plex Mono", monospace;
   font-size: 7px;
   letter-spacing: 0.1em;
+  white-space: nowrap;
 }
 
 .readout strong {
   color: #eeeeef;
   font-family: "IBM Plex Mono", monospace;
   font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* STATES */
@@ -785,6 +806,15 @@ button {
   gap: 12px;
   width: 100%;
   box-sizing: border-box;
+  align-items: stretch;
+}
+
+.driver-cards-grid > .panel {
+  height: 136px !important;
+  min-height: 136px !important;
+  max-height: 136px !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
 }
 
 @media (max-width: 1120px) {

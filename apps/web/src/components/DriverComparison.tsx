@@ -59,6 +59,9 @@ export default function DriverComparison({
   const [panDist, setPanDist] = useState<number>(0);
   const [isDraggingPan, setIsDraggingPan] = useState(false);
   const dragStartRef = useRef<{ mouseX: number; startPan: number } | null>(null);
+  const telemetrySvgRef = useRef<SVGSVGElement | null>(null);
+  const [showWheelHint, setShowWheelHint] = useState(false);
+  const wheelHintTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const teamA = drivers.find((d) => d.abbreviation === driverA)?.team ?? "";
   const teamB = drivers.find((d) => d.abbreviation === driverB)?.team ?? "";
@@ -485,21 +488,73 @@ export default function DriverComparison({
     dragStartRef.current = null;
   };
 
-  const handleWheel = (e: React.WheelEvent<SVGSVGElement>) => {
-    if (e.deltaY !== 0) {
+  // ── Native Wheel & Pinch Zoom with Page Zoom Prevention ──
+  // Use a native non-passive event listener on the SVG element so that:
+  // 1. Regular vertical scroll / swipe passes straight through to page scroll (NO accidental zoom).
+  // 2. Intentional zoom (Ctrl/Cmd + Wheel or trackpad pinch gesture) zooms the telemetry chart at the cursor.
+  // 3. Browser default page-zoom (Ctrl+Wheel and WebKit gestures) is intercepted and prevented with e.preventDefault().
+  useEffect(() => {
+    const el = telemetrySvgRef.current;
+    if (!el) return;
+
+    const onWheel = (e: WheelEvent) => {
+      // Zoom is activated ONLY when Ctrl (standard trackpad pinch or Ctrl+wheel) or Meta (Cmd+wheel) or Alt is pressed
+      const isZoomGesture = e.ctrlKey || e.metaKey || e.altKey;
+
+      if (!isZoomGesture) {
+        // Normal scroll: do NOT call preventDefault(), do NOT zoom. Allow normal page scroll.
+        // Show a brief subtle tip that Ctrl/⌘+Scroll zooms the telemetry chart
+        if (Math.abs(e.deltaY) > 6) {
+          setShowWheelHint(true);
+          if (wheelHintTimeoutRef.current) clearTimeout(wheelHintTimeoutRef.current);
+          wheelHintTimeoutRef.current = setTimeout(() => {
+            setShowWheelHint(false);
+          }, 1500);
+        }
+        return;
+      }
+
+      // User is intentionally zooming the graph:
+      // Stop the browser from zooming the entire webpage!
       e.preventDefault();
-      const rect = e.currentTarget.getBoundingClientRect();
+      e.stopPropagation();
+
+      if (e.deltaY === 0) return;
+
+      const rect = el.getBoundingClientRect();
+      if (!rect.width) return;
       const relX = (e.clientX - rect.left) / rect.width;
       const svgX = relX * W;
       const clampedSvgX = Math.max(PAD.left, Math.min(W - PAD.right, svgX));
       const mouseDist =
         viewStart + ((clampedSvgX - PAD.left) / (W - PAD.left - PAD.right)) * (viewEnd - viewStart);
 
-      const zoomFactor = e.deltaY < 0 ? 1.25 : 0.8;
-      const targetZoom = Math.max(1, Math.min(8, Number((zoomLevel * zoomFactor).toFixed(1))));
+      // Fine-grained zooming based on deltaY magnitude
+      const step = Math.min(Math.abs(e.deltaY) * 0.005, 0.35);
+      const zoomFactor = e.deltaY < 0 ? 1 + (step || 0.15) : 1 / (1 + (step || 0.15));
+      const targetZoom = Math.max(1, Math.min(8, Number((zoomLevel * zoomFactor).toFixed(2))));
       handleSetZoom(targetZoom, mouseDist);
-    }
-  };
+    };
+
+    // Safari trackpad gestures
+    const onGestureStart = (e: Event) => {
+      e.preventDefault();
+    };
+    const onGestureChange = (e: Event) => {
+      e.preventDefault();
+    };
+
+    el.addEventListener("wheel", onWheel, { passive: false });
+    el.addEventListener("gesturestart", onGestureStart, { passive: false });
+    el.addEventListener("gesturechange", onGestureChange, { passive: false });
+
+    return () => {
+      el.removeEventListener("wheel", onWheel);
+      el.removeEventListener("gesturestart", onGestureStart);
+      el.removeEventListener("gesturechange", onGestureChange);
+      if (wheelHintTimeoutRef.current) clearTimeout(wheelHintTimeoutRef.current);
+    };
+  }, [viewStart, viewEnd, zoomLevel, handleSetZoom]);
 
   // Scrubber click handler for track minimap
   const handleScrubberClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -786,6 +841,11 @@ export default function DriverComparison({
               justifyContent: "center",
               gap: 4,
               padding: "0 8px",
+              width: 90,
+              minWidth: 90,
+              maxWidth: 90,
+              flexShrink: 0,
+              boxSizing: "border-box",
             }}
           >
             <div
@@ -815,10 +875,15 @@ export default function DriverComparison({
                 fontVariantNumeric: "tabular-nums",
                 color: timeA && timeB ? (lapTimeDelta < 0 ? colorA : lapTimeDelta > 0 ? colorB : "#aaa") : "#666",
                 background: "rgba(255,255,255,0.03)",
-                padding: "2px 6px",
+                padding: "2px 4px",
                 borderRadius: 4,
                 border: "1px solid #222230",
                 whiteSpace: "nowrap",
+                width: 78,
+                minWidth: 78,
+                maxWidth: 78,
+                textAlign: "center",
+                boxSizing: "border-box",
               }}
             >
               {timeA && timeB ? (lapTimeDelta === 0 ? "TIED" : `${lapTimeDelta > 0 ? "+" : ""}${lapTimeDelta.toFixed(3)}s`) : "—"}
@@ -1203,8 +1268,10 @@ export default function DriverComparison({
         <div
           className="panel"
           style={{
-            padding: "16px 18px",
-            minHeight: 128,
+            padding: "12px 14px",
+            height: 136,
+            minHeight: 136,
+            maxHeight: 136,
             display: "flex",
             flexDirection: "column",
             justifyContent: "space-between",
@@ -1212,88 +1279,101 @@ export default function DriverComparison({
             borderRadius: 8,
             background: "linear-gradient(145deg, #13131c 0%, #0d0d13 100%)",
             border: "1px solid #222230",
-            borderLeft: `4px solid ${colorA}`,
+            borderLeft: `4px solid ${!timeA || !timeB ? "#555" : lapTimeDelta <= 0 ? colorA : colorB}`,
             boxShadow: "0 4px 16px rgba(0,0,0,0.3)",
             overflow: "hidden",
             minWidth: 0,
             width: "100%",
           }}
         >
-          <div style={{ fontSize: 10, color: "#888", letterSpacing: "0.08em", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          {/* Header */}
+          <div style={{ fontSize: 10, color: "#888", letterSpacing: "0.08em", display: "flex", justifyContent: "space-between", alignItems: "center", height: 16 }}>
             <span style={{ whiteSpace: "nowrap" }}>LAP TIME DELTA</span>
             <span style={{ fontFamily: "IBM Plex Mono, monospace", color: "#666", whiteSpace: "nowrap" }}>L{lapA} vs L{lapB}</span>
           </div>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr auto 1fr",
-              alignItems: "baseline",
-              gap: 4,
-              marginTop: 6,
-              width: "100%",
-            }}
-          >
+
+          {/* Hero Delta & Faster Badge */}
+          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 6, margin: "1px 0" }}>
             <div
               style={{
-                fontSize: 17,
+                fontSize: 18,
                 fontWeight: 800,
                 fontFamily: "IBM Plex Mono, monospace",
                 fontVariantNumeric: "tabular-nums",
-                color: colorA,
-                textAlign: "left",
+                color: !timeA || !timeB ? "#dedee0" : lapTimeDelta < 0 ? colorA : lapTimeDelta > 0 ? colorB : "#dedee0",
+                letterSpacing: "-0.02em",
                 whiteSpace: "nowrap",
-                overflow: "hidden",
-              }}
-            >
-              {formatLapTime(timeA)}
-            </div>
-            <div
-              style={{
-                fontSize: 11,
-                fontWeight: 700,
-                fontFamily: "IBM Plex Mono, monospace",
-                fontVariantNumeric: "tabular-nums",
-                color: lapTimeDelta < 0 ? colorA : lapTimeDelta > 0 ? colorB : "#dedee0",
-                textAlign: "center",
-                width: 76,
-                minWidth: 76,
-                maxWidth: 76,
-                padding: "2px 4px",
-                background: "rgba(255,255,255,0.03)",
-                borderRadius: 4,
-                border: "1px solid #252535",
-                whiteSpace: "nowrap",
-                boxSizing: "border-box",
-                flexShrink: 0,
+                lineHeight: 1.1,
               }}
             >
               {timeA && timeB
                 ? lapTimeDelta === 0
-                  ? "EVEN"
+                  ? "0.000s"
                   : `${lapTimeDelta > 0 ? "+" : ""}${lapTimeDelta.toFixed(3)}s`
                 : "—"}
             </div>
             <div
               style={{
-                fontSize: 17,
-                fontWeight: 800,
+                fontSize: 8,
+                fontWeight: 700,
                 fontFamily: "IBM Plex Mono, monospace",
-                fontVariantNumeric: "tabular-nums",
-                color: colorB,
-                textAlign: "right",
+                color: !timeA || !timeB ? "#888" : lapTimeDelta < 0 ? colorA : lapTimeDelta > 0 ? colorB : "#aaa",
+                background: !timeA || !timeB ? "rgba(255,255,255,0.03)" : lapTimeDelta < 0 ? `${colorA}1a` : lapTimeDelta > 0 ? `${colorB}1a` : "rgba(255,255,255,0.05)",
+                border: `1px solid ${!timeA || !timeB ? "#252535" : lapTimeDelta < 0 ? `${colorA}4d` : lapTimeDelta > 0 ? `${colorB}4d` : "#333342"}`,
+                padding: "1px 5px",
+                borderRadius: 3,
                 whiteSpace: "nowrap",
-                overflow: "hidden",
+                flexShrink: 0,
+                lineHeight: 1.4,
               }}
             >
-              {formatLapTime(timeB)}
+              {timeA && timeB
+                ? lapTimeDelta < 0
+                  ? `${driverA} FASTER`
+                  : lapTimeDelta > 0
+                  ? `${driverB} FASTER`
+                  : "TIED"
+                : "—"}
             </div>
           </div>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 4, fontSize: 9, fontFamily: "IBM Plex Mono, monospace", color: "#777", whiteSpace: "nowrap", overflow: "hidden" }}>
-            <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{driverA} {lapDataA?.IsPersonalBest ? "★ PB" : ""}</span>
-            <span style={{ color: lapTimeDelta < 0 ? colorA : colorB, fontWeight: 700, flexShrink: 0, padding: "0 4px" }}>
-              {timeA && timeB ? (lapTimeDelta < 0 ? `${driverA} FASTER` : lapTimeDelta > 0 ? `${driverB} FASTER` : "TIED") : "CALCULATING"}
-            </span>
-            <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{driverB} {lapDataB?.IsPersonalBest ? "★ PB" : ""}</span>
+
+          {/* Symmetrical Lap Times Comparison Bar */}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "minmax(0, 1fr) auto minmax(0, 1fr)",
+              alignItems: "center",
+              gap: 4,
+              padding: "4px 6px",
+              background: "rgba(0,0,0,0.35)",
+              borderRadius: 4,
+              border: "1px solid #1c1c28",
+              boxSizing: "border-box",
+            }}
+          >
+            {/* Driver A time */}
+            <div style={{ minWidth: 0, overflow: "hidden", textAlign: "left" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 2, fontSize: 8, fontFamily: "IBM Plex Mono, monospace", color: colorA, fontWeight: 700, whiteSpace: "nowrap", overflow: "hidden" }}>
+                <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{driverA}</span>
+                {lapDataA?.IsPersonalBest && <span style={{ color: "#eab308", fontSize: 7, flexShrink: 0 }}>★PB</span>}
+              </div>
+              <div style={{ fontSize: 10.5, fontWeight: 700, fontFamily: "IBM Plex Mono, monospace", fontVariantNumeric: "tabular-nums", color: "#eeeeef", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                {formatLapTime(timeA)}
+              </div>
+            </div>
+
+            <span style={{ fontSize: 8, color: "#555", fontFamily: "IBM Plex Mono, monospace", textAlign: "center", padding: "0 2px", flexShrink: 0 }}>vs</span>
+
+            {/* Driver B time */}
+            <div style={{ minWidth: 0, overflow: "hidden", textAlign: "right" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 2, fontSize: 8, fontFamily: "IBM Plex Mono, monospace", color: colorB, fontWeight: 700, whiteSpace: "nowrap", overflow: "hidden" }}>
+                {lapDataB?.IsPersonalBest && <span style={{ color: "#eab308", fontSize: 7, flexShrink: 0 }}>★PB</span>}
+                <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{driverB}</span>
+              </div>
+              <div style={{ fontSize: 10.5, fontWeight: 700, fontFamily: "IBM Plex Mono, monospace", fontVariantNumeric: "tabular-nums", color: "#eeeeef", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                {formatLapTime(timeB)}
+              </div>
+            </div>
           </div>
         </div>
 
@@ -1301,8 +1381,10 @@ export default function DriverComparison({
         <div
           className="panel"
           style={{
-            padding: "16px 18px",
-            minHeight: 128,
+            padding: "12px 14px",
+            height: 136,
+            minHeight: 136,
+            maxHeight: 136,
             display: "flex",
             flexDirection: "column",
             justifyContent: "space-between",
@@ -1316,36 +1398,48 @@ export default function DriverComparison({
             width: "100%",
           }}
         >
-          <div style={{ fontSize: 10, color: "#888", letterSpacing: "0.08em", marginBottom: 6, whiteSpace: "nowrap" }}>
+          <div style={{ fontSize: 10, color: "#888", letterSpacing: "0.08em", whiteSpace: "nowrap", height: 16, display: "flex", alignItems: "center" }}>
             SECTOR BREAKDOWN (S1 / S2 / S3)
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 3, fontSize: 10, fontFamily: "IBM Plex Mono, monospace", fontVariantNumeric: "tabular-nums" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 3, fontSize: 9.5, fontFamily: "IBM Plex Mono, monospace", fontVariantNumeric: "tabular-nums" }}>
             {/* S1 */}
-            <div style={{ display: "grid", gridTemplateColumns: "20px 1fr auto 1fr", gap: 4, alignItems: "center" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "18px minmax(0, 1fr) 52px minmax(0, 1fr)", gap: 4, alignItems: "center" }}>
               <span style={{ color: "#777", fontWeight: 700 }}>S1</span>
-              <span style={{ color: colorA, fontWeight: 700, textAlign: "left", whiteSpace: "nowrap" }}>{s1A ? `${s1A.toFixed(3)}s` : "—"}</span>
-              <span style={{ fontSize: 9, color: s1Delta != null ? (s1Delta < 0 ? colorA : s1Delta > 0 ? colorB : "#888") : "#666", textAlign: "center", width: 56, minWidth: 56, maxWidth: 56, padding: "1px 2px", background: "rgba(0,0,0,0.25)", borderRadius: 3, whiteSpace: "nowrap", flexShrink: 0 }}>
+              <span style={{ color: colorA, fontWeight: 700, textAlign: "left", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                {s1A ? `${s1A.toFixed(3)}s` : "—"}
+              </span>
+              <span style={{ fontSize: 8.5, color: s1Delta != null ? (s1Delta < 0 ? colorA : s1Delta > 0 ? colorB : "#888") : "#666", textAlign: "center", width: 52, minWidth: 52, maxWidth: 52, padding: "1px 2px", background: "rgba(0,0,0,0.25)", borderRadius: 3, whiteSpace: "nowrap", flexShrink: 0, boxSizing: "border-box" }}>
                 {s1Delta != null ? `${s1Delta > 0 ? "+" : ""}${s1Delta.toFixed(3)}s` : "—"}
               </span>
-              <span style={{ color: colorB, fontWeight: 700, textAlign: "right", whiteSpace: "nowrap" }}>{s1B ? `${s1B.toFixed(3)}s` : "—"}</span>
+              <span style={{ color: colorB, fontWeight: 700, textAlign: "right", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                {s1B ? `${s1B.toFixed(3)}s` : "—"}
+              </span>
             </div>
             {/* S2 */}
-            <div style={{ display: "grid", gridTemplateColumns: "20px 1fr auto 1fr", gap: 4, alignItems: "center" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "18px minmax(0, 1fr) 52px minmax(0, 1fr)", gap: 4, alignItems: "center" }}>
               <span style={{ color: "#777", fontWeight: 700 }}>S2</span>
-              <span style={{ color: colorA, fontWeight: 700, textAlign: "left", whiteSpace: "nowrap" }}>{s2A ? `${s2A.toFixed(3)}s` : "—"}</span>
-              <span style={{ fontSize: 9, color: s2Delta != null ? (s2Delta < 0 ? colorA : s2Delta > 0 ? colorB : "#888") : "#666", textAlign: "center", width: 56, minWidth: 56, maxWidth: 56, padding: "1px 2px", background: "rgba(0,0,0,0.25)", borderRadius: 3, whiteSpace: "nowrap", flexShrink: 0 }}>
+              <span style={{ color: colorA, fontWeight: 700, textAlign: "left", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                {s2A ? `${s2A.toFixed(3)}s` : "—"}
+              </span>
+              <span style={{ fontSize: 8.5, color: s2Delta != null ? (s2Delta < 0 ? colorA : s2Delta > 0 ? colorB : "#888") : "#666", textAlign: "center", width: 52, minWidth: 52, maxWidth: 52, padding: "1px 2px", background: "rgba(0,0,0,0.25)", borderRadius: 3, whiteSpace: "nowrap", flexShrink: 0, boxSizing: "border-box" }}>
                 {s2Delta != null ? `${s2Delta > 0 ? "+" : ""}${s2Delta.toFixed(3)}s` : "—"}
               </span>
-              <span style={{ color: colorB, fontWeight: 700, textAlign: "right", whiteSpace: "nowrap" }}>{s2B ? `${s2B.toFixed(3)}s` : "—"}</span>
+              <span style={{ color: colorB, fontWeight: 700, textAlign: "right", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                {s2B ? `${s2B.toFixed(3)}s` : "—"}
+              </span>
             </div>
             {/* S3 */}
-            <div style={{ display: "grid", gridTemplateColumns: "20px 1fr auto 1fr", gap: 4, alignItems: "center" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "18px minmax(0, 1fr) 52px minmax(0, 1fr)", gap: 4, alignItems: "center" }}>
               <span style={{ color: "#777", fontWeight: 700 }}>S3</span>
-              <span style={{ color: colorA, fontWeight: 700, textAlign: "left", whiteSpace: "nowrap" }}>{s3A ? `${s3A.toFixed(3)}s` : "—"}</span>
-              <span style={{ fontSize: 9, color: s3Delta != null ? (s3Delta < 0 ? colorA : s3Delta > 0 ? colorB : "#888") : "#666", textAlign: "center", width: 56, minWidth: 56, maxWidth: 56, padding: "1px 2px", background: "rgba(0,0,0,0.25)", borderRadius: 3, whiteSpace: "nowrap", flexShrink: 0 }}>
+              <span style={{ color: colorA, fontWeight: 700, textAlign: "left", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                {s3A ? `${s3A.toFixed(3)}s` : "—"}
+              </span>
+              <span style={{ fontSize: 8.5, color: s3Delta != null ? (s3Delta < 0 ? colorA : s3Delta > 0 ? colorB : "#888") : "#666", textAlign: "center", width: 52, minWidth: 52, maxWidth: 52, padding: "1px 2px", background: "rgba(0,0,0,0.25)", borderRadius: 3, whiteSpace: "nowrap", flexShrink: 0, boxSizing: "border-box" }}>
                 {s3Delta != null ? `${s3Delta > 0 ? "+" : ""}${s3Delta.toFixed(3)}s` : "—"}
               </span>
-              <span style={{ color: colorB, fontWeight: 700, textAlign: "right", whiteSpace: "nowrap" }}>{s3B ? `${s3B.toFixed(3)}s` : "—"}</span>
+              <span style={{ color: colorB, fontWeight: 700, textAlign: "right", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                {s3B ? `${s3B.toFixed(3)}s` : "—"}
+              </span>
             </div>
           </div>
         </div>
@@ -1354,8 +1448,10 @@ export default function DriverComparison({
         <div
           className="panel"
           style={{
-            padding: "16px 18px",
-            minHeight: 128,
+            padding: "12px 14px",
+            height: 136,
+            minHeight: 136,
+            maxHeight: 136,
             display: "flex",
             flexDirection: "column",
             justifyContent: "space-between",
@@ -1369,27 +1465,39 @@ export default function DriverComparison({
             width: "100%",
           }}
         >
-          <div style={{ fontSize: 10, color: "#888", letterSpacing: "0.08em", marginBottom: 6, whiteSpace: "nowrap" }}>
+          <div style={{ fontSize: 10, color: "#888", letterSpacing: "0.08em", whiteSpace: "nowrap", height: 16, display: "flex", alignItems: "center" }}>
             SPEED TRAPS (KM/H)
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 3, fontSize: 10, fontFamily: "IBM Plex Mono, monospace", fontVariantNumeric: "tabular-nums" }}>
-            <div style={{ display: "grid", gridTemplateColumns: "72px 1fr 14px 1fr", gap: 4, alignItems: "center" }}>
-              <span style={{ color: "#777", fontSize: 9, whiteSpace: "nowrap" }}>MAX (ST)</span>
-              <span style={{ color: colorA, fontWeight: 700, textAlign: "left", whiteSpace: "nowrap" }}>{lapDataA?.SpeedST ? `${lapDataA.SpeedST.toFixed(0)}` : topSpeedA.toFixed(0)}</span>
-              <span style={{ color: "#555", fontSize: 9, textAlign: "center" }}>vs</span>
-              <span style={{ color: colorB, fontWeight: 700, textAlign: "right", whiteSpace: "nowrap" }}>{lapDataB?.SpeedST ? `${lapDataB.SpeedST.toFixed(0)}` : topSpeedB.toFixed(0)}</span>
+          <div style={{ display: "flex", flexDirection: "column", gap: 3, fontSize: 9.5, fontFamily: "IBM Plex Mono, monospace", fontVariantNumeric: "tabular-nums" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "64px minmax(0, 1fr) 14px minmax(0, 1fr)", gap: 4, alignItems: "center" }}>
+              <span style={{ color: "#777", fontSize: 8.5, whiteSpace: "nowrap" }}>MAX (ST)</span>
+              <span style={{ color: colorA, fontWeight: 700, textAlign: "left", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                {lapDataA?.SpeedST ? `${lapDataA.SpeedST.toFixed(0)}` : topSpeedA.toFixed(0)}
+              </span>
+              <span style={{ color: "#555", fontSize: 8.5, textAlign: "center" }}>vs</span>
+              <span style={{ color: colorB, fontWeight: 700, textAlign: "right", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                {lapDataB?.SpeedST ? `${lapDataB.SpeedST.toFixed(0)}` : topSpeedB.toFixed(0)}
+              </span>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "72px 1fr 14px 1fr", gap: 4, alignItems: "center" }}>
-              <span style={{ color: "#777", fontSize: 9, whiteSpace: "nowrap" }}>FINISH (FL)</span>
-              <span style={{ color: colorA, fontWeight: 700, textAlign: "left", whiteSpace: "nowrap" }}>{lapDataA?.SpeedFL ? `${lapDataA.SpeedFL.toFixed(0)}` : "—"}</span>
-              <span style={{ color: "#555", fontSize: 9, textAlign: "center" }}>vs</span>
-              <span style={{ color: colorB, fontWeight: 700, textAlign: "right", whiteSpace: "nowrap" }}>{lapDataB?.SpeedFL ? `${lapDataB.SpeedFL.toFixed(0)}` : "—"}</span>
+            <div style={{ display: "grid", gridTemplateColumns: "64px minmax(0, 1fr) 14px minmax(0, 1fr)", gap: 4, alignItems: "center" }}>
+              <span style={{ color: "#777", fontSize: 8.5, whiteSpace: "nowrap" }}>FINISH (FL)</span>
+              <span style={{ color: colorA, fontWeight: 700, textAlign: "left", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                {lapDataA?.SpeedFL ? `${lapDataA.SpeedFL.toFixed(0)}` : "—"}
+              </span>
+              <span style={{ color: "#555", fontSize: 8.5, textAlign: "center" }}>vs</span>
+              <span style={{ color: colorB, fontWeight: 700, textAlign: "right", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                {lapDataB?.SpeedFL ? `${lapDataB.SpeedFL.toFixed(0)}` : "—"}
+              </span>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "72px 1fr 14px 1fr", gap: 4, alignItems: "center" }}>
-              <span style={{ color: "#777", fontSize: 9, whiteSpace: "nowrap" }}>INTER 1 (I1)</span>
-              <span style={{ color: colorA, fontWeight: 700, textAlign: "left", whiteSpace: "nowrap" }}>{lapDataA?.SpeedI1 ? `${lapDataA.SpeedI1.toFixed(0)}` : "—"}</span>
-              <span style={{ color: "#555", fontSize: 9, textAlign: "center" }}>vs</span>
-              <span style={{ color: colorB, fontWeight: 700, textAlign: "right", whiteSpace: "nowrap" }}>{lapDataB?.SpeedI1 ? `${lapDataB.SpeedI1.toFixed(0)}` : "—"}</span>
+            <div style={{ display: "grid", gridTemplateColumns: "64px minmax(0, 1fr) 14px minmax(0, 1fr)", gap: 4, alignItems: "center" }}>
+              <span style={{ color: "#777", fontSize: 8.5, whiteSpace: "nowrap" }}>INTER 1 (I1)</span>
+              <span style={{ color: colorA, fontWeight: 700, textAlign: "left", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                {lapDataA?.SpeedI1 ? `${lapDataA.SpeedI1.toFixed(0)}` : "—"}
+              </span>
+              <span style={{ color: "#555", fontSize: 8.5, textAlign: "center" }}>vs</span>
+              <span style={{ color: colorB, fontWeight: 700, textAlign: "right", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                {lapDataB?.SpeedI1 ? `${lapDataB.SpeedI1.toFixed(0)}` : "—"}
+              </span>
             </div>
           </div>
         </div>
@@ -1406,8 +1514,10 @@ export default function DriverComparison({
             <div
               className="panel"
               style={{
-                padding: "16px 18px",
-                minHeight: 128,
+                padding: "12px 14px",
+                height: 136,
+                minHeight: 136,
+                maxHeight: 136,
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "space-between",
@@ -1422,29 +1532,30 @@ export default function DriverComparison({
                 width: "100%",
               }}
             >
-              <div style={{ fontSize: 10, color: "#888", letterSpacing: "0.08em", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ whiteSpace: "nowrap" }}>TYRE COMPOUND & STINT</span>
+              <div style={{ fontSize: 10, color: "#888", letterSpacing: "0.08em", display: "flex", justifyContent: "space-between", alignItems: "center", height: 16 }}>
+                <span style={{ whiteSpace: "nowrap" }}>TYRE &amp; STINT</span>
                 <span style={{ fontFamily: "IBM Plex Mono, monospace", color: "#666", whiteSpace: "nowrap" }}>{year ? `${year} ERA` : ""}</span>
               </div>
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "1fr auto 1fr",
+                  gridTemplateColumns: "minmax(0, 1fr) 14px minmax(0, 1fr)",
                   alignItems: "center",
                   gap: 4,
                   marginTop: 4,
+                  width: "100%",
                 }}
               >
                 <div style={{ minWidth: 0, overflow: "hidden" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 5, whiteSpace: "nowrap" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 4, whiteSpace: "nowrap" }}>
                     <span
                       style={{
                         background: colA,
                         color: txtA,
-                        padding: "1px 5px",
+                        padding: "1px 4px",
                         borderRadius: 3,
                         fontWeight: 800,
-                        fontSize: 10,
+                        fontSize: 9,
                         fontFamily: "IBM Plex Mono, monospace",
                         flexShrink: 0,
                       }}
@@ -1453,34 +1564,36 @@ export default function DriverComparison({
                     </span>
                     <span
                       style={{
-                        fontSize: 12,
+                        fontSize: 11,
                         fontWeight: 700,
                         fontFamily: "IBM Plex Mono, monospace",
                         color: colA,
                         overflow: "hidden",
                         textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
                       }}
                     >
                       {compA}
                     </span>
                   </div>
-                  <div style={{ fontSize: 9, color: "#888", fontFamily: "IBM Plex Mono, monospace", marginTop: 3, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>
+                  <div style={{ fontSize: 8.5, color: "#888", fontFamily: "IBM Plex Mono, monospace", marginTop: 3, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                     L{lapDataA?.TyreLife ?? telemetryA?.tyre_life ?? 1} · STINT {lapDataA?.Stint ?? 1}
                   </div>
                 </div>
 
-                <div style={{ fontSize: 10, color: "#555", fontFamily: "IBM Plex Mono, monospace", textAlign: "center", width: 14 }}>vs</div>
+                <div style={{ fontSize: 9, color: "#555", fontFamily: "IBM Plex Mono, monospace", textAlign: "center", width: 14, flexShrink: 0 }}>vs</div>
 
                 <div style={{ textAlign: "right", minWidth: 0, overflow: "hidden" }}>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 5, whiteSpace: "nowrap" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 4, whiteSpace: "nowrap" }}>
                     <span
                       style={{
-                        fontSize: 12,
+                        fontSize: 11,
                         fontWeight: 700,
                         fontFamily: "IBM Plex Mono, monospace",
                         color: colB,
                         overflow: "hidden",
                         textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
                       }}
                     >
                       {compB}
@@ -1489,10 +1602,10 @@ export default function DriverComparison({
                       style={{
                         background: colB,
                         color: txtB,
-                        padding: "1px 5px",
+                        padding: "1px 4px",
                         borderRadius: 3,
                         fontWeight: 800,
-                        fontSize: 10,
+                        fontSize: 9,
                         fontFamily: "IBM Plex Mono, monospace",
                         flexShrink: 0,
                       }}
@@ -1500,12 +1613,12 @@ export default function DriverComparison({
                       {getTyreShort(compB)}
                     </span>
                   </div>
-                  <div style={{ fontSize: 9, color: "#888", fontFamily: "IBM Plex Mono, monospace", marginTop: 3, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>
+                  <div style={{ fontSize: 8.5, color: "#888", fontFamily: "IBM Plex Mono, monospace", marginTop: 3, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                     L{lapDataB?.TyreLife ?? telemetryB?.tyre_life ?? 1} · STINT {lapDataB?.Stint ?? 1}
                   </div>
                 </div>
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4, fontSize: 9, fontFamily: "IBM Plex Mono, monospace", color: "#666", whiteSpace: "nowrap" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", height: 16, alignItems: "center", fontSize: 8.5, fontFamily: "IBM Plex Mono, monospace", color: "#666", whiteSpace: "nowrap" }}>
                 <span>{lapDataA?.PitInTime ? "IN-LAP" : lapDataA?.PitOutTime ? "OUT-LAP" : "FLYING"}</span>
                 <span>{lapDataB?.PitInTime ? "IN-LAP" : lapDataB?.PitOutTime ? "OUT-LAP" : "FLYING"}</span>
               </div>
@@ -1517,8 +1630,10 @@ export default function DriverComparison({
         <div
           className="panel"
           style={{
-            padding: "16px 18px",
-            minHeight: 128,
+            padding: "12px 14px",
+            height: 136,
+            minHeight: 136,
+            maxHeight: 136,
             display: "flex",
             flexDirection: "column",
             justifyContent: "space-between",
@@ -1532,19 +1647,18 @@ export default function DriverComparison({
             width: "100%",
           }}
         >
-          <div style={{ fontSize: 10, color: "#888", letterSpacing: "0.08em", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ fontSize: 10, color: "#888", letterSpacing: "0.08em", display: "flex", justifyContent: "space-between", alignItems: "center", height: 16 }}>
             <span style={{ whiteSpace: "nowrap" }}>LIVE SPEED AT CURSOR</span>
-            <span style={{ fontFamily: "IBM Plex Mono, monospace", fontVariantNumeric: "tabular-nums", color: "#aaa", textAlign: "right", whiteSpace: "nowrap" }}>
+            <span style={{ fontFamily: "IBM Plex Mono, monospace", fontVariantNumeric: "tabular-nums", color: "#aaa", textAlign: "right", whiteSpace: "nowrap", minWidth: 50 }}>
               {currentDist != null ? `${currentDist.toFixed(0)}m` : "—"}
             </span>
           </div>
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "1fr auto 1fr",
-              alignItems: "baseline",
+              gridTemplateColumns: "minmax(0, 1fr) 64px minmax(0, 1fr)",
+              alignItems: "center",
               gap: 4,
-              marginTop: 6,
               width: "100%",
             }}
           >
@@ -1561,11 +1675,11 @@ export default function DriverComparison({
               }}
             >
               <span>{cursorPointA?.Speed != null ? cursorPointA.Speed.toFixed(0) : "0"}</span>
-              <span style={{ fontSize: 9, fontWeight: 500, color: "#888", marginLeft: 2 }}>km/h</span>
+              <span style={{ fontSize: 8.5, fontWeight: 500, color: "#888", marginLeft: 2 }}>km/h</span>
             </div>
             <div
               style={{
-                fontSize: 10,
+                fontSize: 9.5,
                 color:
                   (cursorPointA?.Speed ?? 0) >= (cursorPointB?.Speed ?? 0)
                     ? colorA
@@ -1574,10 +1688,10 @@ export default function DriverComparison({
                 fontVariantNumeric: "tabular-nums",
                 fontWeight: 700,
                 textAlign: "center",
-                width: 68,
-                minWidth: 68,
-                maxWidth: 68,
-                padding: "2px 4px",
+                width: 64,
+                minWidth: 64,
+                maxWidth: 64,
+                padding: "2px 2px",
                 background: "rgba(255,255,255,0.03)",
                 borderRadius: 4,
                 border: "1px solid #252535",
@@ -1603,13 +1717,17 @@ export default function DriverComparison({
               }}
             >
               <span>{cursorPointB?.Speed != null ? cursorPointB.Speed.toFixed(0) : "0"}</span>
-              <span style={{ fontSize: 9, fontWeight: 500, color: "#888", marginLeft: 2 }}>km/h</span>
+              <span style={{ fontSize: 8.5, fontWeight: 500, color: "#888", marginLeft: 2 }}>km/h</span>
             </div>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", gap: 4, marginTop: 4, fontSize: 9, fontFamily: "IBM Plex Mono, monospace", fontVariantNumeric: "tabular-nums", alignItems: "center" }}>
-            <span style={{ color: colorA, textAlign: "left", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>G{cursorPointA?.nGear ?? 8} · {cursorPointA?.Throttle != null ? cursorPointA.Throttle.toFixed(0) : "0"}% TH</span>
-            <span style={{ color: "#555", textAlign: "center", width: 14 }}>vs</span>
-            <span style={{ color: colorB, textAlign: "right", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>G{cursorPointB?.nGear ?? 8} · {cursorPointB?.Throttle != null ? cursorPointB.Throttle.toFixed(0) : "0"}% TH</span>
+          <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 14px minmax(0, 1fr)", gap: 4, fontSize: 8.5, fontFamily: "IBM Plex Mono, monospace", fontVariantNumeric: "tabular-nums", alignItems: "center", height: 16 }}>
+            <span style={{ color: colorA, textAlign: "left", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              G{cursorPointA?.nGear ?? 8} · {cursorPointA?.Throttle != null ? cursorPointA.Throttle.toFixed(0) : "0"}% TH
+            </span>
+            <span style={{ color: "#555", textAlign: "center", width: 14, flexShrink: 0 }}>vs</span>
+            <span style={{ color: colorB, textAlign: "right", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              G{cursorPointB?.nGear ?? 8} · {cursorPointB?.Throttle != null ? cursorPointB.Throttle.toFixed(0) : "0"}% TH
+            </span>
           </div>
         </div>
       </div>
@@ -1848,23 +1966,52 @@ export default function DriverComparison({
           </div>
         </div>
 
-        <svg
-          viewBox={`0 0 ${W} ${totalHeight}`}
-          width="100%"
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={() => {
-            handleMouseUp();
-            if (!isPlaying) setCursorDist(null);
-          }}
-          onWheel={handleWheel}
-          style={{
-            cursor: zoomLevel > 1 ? (isDraggingPan ? "grabbing" : "grab") : "crosshair",
-            overflow: "visible",
-            userSelect: "none",
-          }}
-        >
+        <div style={{ position: "relative" }}>
+          {showWheelHint && (
+            <div
+              style={{
+                position: "absolute",
+                top: 8,
+                right: 12,
+                zIndex: 30,
+                background: "rgba(10, 10, 15, 0.92)",
+                border: "1px solid rgba(0, 229, 255, 0.5)",
+                boxShadow: "0 4px 16px rgba(0, 0, 0, 0.6)",
+                padding: "6px 12px",
+                borderRadius: 4,
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                fontSize: 10,
+                color: "#e2e8f0",
+                fontFamily: "IBM Plex Mono, monospace",
+                pointerEvents: "none",
+                animation: "fadeIn 0.15s ease-out",
+              }}
+            >
+              <span style={{ color: "#00E5FF", fontWeight: 700 }}>💡 ZOOM TELEMETRY:</span>
+              <span>Hold <strong>⌘ / Ctrl</strong> + scroll or pinch on graph</span>
+            </div>
+          )}
+
+          <svg
+            ref={telemetrySvgRef}
+            viewBox={`0 0 ${W} ${totalHeight}`}
+            width="100%"
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={() => {
+              handleMouseUp();
+              if (!isPlaying) setCursorDist(null);
+            }}
+            style={{
+              cursor: zoomLevel > 1 ? (isDraggingPan ? "grabbing" : "grab") : "crosshair",
+              overflow: "visible",
+              userSelect: "none",
+              touchAction: "pan-y",
+            }}
+          >
           <defs>
             <filter id="glowA">
               <feDropShadow dx="0" dy="0" stdDeviation="1.5" floodColor={colorA} floodOpacity="0.5" />
@@ -2461,6 +2608,7 @@ export default function DriverComparison({
             </g>
           )}
         </svg>
+        </div>
       </div>
 
       {/* ── Turn Apex Speed Comparison Table ── */}

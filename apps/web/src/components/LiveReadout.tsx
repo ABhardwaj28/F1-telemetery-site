@@ -87,17 +87,17 @@ export default function LiveReadout({ point, lapTime, compound, tyreLife, lap, t
         </div>
         <div style={{ display: "flex", gap: 20, alignItems: "center" }}>
           {/* Lap time */}
-          <div style={{ textAlign: "right" }}>
-            <div style={{ color: "#55555b", fontFamily: "IBM Plex Mono, monospace", fontSize: 7, letterSpacing: "0.1em", marginBottom: 4 }}>LAP TIME</div>
-            <div style={{ color: "#eeeeef", fontFamily: "IBM Plex Mono, monospace", fontSize: 15 }}>
+          <div style={{ textAlign: "right", minWidth: 85, boxSizing: "border-box" }}>
+            <div style={{ color: "#55555b", fontFamily: "IBM Plex Mono, monospace", fontSize: 7, letterSpacing: "0.1em", marginBottom: 4, whiteSpace: "nowrap" }}>LAP TIME</div>
+            <div style={{ color: "#eeeeef", fontFamily: "IBM Plex Mono, monospace", fontSize: 15, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>
               {lapTime ? `${Math.floor(lapTime / 60)}:${(lapTime % 60).toFixed(3).padStart(6, "0")}` : "—"}
             </div>
           </div>
           {/* Tyre */}
-          <div style={{ textAlign: "right" }}>
-            <div style={{ color: "#55555b", fontFamily: "IBM Plex Mono, monospace", fontSize: 7, letterSpacing: "0.1em", marginBottom: 4 }}>TYRE</div>
-            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <span style={{ width: 8, height: 8, borderRadius: "50%", background: tyreCol, display: "inline-block" }} />
+          <div style={{ textAlign: "right", minWidth: 95, boxSizing: "border-box" }}>
+            <div style={{ color: "#55555b", fontFamily: "IBM Plex Mono, monospace", fontSize: 7, letterSpacing: "0.1em", marginBottom: 4, whiteSpace: "nowrap" }}>TYRE</div>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 6, whiteSpace: "nowrap" }}>
+              <span style={{ width: 8, height: 8, borderRadius: "50%", background: tyreCol, display: "inline-block", flexShrink: 0 }} />
               <span style={{ color: tyreCol, fontFamily: "IBM Plex Mono, monospace", fontSize: 10, fontWeight: 700 }}>{compound}</span>
               <span style={{ color: "#55555b", fontFamily: "IBM Plex Mono, monospace", fontSize: 8 }}>({tyreLife}L)</span>
             </div>
