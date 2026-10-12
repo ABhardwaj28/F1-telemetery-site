@@ -638,7 +638,7 @@ async function fetchJolpicaRaceData(
     const cal = await loadCalendar(year);
     const targetSlug = eventToCircuitSlug(event);
     const raceMatch =
-      cal.find((r) => eventToCircuitSlug(r.event) === targetSlug) ||
+      cal.find((r) => eventToCircuitSlug(r.event, r.location) === targetSlug) ||
       cal.find((r) => r.event.toLowerCase().includes(event.toLowerCase())) ||
       cal[0];
     const round = raceMatch?.round ?? 1;
@@ -1918,40 +1918,136 @@ export function formatSector(s: number | null | undefined): string {
   return s.toFixed(3);
 }
 
-/** Map event name to circuit slug used in telemetry/circuit paths */
-export function eventToCircuitSlug(event: string): string {
+/** Map event name (and optional location) to circuit slug used in telemetry/circuit paths */
+export function eventToCircuitSlug(event: string, location?: string): string {
   if (!event) return "monaco";
   const ev = event.toLowerCase();
-  if (ev.includes("monaco") || ev.includes("monte carlo")) return "monaco";
-  if (ev.includes("bahrain") || ev.includes("sakhir") || ev.includes("morocco") || ev.includes("casablanca") || ev.includes("india") || ev.includes("buddh")) return "bahrain";
-  if (ev.includes("saudi") || ev.includes("jeddah")) return "jeddah";
-  if (ev.includes("australi") || ev.includes("melbourne") || ev.includes("adelaide")) return "melbourne";
-  if (ev.includes("japan") || ev.includes("suzuka") || ev.includes("fuji") || ev.includes("pacific")) return "suzuka";
-  if (ev.includes("chin") || ev.includes("shanghai") || ev.includes("malays") || ev.includes("sepang") || ev.includes("korea") || ev.includes("yeongam")) return "shanghai";
+  const loc = (location || "").toLowerCase();
+
+  // Malaysian GP / Sepang
+  if (ev.includes("malays") || ev.includes("sepang") || loc.includes("kuala lumpur")) return "sepang";
+
+  // Korean GP / Yeongam
+  if (ev.includes("korea") || ev.includes("yeongam")) return "yeongam";
+
+  // Indian GP / Buddh
+  if (ev.includes("india") || ev.includes("buddh") || loc.includes("uttar pradesh")) return "buddh";
+
+  // Russian GP / Sochi
+  if (ev.includes("russia") || ev.includes("sochi")) return "sochi";
+
+  // Turkish GP / Istanbul
+  if (ev.includes("turk") || ev.includes("istanbul")) return "istanbul";
+
+  // French GP / Paul Ricard
+  if (ev.includes("french") || ev.includes("france") || ev.includes("paul ricard") || ev.includes("castellet")) return "paul_ricard";
+
+  // Portuguese GP / Portimão
+  if (ev.includes("portug") || ev.includes("portimao") || ev.includes("portimão") || ev.includes("algarve")) return "portimao";
+
+  // Tuscan GP / Mugello
+  if (ev.includes("tuscan") || ev.includes("mugello")) return "mugello";
+
+  // German & Eifel GPs (Nürburgring vs Hockenheim)
+  if (ev.includes("eifel") || ev.includes("nürburg") || ev.includes("nurburg") || loc.includes("nürburg") || loc.includes("nurburg")) return "nurburgring";
+  if (ev.includes("german") || ev.includes("germany") || ev.includes("hockenheim") || loc.includes("hockenheim")) return "hockenheim";
+
+  // European GP (Valencia vs Baku)
+  if (ev.includes("valencia") || loc.includes("valencia")) return "valencia";
+  if (ev.includes("europe")) {
+    if (ev.includes("baku") || loc.includes("baku")) return "baku";
+    return "valencia";
+  }
+
+  // Australian GP
+  if (ev.includes("australi") || ev.includes("melbourne") || ev.includes("albert park") || loc.includes("melbourne")) return "melbourne";
+
+  // Chinese GP
+  if (ev.includes("chin") || ev.includes("shanghai") || loc.includes("shanghai")) return "shanghai";
+
+  // Japanese GP
+  if (ev.includes("japan") || ev.includes("suzuka") || loc.includes("suzuka")) return "suzuka";
+
+  // Bahrain & Sakhir GPs
+  if (ev.includes("bahrain") || ev.includes("sakhir") || loc.includes("sakhir")) return "bahrain";
+
+  // Saudi Arabian GP
+  if (ev.includes("saudi") || ev.includes("jeddah") || loc.includes("jeddah")) return "jeddah";
+
+  // Miami GP
   if (ev.includes("miami")) return "miami";
-  if (ev.includes("emilia") || ev.includes("imola") || ev.includes("romagna") || ev.includes("san marino") || ev.includes("tuscan") || ev.includes("mugello") || ev.includes("pescara")) return "imola";
-  if (ev.includes("spain") || ev.includes("spanish") || ev.includes("barcelona") || ev.includes("españa") || ev.includes("catalun") || ev.includes("jarama") || ev.includes("jerez") || ev.includes("portug") || ev.includes("algarve") || ev.includes("portimao") || ev.includes("estoril")) return "barcelona";
-  if (ev.includes("canad") || ev.includes("montreal") || ev.includes("mosport")) return "montreal";
-  if (ev.includes("austria") || ev.includes("spielberg") || ev.includes("red_bull") || ev.includes("österreich") || ev.includes("oesterreich") || ev.includes("styrian") || ev.includes("german") || ev.includes("germany") || ev.includes("hockenheim") || ev.includes("nürburg") || ev.includes("nurburg") || ev.includes("eifel")) return "red_bull_ring";
-  if (ev.includes("brit") || ev.includes("silverstone") || ev.includes("brands hatch") || ev.includes("donington") || ev.includes("70th") || ev.includes("south africa") || ev.includes("kyalami")) return "silverstone";
-  if (ev.includes("hungar") || ev.includes("budapest") || ev.includes("turkish") || ev.includes("turkey") || ev.includes("istanbul")) return "hungaroring";
-  if (ev.includes("belgi") || ev.includes("spa") || ev.includes("francorchamps") || ev.includes("zolder") || ev.includes("french") || ev.includes("france") || ev.includes("paul ricard") || ev.includes("magny") || ev.includes("swiss") || ev.includes("switzerland") || ev.includes("bremgarten")) return "spa";
-  if (ev.includes("dutch") || ev.includes("zandvoort") || ev.includes("netherland") || ev.includes("sweden") || ev.includes("swedish") || ev.includes("anderstorp")) return "zandvoort";
-  if (ev.includes("ital") || ev.includes("monza")) return "monza";
-  if (ev.includes("azerbaijan") || ev.includes("baku") || ev.includes("russia") || ev.includes("sochi") || ev.includes("europe") || ev.includes("valencia")) return "baku";
-  if (ev.includes("singapore") || ev.includes("marina bay")) return "singapore";
-  if (ev.includes("united states") || ev.includes("austin") || ev.includes("cota") || ev.includes("america") || ev.includes("watkins") || ev.includes("indianapolis") || ev.includes("dallas") || ev.includes("detroit") || ev.includes("phoenix") || ev.includes("long beach")) return "austin";
-  if (ev.includes("mexic") || ev.includes("méxico") || ev.includes("rodriguez") || ev.includes("hermanos")) return "mexico_city";
-  if (ev.includes("brazil") || ev.includes("paulo") || ev.includes("interlagos") || ev.includes("jacarepagua") || ev.includes("argentin") || ev.includes("buenos aires")) return "interlagos";
-  if (ev.includes("vegas") || ev.includes("caesars")) return "las_vegas";
-  if (ev.includes("qatar") || ev.includes("lusail") || ev.includes("losail")) return "lusail";
-  if (ev.includes("abu dhabi") || ev.includes("yas marina")) return "yas_marina";
+
+  // Emilia Romagna & San Marino / Imola
+  if (ev.includes("emilia") || ev.includes("imola") || ev.includes("romagna") || ev.includes("san marino") || loc.includes("imola")) return "imola";
+
+  // Monaco GP
+  if (ev.includes("monaco") || ev.includes("monte carlo") || loc.includes("monaco")) return "monaco";
+
+  // Spanish GP
+  if (ev.includes("spain") || ev.includes("spanish") || ev.includes("barcelona") || ev.includes("catalun") || loc.includes("barcelona") || loc.includes("montmeló")) return "barcelona";
+
+  // Canadian GP
+  if (ev.includes("canad") || ev.includes("montreal") || ev.includes("montréal") || loc.includes("montreal")) return "montreal";
+
+  // Austrian & Styrian GPs
+  if (ev.includes("austria") || ev.includes("styrian") || ev.includes("spielberg") || ev.includes("red_bull") || ev.includes("red bull") || loc.includes("spielberg")) return "red_bull_ring";
+
+  // British & 70th Anniversary GPs
+  if (ev.includes("brit") || ev.includes("silverstone") || ev.includes("70th") || loc.includes("silverstone")) return "silverstone";
+
+  // Hungarian GP
+  if (ev.includes("hungar") || ev.includes("budapest") || loc.includes("budapest") || loc.includes("mogyoród")) return "hungaroring";
+
+  // Belgian GP
+  if (ev.includes("belgi") || ev.includes("spa") || ev.includes("francorchamps") || loc.includes("spa")) return "spa";
+
+  // Dutch GP
+  if (ev.includes("dutch") || ev.includes("zandvoort") || ev.includes("netherland") || loc.includes("zandvoort")) return "zandvoort";
+
+  // Italian GP
+  if (ev.includes("ital") || ev.includes("monza") || loc.includes("monza")) return "monza";
+
+  // Azerbaijan GP
+  if (ev.includes("azerbaijan") || ev.includes("baku") || loc.includes("baku")) return "baku";
+
+  // Singapore GP
+  if (ev.includes("singapore") || ev.includes("marina bay") || loc.includes("marina bay") || loc.includes("singapore")) return "singapore";
+
+  // United States GP
+  if (ev.includes("united states") || ev.includes("austin") || ev.includes("cota") || loc.includes("austin")) return "austin";
+
+  // Mexico City GP
+  if (ev.includes("mexic") || ev.includes("rodriguez") || loc.includes("mexico")) return "mexico_city";
+
+  // São Paulo & Brazilian GPs
+  if (ev.includes("brazil") || ev.includes("paulo") || ev.includes("interlagos") || loc.includes("são paulo") || loc.includes("sao paulo")) return "interlagos";
+
+  // Las Vegas GP
+  if (ev.includes("vegas")) return "las_vegas";
+
+  // Qatar GP
+  if (ev.includes("qatar") || ev.includes("lusail") || ev.includes("losail") || loc.includes("lusail")) return "lusail";
+
+  // Abu Dhabi GP
+  if (ev.includes("abu dhabi") || ev.includes("yas marina") || loc.includes("yas marina") || loc.includes("abu dhabi")) return "yas_marina";
 
   const map: Record<string, string> = {
+    "Malaysian Grand Prix": "sepang",
+    "Korean Grand Prix": "yeongam",
+    "Indian Grand Prix": "buddh",
+    "German Grand Prix": "hockenheim",
+    "Eifel Grand Prix": "nurburgring",
+    "Russian Grand Prix": "sochi",
+    "European Grand Prix": loc.includes("baku") ? "baku" : "valencia",
+    "Turkish Grand Prix": "istanbul",
+    "French Grand Prix": "paul_ricard",
+    "Portuguese Grand Prix": "portimao",
+    "Tuscan Grand Prix": "mugello",
     "Australian Grand Prix": "melbourne",
     "Chinese Grand Prix": "shanghai",
     "Japanese Grand Prix": "suzuka",
     "Bahrain Grand Prix": "bahrain",
+    "Sakhir Grand Prix": "bahrain",
     "Saudi Arabian Grand Prix": "jeddah",
     "Miami Grand Prix": "miami",
     "Emilia Romagna Grand Prix": "imola",
@@ -1959,7 +2055,9 @@ export function eventToCircuitSlug(event: string): string {
     "Spanish Grand Prix": "barcelona",
     "Canadian Grand Prix": "montreal",
     "Austrian Grand Prix": "red_bull_ring",
+    "Styrian Grand Prix": "red_bull_ring",
     "British Grand Prix": "silverstone",
+    "70th Anniversary Grand Prix": "silverstone",
     "Belgian Grand Prix": "spa",
     "Hungarian Grand Prix": "hungaroring",
     "Dutch Grand Prix": "zandvoort",

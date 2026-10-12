@@ -196,6 +196,17 @@ export const TELEMETRY_CIRCUITS = new Set([
   "las_vegas",
   "lusail",
   "yas_marina",
+  "sepang",
+  "hockenheim",
+  "nurburgring",
+  "yeongam",
+  "buddh",
+  "sochi",
+  "valencia",
+  "istanbul",
+  "paul_ricard",
+  "portimao",
+  "mugello",
 ]);
 
 /** Map calendar event name → folder slug */

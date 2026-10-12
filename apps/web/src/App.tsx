@@ -384,7 +384,7 @@ export default function App() {
       return;
     }
     let cancelled = false;
-    const slug = eventToCircuitSlug(selectedRace.event);
+    const slug = eventToCircuitSlug(selectedRace.event, selectedRace.location);
     setHasTelemetry(true);
 
     loadCircuit(slug).then((c) => {
@@ -428,7 +428,7 @@ export default function App() {
       return;
     }
     let cancelled = false;
-    const slug = eventToCircuitSlug(selectedRace.event);
+    const slug = eventToCircuitSlug(selectedRace.event, selectedRace.location);
     setTelLoading(true);
 
     loadTelemetry(selectedYear, slug, selectedDriver, selectedLap, selectedSessionCode, selectedLapObjA, selectedRace.event)
@@ -455,7 +455,7 @@ export default function App() {
       return;
     }
     let cancelled = false;
-    const slug = eventToCircuitSlug(selectedRace.event);
+    const slug = eventToCircuitSlug(selectedRace.event, selectedRace.location);
 
     loadTelemetry(selectedYear, slug, selectedDriverB, selectedLapB, selectedSessionCode, selectedLapObjB, selectedRace.event)
       .then((t) => {
@@ -525,7 +525,7 @@ export default function App() {
   // ─────────────────────────────────────────────────────────────────────────
 
   function renderRaceExplorer() {
-    const circuitSlug = selectedRace ? eventToCircuitSlug(selectedRace.event) : "";
+    const circuitSlug = selectedRace ? eventToCircuitSlug(selectedRace.event, selectedRace.location) : "";
     const teamCol = TEAM_COLOURS[drivers.find((d) => d.abbreviation === selectedDriver)?.team ?? ""] ?? "#e10600";
     const isQuali = selectedSessionCode === "Q" || selectedSessionCode === "SQ" || selectedSessionCode === "Qualifying";
     const lapTag = isQuali
