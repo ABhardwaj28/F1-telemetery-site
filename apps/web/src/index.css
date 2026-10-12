@@ -828,3 +828,16 @@ button {
     grid-template-columns: repeat(1, minmax(0, 1fr));
   }
 }
+
+/* RACE STORY RESPONSIVE SPLIT */
+.story-split-grid {
+  display: grid;
+  grid-template-columns: 1.25fr 0.75fr;
+  gap: 16px;
+}
+
+@media (max-width: 980px) {
+  .story-split-grid {
+    grid-template-columns: 1fr;
+  }
+}

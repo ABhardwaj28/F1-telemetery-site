@@ -34,11 +34,13 @@ import DriverComparison from "./components/DriverComparison";
 import StrategyPanel from "./components/StrategyPanel";
 import ChampionshipPanel from "./components/ChampionshipPanel";
 import HistoricalPanel from "./components/HistoricalPanel";
+import RaceStoryPanel from "./components/RaceStoryPanel";
 
 // ─── Nav ──────────────────────────────────────────────────────────────────────
 const NAV = [
   { label: "Race Explorer", icon: "🏁" },
   { label: "Driver Comparison", icon: "⚔️" },
+  { label: "Race Story", icon: "🏎️" },
   { label: "Strategy & Laps", icon: "⏱️" },
   { label: "Race Control", icon: "🚦" },
   { label: "Weather", icon: "🌡" },
@@ -801,6 +803,19 @@ export default function App() {
               }
             }}
             onSelectLapB={(l) => setSelectedLapB(l)}
+          />
+        );
+      case "Race Story":
+        return (
+          <RaceStoryPanel
+            drivers={drivers}
+            laps={sessionLaps}
+            raceControl={raceControl}
+            sessionCode={selectedSessionCode}
+            selectedDriver={selectedDriver}
+            onSelectDriver={handleSelectDriver}
+            year={selectedYear}
+            eventName={selectedRace?.event ?? "Grand Prix"}
           />
         );
       case "Strategy & Laps":
