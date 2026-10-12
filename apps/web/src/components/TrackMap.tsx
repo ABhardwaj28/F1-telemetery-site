@@ -67,7 +67,11 @@ export default function TrackMap({ trackPoints, turns, carIndex, trackLength }: 
     [projected, minX, maxX, minY, maxY]
   );
 
-  const polylineStr = svgPoints.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
+  const polylineStr = (
+    svgPoints.length > 2 ? [...svgPoints, svgPoints[0]] : svgPoints
+  )
+    .map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`)
+    .join(" ");
 
   const turnSvgPositions = useMemo(
     () =>
@@ -128,7 +132,7 @@ export default function TrackMap({ trackPoints, turns, carIndex, trackLength }: 
         const s2 = s2Idx > 0 ? s2Idx : Math.floor((pts.length * 2) / 3);
         const seg1 = svgPoints.slice(0, s1 + 1).map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
         const seg2 = svgPoints.slice(s1, s2 + 1).map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
-        const seg3 = svgPoints.slice(s2).map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
+        const seg3 = [...svgPoints.slice(s2), svgPoints[0]].map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
         return (
           <>
             {/* Shadow / glow */}
