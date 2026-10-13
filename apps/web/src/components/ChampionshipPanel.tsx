@@ -204,7 +204,17 @@ export default function ChampionshipPanel({ calendar, year }: ChampionshipPanelP
                           <span style={{ fontWeight: 700, color: "#fff", fontSize: 12 }}>{c.team}</span>
                         </div>
                       </td>
-                      <td style={{ padding: "0 16px", color: "#888" }}>
+                      <td
+                        style={{
+                          padding: "0 16px",
+                          color: "#888",
+                          maxWidth: 280,
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        }}
+                        title={c.drivers.join(" · ")}
+                      >
                         {c.drivers.join(" · ")}
                       </td>
                       <td style={{ padding: "0 16px", textAlign: "center", fontWeight: c.wins ? 700 : 400, color: c.wins ? "#fff" : "#555" }}>

@@ -207,6 +207,8 @@ export const TELEMETRY_CIRCUITS = new Set([
   "paul_ricard",
   "portimao",
   "mugello",
+  "madring",
+  "madrid",
 ]);
 
 /** Map calendar event name → folder slug */
@@ -239,22 +241,45 @@ export const SESSION_NAME: Record<string, string> = {
   R: "Race",
 };
 
-/** Team → colour */
-export const TEAM_COLOURS: Record<string, string> = {
+/** Raw mapping of known team names to official brand hex codes */
+const RAW_TEAM_COLOURS: Record<string, string> = {
+  // Current & Future Era (2025 - 2026+)
   McLaren: "#FF8000",
+  "McLaren Formula 1 Team": "#FF8000",
   Ferrari: "#E8002D",
+  "Scuderia Ferrari": "#E8002D",
+  "Scuderia Ferrari HP": "#E8002D",
   "Red Bull Racing": "#3671C6",
   "Red Bull": "#3671C6",
+  "Oracle Red Bull Racing": "#3671C6",
   Mercedes: "#27F4D2",
+  "Mercedes-AMG": "#27F4D2",
+  "Mercedes-AMG Petronas": "#27F4D2",
   "Aston Martin": "#229971",
+  "Aston Martin Aramco": "#229971",
   Alpine: "#FF87BC",
+  "Alpine F1 Team": "#FF87BC",
   Williams: "#64C4FF",
+  "Williams Racing": "#64C4FF",
   "Racing Bulls": "#6692FF",
+  RB: "#6692FF",
+  "Visa Cash App RB": "#6692FF",
   AlphaTauri: "#5E8FAA",
   "Toro Rosso": "#469BFF",
   Haas: "#B6BABD",
+  "Haas F1 Team": "#B6BABD",
+  "MoneyGram Haas F1 Team": "#B6BABD",
   "Kick Sauber": "#52E252",
+  "Stake F1 Team Access": "#52E252",
+  Audi: "#F50537",
+  "Audi F1 Team": "#F50537",
+  Cadillac: "#D1A153",
+  "Cadillac F1 Team": "#D1A153",
+  "Cadillac Formula 1 Team": "#D1A153",
+
+  // 2000s - 2020s Hybrid & V8 Era
   "Alfa Romeo": "#900000",
+  "Alfa Romeo Racing": "#900000",
   Sauber: "#006EFF",
   "BMW Sauber": "#002B49",
   "Racing Point": "#F596C8",
@@ -263,32 +288,116 @@ export const TEAM_COLOURS: Record<string, string> = {
   Renault: "#FFF500",
   Lotus: "#E5C158",
   "Lotus F1": "#E5C158",
+  "Lotus F1 Team": "#E5C158",
   "Team Lotus": "#004225",
   Caterham: "#005030",
   Marussia: "#6E0000",
   "Manor Marussia": "#6E0000",
+  Manor: "#00AEEF",
   Virgin: "#E10600",
   HRT: "#A69076",
   Brawn: "#B8FD02",
+  "Brawn GP": "#B8FD02",
   Toyota: "#EE0000",
   BMW: "#002B49",
   BAR: "#FFFFFF",
   Jordan: "#FFD700",
   Benetton: "#00A859",
+  Jaguar: "#004225",
+  Stewart: "#EAEAEA",
+  Prost: "#002B7F",
+  Arrows: "#FFA000",
+  Footwork: "#E31B23",
+  Minardi: "#002F6C",
+  "Super Aguri": "#E60012",
+  Spyker: "#FF6600",
+  Midland: "#D60000",
+
+  // Historical V10 / V8 / Turbo & Classic Eras (1950 - 1990s)
   Tyrrell: "#0047AB",
   Brabham: "#1E3F66",
   March: "#00A3E0",
+  Ligier: "#00529B",
+  Larrousse: "#224488",
+  Dallara: "#C41230",
+  Osella: "#005BAC",
+  Fondmetal: "#1B365D",
+  AGS: "#2E4154",
+  Coloni: "#FFE500",
+  EuroBrun: "#FF6F20",
+  Rial: "#1F425B",
+  Zakspeed: "#CC0000",
+  "Andrea Moda": "#1C1C1C",
+  Simtek: "#472B70",
+  Pacific: "#3E7DBE",
+  Forti: "#FCE100",
   Penske: "#D4AF37",
   Surtees: "#004225",
   Shadow: "#1A1A1A",
   Hesketh: "#E5E5E5",
+  Ensign: "#0B2265",
+  Theodore: "#C8102E",
+  Fittipaldi: "#E3B100",
+  Copersucar: "#FFD100",
+  Wolf: "#C49A45",
+  Matra: "#003399",
+  Lola: "#DE2010",
+  Toleman: "#243764",
   "Alfa Romeo SpA": "#C00000",
   Talbot: "#0055A5",
   Maserati: "#0C2340",
   Cooper: "#004225",
   Vanwall: "#1B4D3E",
   BRM: "#004225",
+  Porsche: "#8B9DA1",
+  Honda: "#E60012",
+  Gordini: "#004399",
+  Connaught: "#00382B",
+  Lancia: "#9E1B32",
 };
+
+/** Deterministic color retriever for any constructor across all F1 seasons */
+export function getTeamColour(team?: string): string {
+  if (!team) return "#94A3B8";
+  const trimmed = team.trim();
+  if (RAW_TEAM_COLOURS[trimmed]) return RAW_TEAM_COLOURS[trimmed];
+
+  // Try sub-part if team is composite like "McLaren / Mercedes" or "Lotus-Climax"
+  const parts = trimmed.split(/[/–—-]/);
+  for (const part of parts) {
+    const pTrim = part.trim();
+    if (RAW_TEAM_COLOURS[pTrim]) return RAW_TEAM_COLOURS[pTrim];
+  }
+
+  // Case-insensitive substring match
+  const lower = trimmed.toLowerCase();
+  for (const [key, col] of Object.entries(RAW_TEAM_COLOURS)) {
+    if (lower.includes(key.toLowerCase()) || key.toLowerCase().includes(lower)) {
+      return col;
+    }
+  }
+
+  // Deterministic HSL generation for historic/independent teams
+  let hash = 0;
+  for (let i = 0; i < trimmed.length; i++) {
+    hash = (hash << 5) - hash + trimmed.charCodeAt(i);
+    hash |= 0;
+  }
+  const hue = Math.abs(hash) % 360;
+  return `hsl(${hue}, 70%, 52%)`;
+}
+
+/**
+ * Team → colour mapping with automatic Proxy fallback so unknown or historical teams
+ * always get a vibrant deterministic brand colour instead of undefined.
+ */
+export const TEAM_COLOURS: Record<string, string> = new Proxy(RAW_TEAM_COLOURS, {
+  get(target, prop: string | symbol) {
+    if (typeof prop !== "string") return undefined;
+    if (prop in target) return target[prop];
+    return getTeamColour(prop);
+  },
+});
 
 export const TYRE_COLOURS: Record<string, string> = {
   // Modern era (2019+)

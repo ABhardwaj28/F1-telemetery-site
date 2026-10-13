@@ -15,15 +15,23 @@ const ERAS: HistoricalEra[] = [
   {
     id: "all",
     name: "Complete Archive (All Eras)",
-    years: "1950 – 2024",
-    regulations: "Full 75-season historical championship records from the inaugural 1950 Silverstone GP to the 2024 Abu Dhabi GP finale.",
-    keyFeature: "Every Drivers' World Champion (1950–2024) and Constructors' Champion (1958–2024) in Formula 1 history.",
+    years: "1950 – 2026",
+    regulations: "Full 76-season historical championship records from the inaugural 1950 Silverstone GP to the new 2026 Next-Gen technical regulation era.",
+    keyFeature: "Every Drivers' World Champion and Constructors' Champion in Formula 1 history plus active 2026 season tracking.",
     iconicCars: ["Mercedes W11", "McLaren MP4/4", "Ferrari F2004", "Lotus 72", "Alfa Romeo 158"],
+  },
+  {
+    id: "next_gen_2026",
+    name: "Next-Gen Active Aero & 50/50 Hybrid Era",
+    years: "2026+",
+    regulations: "1.6L V6 Turbo + 350kW MGU-K (50% Electric / 50% ICE) + 100% Sustainable Fuel + Active Aero (Z-mode / X-mode)",
+    keyFeature: "Nimbler, lighter chassis (-30kg), active movable front & rear wings, 470bhp electric surge with Manual Override Mode (MOM), and Audi & Cadillac works debuts.",
+    iconicCars: ["Audi F1 Works Car", "Cadillac F1", "Red Bull Ford RB22", "Ferrari 2026", "McLaren MCL39"],
   },
   {
     id: "ground_effect",
     name: "Ground Effect & Venturi Tunnels",
-    years: "2022 – 2024",
+    years: "2022 – 2025",
     regulations: "1.6L V6 Turbo Hybrid + 3D Shaped Venturi Floors + 18-inch Pirelli Tyres",
     keyFeature: "Aerodynamic downforce generated through underbody ground effects to promote closer wheel-to-wheel racing.",
     iconicCars: ["Red Bull RB19 / RB20", "McLaren MCL38", "Ferrari SF-24"],
@@ -70,8 +78,9 @@ const ERAS: HistoricalEra[] = [
   },
 ];
 
-// Complete 1950–2024 Drivers World Champions (75 Seasons)
+// Complete 1950–2026 Drivers World Champions & Active Leaders
 const ALL_TIME_DRIVERS_1950_2024: HistoricalChampion[] = [
+  { year: 2026, driver: "Andrea Kimi Antonelli (Leader)", nationality: "ITA", team: "Mercedes", engine: "Mercedes", points: 340, wins: 8, poles: 6 },
   { year: 2024, driver: "Max Verstappen", nationality: "NED", team: "Red Bull Racing", engine: "Honda RBPT", points: 429, wins: 9, poles: 8 },
   { year: 2023, driver: "Max Verstappen", nationality: "NED", team: "Red Bull Racing", engine: "Honda RBPT", points: 575, wins: 19, poles: 12 },
   { year: 2022, driver: "Max Verstappen", nationality: "NED", team: "Red Bull Racing", engine: "Red Bull Powertrains", points: 454, wins: 15, poles: 7 },
@@ -149,8 +158,9 @@ const ALL_TIME_DRIVERS_1950_2024: HistoricalChampion[] = [
   { year: 1950, driver: "Giuseppe Farina", nationality: "ITA", team: "Alfa Romeo", engine: "Alfa Romeo", points: 30, wins: 3, poles: 2 },
 ];
 
-// Complete 1958–2024 Constructors World Champions (67 Seasons - WCC founded 1958)
+// Complete 1958–2026 Constructors World Champions & Active Leaders
 const ALL_TIME_CONSTRUCTORS_1958_2024: ConstructorChampion[] = [
+  { year: 2026, team: "Mercedes (Leader)", engine: "Mercedes", points: 584, wins: 12, poles: 9, drivers: ["ANT", "RUS"] },
   { year: 2024, team: "McLaren", engine: "Mercedes", points: 666, wins: 6, poles: 8, drivers: ["NOR", "PIA"] },
   { year: 2023, team: "Red Bull Racing", engine: "Honda RBPT", points: 860, wins: 21, poles: 14, drivers: ["VER", "PER"] },
   { year: 2022, team: "Red Bull Racing", engine: "Red Bull Powertrains", points: 759, wins: 17, poles: 8, drivers: ["VER", "PER"] },
@@ -235,7 +245,8 @@ export default function HistoricalPanel({ onSelectYear }: HistoricalPanelProps) 
   const filteredDrivers = useMemo(() => {
     return ALL_TIME_DRIVERS_1950_2024.filter((c) => {
       // Era filter
-      if (selectedEra === "ground_effect" && (c.year < 2022 || c.year > 2024)) return false;
+      if (selectedEra === "next_gen_2026" && c.year !== 2026) return false;
+      if (selectedEra === "ground_effect" && (c.year < 2022 || c.year > 2025)) return false;
       if (selectedEra === "turbo_hybrid" && (c.year < 2014 || c.year > 2021)) return false;
       if (selectedEra === "v8_era" && (c.year < 2006 || c.year > 2013)) return false;
       if (selectedEra === "v10_era" && (c.year < 1995 || c.year > 2005)) return false;
@@ -260,7 +271,8 @@ export default function HistoricalPanel({ onSelectYear }: HistoricalPanelProps) 
   const filteredConstructors = useMemo(() => {
     return ALL_TIME_CONSTRUCTORS_1958_2024.filter((c) => {
       // Era filter
-      if (selectedEra === "ground_effect" && (c.year < 2022 || c.year > 2024)) return false;
+      if (selectedEra === "next_gen_2026" && c.year !== 2026) return false;
+      if (selectedEra === "ground_effect" && (c.year < 2022 || c.year > 2025)) return false;
       if (selectedEra === "turbo_hybrid" && (c.year < 2014 || c.year > 2021)) return false;
       if (selectedEra === "v8_era" && (c.year < 2006 || c.year > 2013)) return false;
       if (selectedEra === "v10_era" && (c.year < 1995 || c.year > 2005)) return false;
@@ -316,14 +328,14 @@ export default function HistoricalPanel({ onSelectYear }: HistoricalPanelProps) 
       {/* ── Top Hero ── */}
       <div className="hero-section" style={{ minHeight: 80, padding: "20px 28px" }}>
         <div>
-          <div className="eyebrow">FIA FORMULA ONE WORLD CHAMPIONSHIP · 1950 – 2024 ARCHIVES</div>
+          <div className="eyebrow">FIA FORMULA ONE WORLD CHAMPIONSHIP · 1950 – 2026 ARCHIVES</div>
           <h1 style={{ fontSize: 32, margin: "10px 0 0" }}>ALL-TIME HISTORICAL DATABASE</h1>
         </div>
         <div className="hero-metrics">
-          <div className="metric"><span>SEASONS</span><strong>75</strong></div>
+          <div className="metric"><span>SEASONS</span><strong>77</strong></div>
           <div className="metric"><span>WORLD CHAMPIONS</span><strong>34</strong></div>
           <div className="metric"><span>CONSTRUCTOR CUPS</span><strong>67</strong></div>
-          <div className="metric"><span>GRAND PRIX RACES</span><strong>1,120+</strong></div>
+          <div className="metric"><span>GRAND PRIX RACES</span><strong>1,140+</strong></div>
         </div>
       </div>
 
@@ -334,8 +346,8 @@ export default function HistoricalPanel({ onSelectYear }: HistoricalPanelProps) 
           <div style={{ display: "flex", gap: 8 }}>
             {(
               [
-                { id: "drivers", label: `🏆 DRIVERS (1950–2024) [${filteredDrivers.length}]` },
-                { id: "constructors", label: `🏎️ CONSTRUCTORS (1958–2024) [${filteredConstructors.length}]` },
+                { id: "drivers", label: `🏆 DRIVERS (1950–2026) [${filteredDrivers.length}]` },
+                { id: "constructors", label: `🏎️ CONSTRUCTORS (1958–2026) [${filteredConstructors.length}]` },
                 { id: "records", label: "👑 HALL OF FAME & RECORDS" },
               ] as const
             ).map((t) => (

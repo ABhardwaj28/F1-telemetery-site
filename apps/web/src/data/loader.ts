@@ -158,7 +158,10 @@ function normalizeTeamName(name: string, year: number): string {
   const n = name.replace(/\s+F1 Team$/i, "").trim();
   if (n === "Red Bull") return "Red Bull Racing";
   if (n === "RB") return "Racing Bulls";
+  if (n === "Sauber" && year >= 2026) return "Audi";
   if (n === "Sauber" && year >= 2024) return "Kick Sauber";
+  if (n.toLowerCase().includes("audi")) return "Audi";
+  if (n.toLowerCase().includes("cadillac")) return "Cadillac";
   if (n === "Lotus F1") return "Lotus";
   return n;
 }
@@ -780,7 +783,7 @@ export async function loadSessionDrivers(
   try {
     return await json<SessionDriver[]>(sessionPath(year, event, sessionCode, "_drivers.json"));
   } catch {
-    if (year >= 2010 && year <= 2025 && sessionCode === "R") {
+    if (year >= 2010 && year <= 2026 && sessionCode === "R") {
       const jolpica = await fetchJolpicaRaceData(year, event);
       if (jolpica && jolpica.drivers.length > 0) {
         return jolpica.drivers;
@@ -851,7 +854,7 @@ export async function loadSessionLaps(
   try {
     return await json<SessionLap[]>(sessionPath(year, event, sessionCode, "_laps.json"));
   } catch {
-    if (year >= 2010 && year <= 2025 && sessionCode === "R") {
+    if (year >= 2010 && year <= 2026 && sessionCode === "R") {
       const jolpica = await fetchJolpicaRaceData(year, event);
       if (jolpica && jolpica.laps.length > 0) {
         return jolpica.laps;
@@ -1430,6 +1433,7 @@ const DRIVER_PROFILES: Record<string, DriverProfile> = {
   ZHO: { team: "Kick Sauber", topSpeedDelta: 2.5, apexSpeedFactor: 0.955, brakePointOffset: 18, throttleAggression: 0.88, lapTimeBase: 1.35 },
   BOR: { team: "Kick Sauber", topSpeedDelta: 3.2, apexSpeedFactor: 0.985, brakePointOffset: -4, throttleAggression: 1.02, lapTimeBase: 0.85 },
   ANT: { team: "Mercedes", topSpeedDelta: 8.0, apexSpeedFactor: 1.060, brakePointOffset: -24, throttleAggression: 1.22, lapTimeBase: -0.45 },
+  HER: { team: "Cadillac", topSpeedDelta: 6.0, apexSpeedFactor: 1.015, brakePointOffset: -10, throttleAggression: 1.10, lapTimeBase: 0.65 },
 
   // Historical Legends
   VET: { team: "Red Bull Racing", topSpeedDelta: 10.5, apexSpeedFactor: 1.085, brakePointOffset: -27, throttleAggression: 1.25, lapTimeBase: -0.70 },
@@ -1563,11 +1567,11 @@ export async function loadTelemetry(
   }
 
   // 1. Try loading static pre-recorded FastF1 telemetry on disk for Race sessions.
-  if (year === 2025 && !isQuali) {
+  if ((year === 2025 || year === 2026) && !isQuali) {
     const padLap = String(targetLap).padStart(3, "0");
     try {
       const staticData = await json<LapTelemetry>(
-        `${BASE}/telemetry/2025/${circuitSlug}/${targetDriver}/lap_${padLap}.json`
+        `${BASE}/telemetry/${year}/${circuitSlug}/${targetDriver}/lap_${padLap}.json`
       );
       if (isValidStaticTelemetry(staticData)) {
         const origLapTime =
@@ -1982,6 +1986,9 @@ export function eventToCircuitSlug(event: string, location?: string): string {
 
   // Monaco GP
   if (ev.includes("monaco") || ev.includes("monte carlo") || loc.includes("monaco")) return "monaco";
+
+  // Madrid GP / Madring (2026+ Spanish GP)
+  if (ev.includes("madrid") || ev.includes("madring") || loc.includes("madrid")) return "madring";
 
   // Spanish GP
   if (ev.includes("spain") || ev.includes("spanish") || ev.includes("barcelona") || ev.includes("catalun") || loc.includes("barcelona") || loc.includes("montmeló")) return "barcelona";

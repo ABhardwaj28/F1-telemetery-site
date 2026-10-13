@@ -2,7 +2,7 @@
 
 # 🏎️ F1 Data Lab & Telemetry Suite
 
-### Next-Generation Formula 1 Telemetry, Race Engineering & Historical Analytics Platform (1950 – 2025)
+### Next-Generation Formula 1 Telemetry, Race Engineering & Historical Analytics Platform (1950 – 2026)
 
 [![Live Demo](https://img.shields.io/badge/🌐_Live_Demo-Visit_Site-E10600?style=for-the-badge&logo=google-chrome&logoColor=white)](https://abhardwaj28.github.io/F1-telemetery-site/)
 [![GitHub Repo](https://img.shields.io/badge/GitHub-F1--telemetery--site-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/ABhardwaj28/F1-telemetery-site)
@@ -13,7 +13,7 @@
 [![FastF1](https://img.shields.io/badge/FastF1-3.8+-E10600?style=for-the-badge&logo=formula1&logoColor=white)](https://github.com/theOehrly/Fast-F1)
 
 <p align="center">
-  <b>Explore millisecond-accurate telemetry, synchronized circuit position scrubbers, head-to-head driver delta comparisons, tyre stint strategies, live race control feeds, and 75+ years of Formula 1 championship history.</b>
+  <b>Explore millisecond-accurate telemetry, synchronized circuit position scrubbers, head-to-head driver delta comparisons, tyre stint strategies, live race control feeds, and 76+ years of Formula 1 championship history.</b>
 </p>
 
 ### 🔗 Live URL: [https://abhardwaj28.github.io/F1-telemetery-site/](https://abhardwaj28.github.io/F1-telemetery-site/)
@@ -31,7 +31,7 @@
 Experience the full interactive dashboard live in your browser:
 👉 **[Launch F1 Data Lab Live Dashboard](https://abhardwaj28.github.io/F1-telemetery-site/)**
 
-> 💡 **Persistent State:** All views, selected years (1950–2025), grand prix rounds, practice/qualifying/race sessions, telemetry laps, and comparison drivers automatically persist in the URL and local storage across browser refreshes!
+> 💡 **Persistent State:** All views, selected years (1950–2026), grand prix rounds, practice/qualifying/race sessions, telemetry laps, and comparison drivers automatically persist in the URL and local storage across browser refreshes!
 
 ---
 
@@ -44,7 +44,7 @@ Experience the full interactive dashboard live in your browser:
 - 🚦 **Synchronized Race Control Feed**: Chronological flagged incident logs, Safety Car deployments (SC / VSC), track status, and sector incidents synced with lap progression.
 - 🌡️ **Atmospheric & Track Weather Monitoring**: Ambient temperature, track temperature, wind direction, wind speed, humidity, and precipitation indicators.
 - 🏆 **Championship & Season Explorer**: Comprehensive Drivers' and Constructors' World Championship standings with interactive points progression across all 24 Grand Prix rounds.
-- 📖 **Complete Historical F1 Archive (1950 – 2025)**: Technical regulation era breakdown (Ground Effect, Turbo-Hybrid, V8, V10, Classic) and All-Time Champions & records hall of fame.
+- 📖 **Complete Historical F1 Archive (1950 – 2026)**: Technical regulation era breakdown (Next-Gen 2026 Active Aero & 50/50 Hybrid, Ground Effect, Turbo-Hybrid, V8, V10, Classic) and All-Time Champions & records hall of fame.
 
 ---
 

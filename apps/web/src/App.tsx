@@ -52,12 +52,12 @@ const NAV = [
 function getInitialAppState() {
   const defaultState = {
     page: "Race Explorer",
-    year: 2025,
-    raceEvent: "Australian Grand Prix",
+    year: 2026,
+    raceEvent: "Singapore Grand Prix",
     sessionCode: "R",
-    driver: "LEC",
+    driver: "ANT",
     lap: 1,
-    driverB: "VER",
+    driverB: "RUS",
     lapB: 1,
   };
 
@@ -65,13 +65,14 @@ function getInitialAppState() {
     return defaultState;
   }
 
-  // Clear legacy / stale localStorage state stuck on 1970 or Monaco
+  // Clear legacy / stale localStorage state stuck on 1970 or old 2025 default
   try {
     const raw = localStorage.getItem("f1_app_state");
     if (raw) {
       const parsed = JSON.parse(raw);
       if (
         parsed.year === 1970 ||
+        parsed.year === 2025 ||
         (parsed.raceEvent && parsed.raceEvent.toLowerCase().includes("monaco")) ||
         parsed.driver === "NOR"
       ) {
@@ -87,7 +88,7 @@ function getInitialAppState() {
   const rawParamRace = params.get("race");
   if (
     rawParamYear === "1970" ||
-    (rawParamRace && rawParamRace.toLowerCase().includes("monaco") && rawParamYear !== "2025")
+    (rawParamRace && rawParamRace.toLowerCase().includes("monaco") && rawParamYear !== "2026")
   ) {
     try {
       localStorage.removeItem("f1_app_state");
@@ -96,7 +97,7 @@ function getInitialAppState() {
     return defaultState;
   }
 
-  // If no explicit race or year query parameter is present in URL, ALWAYS open on default 2025 Australia Leclerc
+  // If no explicit race or year query parameter is present in URL, ALWAYS open on default 2026 Singapore GP Antonelli vs Russell
   const hasExplicitRace = Boolean(params.get("race"));
   const hasExplicitYear = Boolean(params.get("year"));
   if (!hasExplicitRace && !hasExplicitYear) {
@@ -121,14 +122,18 @@ function getInitialAppState() {
   const rawPage = params.get("tab") || localData.page || "Race Explorer";
   const page = validPages.includes(rawPage) ? rawPage : "Race Explorer";
 
-  const rawYear = params.get("year") ? Number(params.get("year")) : (localData.year ?? 2025);
-  const year = rawYear && ALL_SUPPORTED_YEARS.includes(rawYear) && rawYear !== 1970 ? rawYear : 2025;
+  const rawYear = params.get("year") ? Number(params.get("year")) : (localData.year ?? 2026);
+  const year = rawYear && ALL_SUPPORTED_YEARS.includes(rawYear) && rawYear !== 1970 ? rawYear : 2026;
 
-  const raceEvent = params.get("race") || localData.raceEvent || "Australian Grand Prix";
+  const defaultEventForYear = year === 2026 ? "Singapore Grand Prix" : "Australian Grand Prix";
+  const defaultDriverForYear = year === 2026 ? "ANT" : "LEC";
+  const defaultDriverBForYear = year === 2026 ? "RUS" : "VER";
+
+  const raceEvent = params.get("race") || localData.raceEvent || defaultEventForYear;
   const sessionCode = params.get("session") || localData.sessionCode || "R";
-  const driver = params.get("driver") || localData.driver || "LEC";
+  const driver = params.get("driver") || localData.driver || defaultDriverForYear;
   const lap = params.get("lap") ? Number(params.get("lap")) : (localData.lap || 1);
-  const driverB = params.get("driverB") || localData.driverB || "VER";
+  const driverB = params.get("driverB") || localData.driverB || defaultDriverBForYear;
   const lapB = params.get("lapB") ? Number(params.get("lapB")) : (localData.lapB || 1);
 
   return { page, year, raceEvent, sessionCode, driver, lap, driverB, lapB };
@@ -146,9 +151,13 @@ export default function App() {
         initialCalendar.find((r) => initial.raceEvent!.toLowerCase().includes(r.event.toLowerCase()));
       if (match) return match;
     }
+    if (initial.year === 2026) {
+      const singapore = initialCalendar.find((r) => r.event.toLowerCase().includes("singapore"));
+      if (singapore) return singapore;
+    }
     const australia = initialCalendar.find((r) => r.event.toLowerCase().includes("australia"));
     return australia ?? initialCalendar[0] ?? null;
-  }, [initialCalendar, initial.raceEvent]);
+  }, [initialCalendar, initial.raceEvent, initial.year]);
 
   const initialTargetRaceRef = useRef<string | null>(initial.raceEvent);
   const initialTargetDriverRef = useRef<string | null>(initial.driver);
@@ -254,6 +263,10 @@ export default function App() {
               cal.find((r) => targetName.toLowerCase().includes(r.event.toLowerCase()));
             if (match) return match;
           }
+          if (selectedYear === 2026) {
+            const singapore = cal.find((r) => r.event.toLowerCase().includes("singapore"));
+            if (singapore) return singapore;
+          }
           const australia = cal.find((r) => r.event.toLowerCase().includes("australia"));
           return australia ?? cal[0] ?? null;
         });
@@ -313,10 +326,10 @@ export default function App() {
           if (dList.some((d) => d.abbreviation === desiredA)) {
             determinedA = desiredA;
           } else {
-            const leclerc = dList.find(
-              (d) => d.abbreviation === "LEC" || d.full_name?.toLowerCase().includes("leclerc")
-            );
-            determinedA = leclerc ? leclerc.abbreviation : dList[0].abbreviation;
+            const preferredA = selectedYear === 2026
+              ? dList.find((d) => d.abbreviation === "ANT")
+              : dList.find((d) => d.abbreviation === "LEC" || d.full_name?.toLowerCase().includes("leclerc"));
+            determinedA = preferredA ? preferredA.abbreviation : (dList[0]?.abbreviation ?? "");
           }
           setSelectedDriver(determinedA);
           currentDriverRef.current = determinedA;
@@ -326,10 +339,11 @@ export default function App() {
           if (dList.some((d) => d.abbreviation === desiredB)) {
             determinedB = desiredB;
           } else {
-            const verstappen = dList.find(
-              (d) => d.abbreviation === "VER" || d.full_name?.toLowerCase().includes("verstappen")
-            );
-            determinedB = verstappen ? verstappen.abbreviation : (dList[1]?.abbreviation ?? dList[0].abbreviation);
+            const preferredB = selectedYear === 2026
+              ? dList.find((d) => d.abbreviation === "RUS")
+              : dList.find((d) => d.abbreviation === "VER" || d.full_name?.toLowerCase().includes("verstappen"));
+            const fallbackB = dList.find((d) => d.abbreviation !== determinedA) ?? dList[1] ?? dList[0];
+            determinedB = preferredB ? preferredB.abbreviation : (fallbackB?.abbreviation ?? determinedA);
           }
           setSelectedDriverB(determinedB);
           currentDriverBRef.current = determinedB;
@@ -888,10 +902,13 @@ export default function App() {
         </nav>
 
         {/* ── Driver quick-select ── */}
-        {drivers.length > 0 && hasTelemetry && (
+        {drivers.length > 0 && (
           <>
-            <div className="nav-heading" style={{ marginTop: 8 }}>GRID DRIVERS</div>
-            <div style={{ padding: "0 9px", maxHeight: 230, overflowY: "auto" }}>
+            <div className="nav-heading" style={{ marginTop: 8, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span>GRID DRIVERS</span>
+              <span style={{ fontSize: 9, opacity: 0.6, fontFamily: "IBM Plex Mono, monospace" }}>{drivers.length}</span>
+            </div>
+            <div style={{ padding: "0 9px", maxHeight: 280, overflowY: "auto", scrollbarWidth: "thin" }}>
               {drivers.map((d) => {
                 const col = TEAM_COLOURS[d.team] ?? "#666";
                 return (
@@ -902,8 +919,11 @@ export default function App() {
                     style={{ fontSize: 11 }}
                   >
                     <span style={{ width: 3, height: 14, background: col, borderRadius: 1, display: "inline-block", flexShrink: 0 }} />
-                    {d.abbreviation}
-                    <span style={{ marginLeft: "auto", color: "#888892", fontFamily: "IBM Plex Mono, monospace", fontSize: 8 }}>
+                    <span style={{ fontWeight: 600 }}>{d.abbreviation}</span>
+                    <span style={{ fontSize: 9, color: "#888892", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginLeft: 4, maxWidth: 85 }}>
+                      {d.team}
+                    </span>
+                    <span style={{ marginLeft: "auto", color: "#888892", fontFamily: "IBM Plex Mono, monospace", fontSize: 8, flexShrink: 0 }}>
                       P{d.position ?? "—"}
                     </span>
                   </button>

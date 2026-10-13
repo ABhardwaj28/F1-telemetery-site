@@ -364,6 +364,31 @@ export const HISTORICAL_CALENDARS: Record<number, CalendarRace[]> = {
     { round: 23, event: "Qatar Grand Prix", country: "Qatar", location: "Lusail", official_name: "FORMULA 1 QATAR AIRWAYS QATAR GRAND PRIX 2025", date: "2025-11-30T00:00:00", format: "sprint_qualifying", sessions: [{"name": "Practice 1", "code": "FP1"}, {"name": "Sprint Qualifying", "code": "SQ"}, {"name": "Sprint", "code": "S"}, {"name": "Qualifying", "code": "Q"}, {"name": "Race", "code": "R"}] },
     { round: 24, event: "Abu Dhabi Grand Prix", country: "United Arab Emirates", location: "Yas Island", official_name: "FORMULA 1 ETIHAD AIRWAYS ABU DHABI GRAND PRIX 2025", date: "2025-12-07T00:00:00", format: "conventional", sessions: [{"name": "Practice 1", "code": "FP1"}, {"name": "Practice 2", "code": "FP2"}, {"name": "Practice 3", "code": "FP3"}, {"name": "Qualifying", "code": "Q"}, {"name": "Race", "code": "R"}] },
   ],
+  2026: [
+    { round: 1, event: "Australian Grand Prix", country: "Australia", location: "Melbourne", official_name: "FORMULA 1 AUSTRALIAN GRAND PRIX 2026", date: "2026-03-08T00:00:00", format: "conventional", sessions: [{"name": "Practice 1", "code": "FP1"}, {"name": "Practice 2", "code": "FP2"}, {"name": "Practice 3", "code": "FP3"}, {"name": "Qualifying", "code": "Q"}, {"name": "Race", "code": "R"}] },
+    { round: 2, event: "Chinese Grand Prix", country: "China", location: "Shanghai", official_name: "FORMULA 1 CHINESE GRAND PRIX 2026", date: "2026-03-15T00:00:00", format: "sprint_qualifying", sessions: [{"name": "Practice 1", "code": "FP1"}, {"name": "Sprint Qualifying", "code": "SQ"}, {"name": "Sprint", "code": "S"}, {"name": "Qualifying", "code": "Q"}, {"name": "Race", "code": "R"}] },
+    { round: 3, event: "Japanese Grand Prix", country: "Japan", location: "Suzuka", official_name: "FORMULA 1 JAPANESE GRAND PRIX 2026", date: "2026-03-29T00:00:00", format: "conventional", sessions: [{"name": "Practice 1", "code": "FP1"}, {"name": "Practice 2", "code": "FP2"}, {"name": "Practice 3", "code": "FP3"}, {"name": "Qualifying", "code": "Q"}, {"name": "Race", "code": "R"}] },
+    { round: 4, event: "Miami Grand Prix", country: "USA", location: "Miami", official_name: "FORMULA 1 MIAMI GRAND PRIX 2026", date: "2026-05-03T00:00:00", format: "sprint_qualifying", sessions: [{"name": "Practice 1", "code": "FP1"}, {"name": "Sprint Qualifying", "code": "SQ"}, {"name": "Sprint", "code": "S"}, {"name": "Qualifying", "code": "Q"}, {"name": "Race", "code": "R"}] },
+    { round: 5, event: "Canadian Grand Prix", country: "Canada", location: "Montreal", official_name: "FORMULA 1 CANADIAN GRAND PRIX 2026", date: "2026-05-24T00:00:00", format: "sprint_qualifying", sessions: [{"name": "Practice 1", "code": "FP1"}, {"name": "Sprint Qualifying", "code": "SQ"}, {"name": "Sprint", "code": "S"}, {"name": "Qualifying", "code": "Q"}, {"name": "Race", "code": "R"}] },
+    { round: 6, event: "Monaco Grand Prix", country: "Monaco", location: "Monte Carlo", official_name: "FORMULA 1 MONACO GRAND PRIX 2026", date: "2026-06-07T00:00:00", format: "conventional", sessions: [{"name": "Practice 1", "code": "FP1"}, {"name": "Practice 2", "code": "FP2"}, {"name": "Practice 3", "code": "FP3"}, {"name": "Qualifying", "code": "Q"}, {"name": "Race", "code": "R"}] },
+    { round: 7, event: "Barcelona Grand Prix", country: "Spain", location: "Barcelona", official_name: "FORMULA 1 BARCELONA GRAND PRIX 2026", date: "2026-06-14T00:00:00", format: "conventional", sessions: [{"name": "Practice 1", "code": "FP1"}, {"name": "Practice 2", "code": "FP2"}, {"name": "Practice 3", "code": "FP3"}, {"name": "Qualifying", "code": "Q"}, {"name": "Race", "code": "R"}] },
+    { round: 8, event: "Austrian Grand Prix", country: "Austria", location: "Spielberg", official_name: "FORMULA 1 AUSTRIAN GRAND PRIX 2026", date: "2026-06-28T00:00:00", format: "conventional", sessions: [{"name": "Practice 1", "code": "FP1"}, {"name": "Practice 2", "code": "FP2"}, {"name": "Practice 3", "code": "FP3"}, {"name": "Qualifying", "code": "Q"}, {"name": "Race", "code": "R"}] },
+    { round: 9, event: "British Grand Prix", country: "UK", location: "Silverstone", official_name: "FORMULA 1 BRITISH GRAND PRIX 2026", date: "2026-07-05T00:00:00", format: "sprint_qualifying", sessions: [{"name": "Practice 1", "code": "FP1"}, {"name": "Sprint Qualifying", "code": "SQ"}, {"name": "Sprint", "code": "S"}, {"name": "Qualifying", "code": "Q"}, {"name": "Race", "code": "R"}] },
+    { round: 10, event: "Belgian Grand Prix", country: "Belgium", location: "Spa", official_name: "FORMULA 1 BELGIAN GRAND PRIX 2026", date: "2026-07-19T00:00:00", format: "conventional", sessions: [{"name": "Practice 1", "code": "FP1"}, {"name": "Practice 2", "code": "FP2"}, {"name": "Practice 3", "code": "FP3"}, {"name": "Qualifying", "code": "Q"}, {"name": "Race", "code": "R"}] },
+    { round: 11, event: "Hungarian Grand Prix", country: "Hungary", location: "Budapest", official_name: "FORMULA 1 HUNGARIAN GRAND PRIX 2026", date: "2026-07-26T00:00:00", format: "conventional", sessions: [{"name": "Practice 1", "code": "FP1"}, {"name": "Practice 2", "code": "FP2"}, {"name": "Practice 3", "code": "FP3"}, {"name": "Qualifying", "code": "Q"}, {"name": "Race", "code": "R"}] },
+    { round: 12, event: "Dutch Grand Prix", country: "Netherlands", location: "Zandvoort", official_name: "FORMULA 1 DUTCH GRAND PRIX 2026", date: "2026-08-23T00:00:00", format: "sprint_qualifying", sessions: [{"name": "Practice 1", "code": "FP1"}, {"name": "Sprint Qualifying", "code": "SQ"}, {"name": "Sprint", "code": "S"}, {"name": "Qualifying", "code": "Q"}, {"name": "Race", "code": "R"}] },
+    { round: 13, event: "Italian Grand Prix", country: "Italy", location: "Monza", official_name: "FORMULA 1 ITALIAN GRAND PRIX 2026", date: "2026-09-06T00:00:00", format: "conventional", sessions: [{"name": "Practice 1", "code": "FP1"}, {"name": "Practice 2", "code": "FP2"}, {"name": "Practice 3", "code": "FP3"}, {"name": "Qualifying", "code": "Q"}, {"name": "Race", "code": "R"}] },
+    { round: 14, event: "Spanish Grand Prix", country: "Spain", location: "Madrid", official_name: "FORMULA 1 SPANISH GRAND PRIX 2026", date: "2026-09-13T00:00:00", format: "conventional", sessions: [{"name": "Practice 1", "code": "FP1"}, {"name": "Practice 2", "code": "FP2"}, {"name": "Practice 3", "code": "FP3"}, {"name": "Qualifying", "code": "Q"}, {"name": "Race", "code": "R"}] },
+    { round: 15, event: "Azerbaijan Grand Prix", country: "Azerbaijan", location: "Baku", official_name: "FORMULA 1 AZERBAIJAN GRAND PRIX 2026", date: "2026-09-26T00:00:00", format: "conventional", sessions: [{"name": "Practice 1", "code": "FP1"}, {"name": "Practice 2", "code": "FP2"}, {"name": "Practice 3", "code": "FP3"}, {"name": "Qualifying", "code": "Q"}, {"name": "Race", "code": "R"}] },
+    { round: 16, event: "Bahrain Grand Prix in Malaysia", country: "Malaysia", location: "Kuala Lumpur", official_name: "FORMULA 1 BAHRAIN GRAND PRIX IN MALAYSIA 2026", date: "2026-10-04T00:00:00", format: "conventional", sessions: [{"name": "Practice 1", "code": "FP1"}, {"name": "Practice 2", "code": "FP2"}, {"name": "Practice 3", "code": "FP3"}, {"name": "Qualifying", "code": "Q"}, {"name": "Race", "code": "R"}] },
+    { round: 17, event: "Singapore Grand Prix", country: "Singapore", location: "Marina Bay", official_name: "FORMULA 1 SINGAPORE GRAND PRIX 2026", date: "2026-10-11T00:00:00", format: "sprint_qualifying", sessions: [{"name": "Practice 1", "code": "FP1"}, {"name": "Sprint Qualifying", "code": "SQ"}, {"name": "Sprint", "code": "S"}, {"name": "Qualifying", "code": "Q"}, {"name": "Race", "code": "R"}] },
+    { round: 18, event: "United States Grand Prix", country: "USA", location: "Austin", official_name: "FORMULA 1 UNITED STATES GRAND PRIX 2026", date: "2026-10-25T00:00:00", format: "conventional", sessions: [{"name": "Practice 1", "code": "FP1"}, {"name": "Practice 2", "code": "FP2"}, {"name": "Practice 3", "code": "FP3"}, {"name": "Qualifying", "code": "Q"}, {"name": "Race", "code": "R"}] },
+    { round: 19, event: "Mexico City Grand Prix", country: "Mexico", location: "Mexico City", official_name: "FORMULA 1 MEXICO CITY GRAND PRIX 2026", date: "2026-11-01T00:00:00", format: "conventional", sessions: [{"name": "Practice 1", "code": "FP1"}, {"name": "Practice 2", "code": "FP2"}, {"name": "Practice 3", "code": "FP3"}, {"name": "Qualifying", "code": "Q"}, {"name": "Race", "code": "R"}] },
+    { round: 20, event: "Brazilian Grand Prix", country: "Brazil", location: "São Paulo", official_name: "FORMULA 1 BRAZILIAN GRAND PRIX 2026", date: "2026-11-08T00:00:00", format: "conventional", sessions: [{"name": "Practice 1", "code": "FP1"}, {"name": "Practice 2", "code": "FP2"}, {"name": "Practice 3", "code": "FP3"}, {"name": "Qualifying", "code": "Q"}, {"name": "Race", "code": "R"}] },
+    { round: 21, event: "Las Vegas Grand Prix", country: "USA", location: "Las Vegas", official_name: "FORMULA 1 LAS VEGAS GRAND PRIX 2026", date: "2026-11-22T00:00:00", format: "conventional", sessions: [{"name": "Practice 1", "code": "FP1"}, {"name": "Practice 2", "code": "FP2"}, {"name": "Practice 3", "code": "FP3"}, {"name": "Qualifying", "code": "Q"}, {"name": "Race", "code": "R"}] },
+    { round: 22, event: "Qatar Grand Prix", country: "Qatar", location: "Lusail", official_name: "FORMULA 1 QATAR GRAND PRIX 2026", date: "2026-11-29T00:00:00", format: "conventional", sessions: [{"name": "Practice 1", "code": "FP1"}, {"name": "Practice 2", "code": "FP2"}, {"name": "Practice 3", "code": "FP3"}, {"name": "Qualifying", "code": "Q"}, {"name": "Race", "code": "R"}] },
+    { round: 23, event: "Abu Dhabi Grand Prix", country: "UAE", location: "Abu Dhabi", official_name: "FORMULA 1 ABU DHABI GRAND PRIX 2026", date: "2026-12-06T00:00:00", format: "conventional", sessions: [{"name": "Practice 1", "code": "FP1"}, {"name": "Practice 2", "code": "FP2"}, {"name": "Practice 3", "code": "FP3"}, {"name": "Qualifying", "code": "Q"}, {"name": "Race", "code": "R"}] },
+  ],
 };
 
 // ─── Historical Driver Lineups by Year ────────────────────────────────────────
@@ -772,13 +797,38 @@ export const HISTORICAL_DRIVERS: Record<number, SessionDriver[]> = {
     { driver_number: "43", abbreviation: "COL", full_name: "Franco Colapinto", team: "Alpine", position: 20, points: 0 },
     { driver_number: "7", abbreviation: "DOO", full_name: "Jack Doohan", team: "Alpine", position: 21, points: 0 },
   ],
+  2026: [
+    { driver_number: "12", abbreviation: "ANT", full_name: "Andrea Kimi Antonelli", team: "Mercedes", position: 1, points: 340 },
+    { driver_number: "63", abbreviation: "RUS", full_name: "George Russell", team: "Mercedes", position: 2, points: 238 },
+    { driver_number: "44", abbreviation: "HAM", full_name: "Lewis Hamilton", team: "Ferrari", position: 3, points: 229 },
+    { driver_number: "1", abbreviation: "VER", full_name: "Max Verstappen", team: "Red Bull Racing", position: 4, points: 221 },
+    { driver_number: "16", abbreviation: "LEC", full_name: "Charles Leclerc", team: "Ferrari", position: 5, points: 215 },
+    { driver_number: "4", abbreviation: "NOR", full_name: "Lando Norris", team: "McLaren", position: 6, points: 201 },
+    { driver_number: "81", abbreviation: "PIA", full_name: "Oscar Piastri", team: "McLaren", position: 7, points: 138 },
+    { driver_number: "6", abbreviation: "HAD", full_name: "Isack Hadjar", team: "Red Bull Racing", position: 8, points: 97 },
+    { driver_number: "30", abbreviation: "LAW", full_name: "Liam Lawson", team: "Racing Bulls", position: 9, points: 75 },
+    { driver_number: "10", abbreviation: "GAS", full_name: "Pierre Gasly", team: "Alpine", position: 10, points: 41 },
+    { driver_number: "41", abbreviation: "LIN", full_name: "Arvid Lindblad", team: "Racing Bulls", position: 11, points: 38 },
+    { driver_number: "43", abbreviation: "COL", full_name: "Franco Colapinto", team: "Alpine", position: 12, points: 27 },
+    { driver_number: "87", abbreviation: "BEA", full_name: "Oliver Bearman", team: "Haas", position: 13, points: 23 },
+    { driver_number: "27", abbreviation: "HUL", full_name: "Nico Hülkenberg", team: "Audi", position: 14, points: 13 },
+    { driver_number: "5", abbreviation: "BOR", full_name: "Gabriel Bortoleto", team: "Audi", position: 15, points: 10 },
+    { driver_number: "31", abbreviation: "OCO", full_name: "Esteban Ocon", team: "Haas", position: 16, points: 7 },
+    { driver_number: "14", abbreviation: "ALO", full_name: "Fernando Alonso", team: "Aston Martin", position: 17, points: 7 },
+    { driver_number: "55", abbreviation: "SAI", full_name: "Carlos Sainz", team: "Williams", position: 18, points: 7 },
+    { driver_number: "23", abbreviation: "ALB", full_name: "Alexander Albon", team: "Williams", position: 19, points: 5 },
+    { driver_number: "22", abbreviation: "TSU", full_name: "Yuki Tsunoda", team: "Racing Bulls", position: 20, points: 1 },
+    { driver_number: "18", abbreviation: "STR", full_name: "Lance Stroll", team: "Aston Martin", position: 21, points: 0 },
+    { driver_number: "77", abbreviation: "BOT", full_name: "Valtteri Bottas", team: "Cadillac", position: 22, points: 0 },
+    { driver_number: "11", abbreviation: "PER", full_name: "Sergio Pérez", team: "Cadillac", position: 23, points: 0 },
+  ],
 };
 
 // ─── Available Historical Seasons for Selection (1970 - 2025 Continuous) ───
 
 export const ALL_SUPPORTED_YEARS: number[] = Array.from(
-  { length: 2025 - 1970 + 1 },
-  (_, i) => 2025 - i
+  { length: 2026 - 1970 + 1 },
+  (_, i) => 2026 - i
 );
 
 const CONVENTIONAL_SESSIONS = [
