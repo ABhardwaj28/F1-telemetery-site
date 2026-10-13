@@ -22,6 +22,20 @@ const CATEGORY_ICONS: Record<string, string> = {
   Other: "📢",
 };
 
+function formatRaceControlTime(t: any): string {
+  if (t == null) return "—";
+  if (typeof t === "number") {
+    const mins = Math.floor(t / 60);
+    const secs = Math.floor(t % 60);
+    return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+  }
+  const str = String(t);
+  if (str.includes("T")) {
+    return str.split("T")[1]?.split(".")[0] || str;
+  }
+  return str;
+}
+
 export default function RaceControlPanel({
   messages,
   year = 2025,
@@ -159,7 +173,7 @@ export default function RaceControlPanel({
                     fontSize: 8,
                   }}
                 >
-                  {m.Time.includes("T") ? (m.Time.split("T")[1]?.split(".")[0] || m.Time) : m.Time}
+                  {formatRaceControlTime(m.Time)}
                 </div>
               </div>
 
