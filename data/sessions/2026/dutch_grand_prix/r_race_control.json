@@ -1,0 +1,18 @@
+[
+  {
+    "Time": 0.0,
+    "Category": "Flag",
+    "Message": "GREEN LIGHT - PIT EXIT OPEN",
+    "Status": "CLEAR",
+    "Flag": "GREEN",
+    "Scope": "Track"
+  },
+  {
+    "Time": 6336.0,
+    "Category": "Flag",
+    "Message": "CHEQUERED FLAG",
+    "Status": "CLEAR",
+    "Flag": "CHEQUERED",
+    "Scope": "Track"
+  }
+]

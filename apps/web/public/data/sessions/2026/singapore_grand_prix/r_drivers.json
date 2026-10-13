@@ -3,7 +3,7 @@
     "driver_number": "3",
     "abbreviation": "VER",
     "full_name": "Max Verstappen",
-    "team": "Red Bull Racing",
+    "team": "Red Bull",
     "position": 1.0,
     "points": 25.0
   },
@@ -18,7 +18,7 @@
   {
     "driver_number": "12",
     "abbreviation": "ANT",
-    "full_name": "Kimi Antonelli",
+    "full_name": "Andrea Kimi Antonelli",
     "team": "Mercedes",
     "position": 3.0,
     "points": 15.0
@@ -51,14 +51,14 @@
     "driver_number": "30",
     "abbreviation": "LAW",
     "full_name": "Liam Lawson",
-    "team": "Racing Bulls",
+    "team": "RB F1 Team",
     "position": 7.0,
     "points": 6.0
   },
   {
     "driver_number": "27",
     "abbreviation": "HUL",
-    "full_name": "Nico Hulkenberg",
+    "full_name": "Nico H\u00fclkenberg",
     "team": "Audi",
     "position": 8.0,
     "points": 4.0
@@ -75,7 +75,7 @@
     "driver_number": "6",
     "abbreviation": "HAD",
     "full_name": "Isack Hadjar",
-    "team": "Red Bull Racing",
+    "team": "Red Bull",
     "position": 10.0,
     "points": 1.0
   },
@@ -83,7 +83,7 @@
     "driver_number": "10",
     "abbreviation": "GAS",
     "full_name": "Pierre Gasly",
-    "team": "Alpine",
+    "team": "Alpine F1 Team",
     "position": 11.0,
     "points": 0.0
   },
@@ -115,7 +115,7 @@
     "driver_number": "41",
     "abbreviation": "LIN",
     "full_name": "Arvid Lindblad",
-    "team": "Racing Bulls",
+    "team": "RB F1 Team",
     "position": 15.0,
     "points": 0.0
   },
@@ -130,8 +130,8 @@
   {
     "driver_number": "11",
     "abbreviation": "PER",
-    "full_name": "Sergio Perez",
-    "team": "Cadillac",
+    "full_name": "Sergio P\u00e9rez",
+    "team": "Cadillac F1 Team",
     "position": 17.0,
     "points": 0.0
   },
@@ -147,7 +147,7 @@
     "driver_number": "77",
     "abbreviation": "BOT",
     "full_name": "Valtteri Bottas",
-    "team": "Cadillac",
+    "team": "Cadillac F1 Team",
     "position": 19.0,
     "points": 0.0
   },
@@ -163,7 +163,7 @@
     "driver_number": "43",
     "abbreviation": "COL",
     "full_name": "Franco Colapinto",
-    "team": "Alpine",
+    "team": "Alpine F1 Team",
     "position": 21.0,
     "points": 0.0
   },

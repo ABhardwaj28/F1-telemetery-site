@@ -775,11 +775,45 @@ async function fetchJolpicaRaceData(
   }
 }
 
+export function isRaceUpcoming(
+  year: number,
+  eventOrRace?: string | { round?: number; event?: string; date?: string } | null
+): boolean {
+  if (!eventOrRace) return false;
+  const name = typeof eventOrRace === "string" ? eventOrRace : eventOrRace.event ?? "";
+  const round = typeof eventOrRace === "object" ? eventOrRace.round : undefined;
+  const date = typeof eventOrRace === "object" ? eventOrRace.date : undefined;
+
+  if (year < 2026) return false;
+  if (year === 2026) {
+    if (round && round > 17) return true;
+    const ev = name.toLowerCase();
+    const upcomingSlugs = [
+      "united_states", "united states", "austin", "cota",
+      "mexico", "mexico_city",
+      "brazil", "brazilian", "paulo", "interlagos",
+      "las_vegas", "las vegas", "vegas",
+      "qatar", "lusail",
+      "abu_dhabi", "abu dhabi", "yas_marina", "yas marina"
+    ];
+    for (const u of upcomingSlugs) {
+      if (ev.includes(u)) return true;
+    }
+  }
+  if (date) {
+    return new Date(date) > new Date();
+  }
+  return false;
+}
+
 export async function loadSessionDrivers(
   year: number,
   event: string,
   sessionCode: string
 ): Promise<SessionDriver[]> {
+  if (isRaceUpcoming(year, event)) {
+    return [];
+  }
   try {
     return await json<SessionDriver[]>(sessionPath(year, event, sessionCode, "_drivers.json"));
   } catch {
@@ -851,6 +885,9 @@ export async function loadSessionLaps(
   event: string,
   sessionCode: string
 ): Promise<SessionLap[]> {
+  if (isRaceUpcoming(year, event)) {
+    return [];
+  }
   try {
     return await json<SessionLap[]>(sessionPath(year, event, sessionCode, "_laps.json"));
   } catch {
@@ -935,6 +972,9 @@ export async function loadRaceControl(
   event: string,
   sessionCode: string
 ): Promise<RaceControlMessage[]> {
+  if (isRaceUpcoming(year, event)) {
+    return [];
+  }
   try {
     return await json<RaceControlMessage[]>(sessionPath(year, event, sessionCode, "_race_control.json"));
   } catch {
@@ -1334,6 +1374,9 @@ export async function loadWeather(
   event: string,
   sessionCode: string
 ): Promise<WeatherPoint[]> {
+  if (isRaceUpcoming(year, event)) {
+    return [];
+  }
   try {
     const data = await json<WeatherPoint[]>(sessionPath(year, event, sessionCode, "_weather.json"));
     if (Array.isArray(data) && data.length > 0) {
@@ -1506,6 +1549,9 @@ export async function loadTelemetry(
   selectedSessionLap?: SessionLap | null,
   raceEvent?: string
 ): Promise<LapTelemetry | null> {
+  if (isRaceUpcoming(year, raceEvent || circuitSlug)) {
+    return null;
+  }
   const eraDrivers = getHistoricalDrivers(year);
   const defaultDriver = eraDrivers[0]?.abbreviation || "VER";
   const targetDriver =

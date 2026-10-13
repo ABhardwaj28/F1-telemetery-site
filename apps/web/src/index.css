@@ -228,14 +228,21 @@ button {
 .topbar select {
   min-width: 120px;
   height: 34px;
-  padding: 0 28px 0 11px;
-  background: #111113;
+  padding: 0 32px 0 11px;
+  background-color: #111113;
   color: #dedee0;
   border: 1px solid #2a2a2e;
   border-radius: 3px;
   outline: none;
   font-family: "IBM Plex Mono", monospace;
   font-size: 9px;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%23888892' d='M0 0l5 5 5-5z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: calc(100% - 14px) center;
+  cursor: pointer;
 }
 
 .topbar select:focus {

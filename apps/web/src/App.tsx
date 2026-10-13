@@ -23,6 +23,7 @@ import {
   lapsForDriver,
   getOptimalLap,
   formatLapTime,
+  isRaceUpcoming,
 } from "./data/loader";
 import TrackMap from "./components/TrackMap";
 import SpeedTrace from "./components/SpeedTrace";
@@ -47,6 +48,18 @@ const NAV = [
   { label: "Championship", icon: "🏆" },
   { label: "Historical F1", icon: "📖" },
 ];
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+export function getLatestRaceForSeason(year: number, cal: Calendar): CalendarRace | null {
+  if (!cal || cal.length === 0) return null;
+  if (year === 2026) {
+    const singapore = cal.find((r) => r.event.toLowerCase().includes("singapore"));
+    if (singapore) return singapore;
+    const completed = cal.filter((r) => !isRaceUpcoming(year, r));
+    if (completed.length > 0) return completed[completed.length - 1];
+  }
+  return cal[cal.length - 1] ?? cal[0] ?? null;
+}
 
 // ─── Initial State from URL / Storage ─────────────────────────────────────────
 function getInitialAppState() {
@@ -240,10 +253,16 @@ export default function App() {
     calLoading,
   ]);
 
+  // Track if season changed to trigger P1 driver selection
+  const prevYearRef = useRef<number>(initial.year);
+
   // ── Load calendar when selectedYear changes ───────────────────────────
   useEffect(() => {
     let cancelled = false;
     setCalLoading(true);
+
+    const isYearChange = prevYearRef.current !== selectedYear;
+    prevYearRef.current = selectedYear;
 
     loadCalendar(selectedYear)
       .then((cal) => {
@@ -252,6 +271,10 @@ export default function App() {
 
         setSelectedRace((prevRace) => {
           if (!cal || cal.length === 0) return null;
+          // If the user changed the season, immediately select the latest completed race of that season!
+          if (isYearChange) {
+            return getLatestRaceForSeason(selectedYear, cal);
+          }
           const targetName = initialTargetRaceRef.current || prevRace?.event;
           if (initialTargetRaceRef.current) {
             initialTargetRaceRef.current = null; // consume once
@@ -263,12 +286,7 @@ export default function App() {
               cal.find((r) => targetName.toLowerCase().includes(r.event.toLowerCase()));
             if (match) return match;
           }
-          if (selectedYear === 2026) {
-            const singapore = cal.find((r) => r.event.toLowerCase().includes("singapore"));
-            if (singapore) return singapore;
-          }
-          const australia = cal.find((r) => r.event.toLowerCase().includes("australia"));
-          return australia ?? cal[0] ?? null;
+          return getLatestRaceForSeason(selectedYear, cal);
         });
         setCalLoading(false);
       })
@@ -321,29 +339,34 @@ export default function App() {
           const targetB = initialTargetDriverBRef.current;
           if (initialTargetDriverBRef.current) initialTargetDriverBRef.current = null;
 
+          // Find P1 and P2 drivers by finishing position or grid
+          const p1Driver = dList.find((d) => d.position === 1) || dList[0];
+          const p2Driver = dList.find((d) => d.position === 2) || dList.find((d) => d.abbreviation !== p1Driver.abbreviation) || dList[1] || dList[0];
+
           let determinedA = currentDriverRef.current;
-          const desiredA = targetA || determinedA;
-          if (dList.some((d) => d.abbreviation === desiredA)) {
-            determinedA = desiredA;
+          if (targetA) {
+            const matchA = dList.find((d) => d.abbreviation === targetA);
+            determinedA = matchA ? matchA.abbreviation : p1Driver.abbreviation;
+          } else if (dList.some((d) => d.abbreviation === determinedA)) {
+            // Keep current driver if they exist in this session
+            determinedA = determinedA;
           } else {
-            const preferredA = selectedYear === 2026
-              ? dList.find((d) => d.abbreviation === "ANT")
-              : dList.find((d) => d.abbreviation === "LEC" || d.full_name?.toLowerCase().includes("leclerc"));
-            determinedA = preferredA ? preferredA.abbreviation : (dList[0]?.abbreviation ?? "");
+            // On season or race change without prior driver in this grid, pick P1!
+            determinedA = p1Driver.abbreviation;
           }
           setSelectedDriver(determinedA);
           currentDriverRef.current = determinedA;
 
           let determinedB = currentDriverBRef.current;
-          const desiredB = targetB || determinedB;
-          if (dList.some((d) => d.abbreviation === desiredB)) {
-            determinedB = desiredB;
+          if (targetB) {
+            const matchB = dList.find((d) => d.abbreviation === targetB);
+            determinedB = matchB ? matchB.abbreviation : p2Driver.abbreviation;
+          } else if (dList.some((d) => d.abbreviation === determinedB && d.abbreviation !== determinedA)) {
+            determinedB = determinedB;
           } else {
-            const preferredB = selectedYear === 2026
-              ? dList.find((d) => d.abbreviation === "RUS")
-              : dList.find((d) => d.abbreviation === "VER" || d.full_name?.toLowerCase().includes("verstappen"));
-            const fallbackB = dList.find((d) => d.abbreviation !== determinedA) ?? dList[1] ?? dList[0];
-            determinedB = preferredB ? preferredB.abbreviation : (fallbackB?.abbreviation ?? determinedA);
+            // Pick P2 or driver differing from A
+            const altDriver = dList.find((d) => d.abbreviation !== determinedA) || p2Driver;
+            determinedB = altDriver.abbreviation;
           }
           setSelectedDriverB(determinedB);
           currentDriverBRef.current = determinedB;
@@ -792,7 +815,141 @@ export default function App() {
     );
   }
 
+  function renderUpcomingPage() {
+    const formattedDate = selectedRace?.date
+      ? new Date(selectedRace.date).toLocaleDateString("en-GB", {
+          weekday: "long",
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        })
+      : "Upcoming Grand Prix";
+
+    return (
+      <div style={{ maxWidth: 1100, margin: "40px auto", padding: "0 24px" }}>
+        <div
+          style={{
+            background: "#0d0d10",
+            border: "1px solid #2a2a30",
+            borderRadius: 6,
+            padding: "36px 32px",
+            textAlign: "center",
+            boxShadow: "0 12px 36px rgba(0,0,0,0.5)",
+          }}
+        >
+          <div
+            style={{
+              display: "inline-block",
+              background: "rgba(225, 6, 0, 0.15)",
+              color: "#e10600",
+              border: "1px solid rgba(225, 6, 0, 0.4)",
+              borderRadius: 3,
+              padding: "4px 12px",
+              fontFamily: "IBM Plex Mono, monospace",
+              fontSize: 10,
+              fontWeight: 700,
+              letterSpacing: "0.15em",
+              marginBottom: 16,
+            }}
+          >
+            DATA UNAVAILABLE · UPCOMING GRAND PRIX
+          </div>
+          <h1
+            style={{
+              fontSize: 28,
+              fontWeight: 700,
+              margin: "0 0 10px",
+              letterSpacing: "-0.02em",
+              color: "#eeeeef",
+            }}
+          >
+            {selectedRace?.official_name || selectedRace?.event || "Formula 1 Grand Prix"}
+          </h1>
+          <p
+            style={{
+              fontFamily: "IBM Plex Mono, monospace",
+              fontSize: 12,
+              color: "#888892",
+              margin: "0 0 24px",
+              textTransform: "uppercase",
+              letterSpacing: "0.08em",
+            }}
+          >
+            Round {selectedRace?.round ?? "—"} · {selectedRace?.location}, {selectedRace?.country} · {formattedDate}
+          </p>
+          <p
+            style={{
+              maxWidth: 580,
+              margin: "0 auto 30px",
+              fontSize: 13,
+              lineHeight: 1.6,
+              color: "#a0a0ab",
+            }}
+          >
+            This event has not taken place yet. Live timing, telemetry traces, sector times, and official FastF1 / FIA
+            session results will be available as soon as track sessions commence.
+          </p>
+
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              gap: 16,
+              flexWrap: "wrap",
+            }}
+          >
+            <button
+              onClick={() => {
+                const latest = getLatestRaceForSeason(selectedYear, calendar);
+                if (latest) setSelectedRace(latest);
+              }}
+              style={{
+                background: "#e10600",
+                color: "#ffffff",
+                border: "none",
+                borderRadius: 4,
+                padding: "10px 20px",
+                fontFamily: "IBM Plex Mono, monospace",
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: "0.08em",
+                cursor: "pointer",
+              }}
+            >
+              GO TO LATEST COMPLETED RACE (R{selectedYear === 2026 ? "17 SINGAPORE" : ""})
+            </button>
+            <button
+              onClick={() => setPage("Championship")}
+              style={{
+                background: "#18181b",
+                color: "#dedee0",
+                border: "1px solid #333338",
+                borderRadius: 4,
+                padding: "10px 20px",
+                fontFamily: "IBM Plex Mono, monospace",
+                fontSize: 11,
+                fontWeight: 600,
+                letterSpacing: "0.08em",
+                cursor: "pointer",
+              }}
+            >
+              VIEW {selectedYear} CHAMPIONSHIP STANDINGS
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   function renderPage() {
+    if (
+      isRaceUpcoming(selectedYear, selectedRace) &&
+      page !== "Championship" &&
+      page !== "Historical F1"
+    ) {
+      return renderUpcomingPage();
+    }
+
     switch (page) {
       case "Race Explorer":
         return renderRaceExplorer();
@@ -1066,9 +1223,17 @@ const selStyle: React.CSSProperties = {
   background: "#111113",
   color: "#dedee0",
   border: "1px solid #2a2a2e",
-  padding: "0 10px",
+  borderRadius: 3,
+  padding: "0 32px 0 11px",
   height: 34,
   fontFamily: "IBM Plex Mono, monospace",
   fontSize: 9,
   outline: "none",
+  appearance: "none",
+  WebkitAppearance: "none",
+  MozAppearance: "none",
+  backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%23888892' d='M0 0l5 5 5-5z'/%3E%3C/svg%3E\")",
+  backgroundRepeat: "no-repeat",
+  backgroundPosition: "calc(100% - 14px) center",
+  cursor: "pointer",
 };
