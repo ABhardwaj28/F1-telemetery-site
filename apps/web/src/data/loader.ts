@@ -782,11 +782,16 @@ export function isRaceUpcoming(
   if (!eventOrRace) return false;
   const name = typeof eventOrRace === "string" ? eventOrRace : eventOrRace.event ?? "";
   const round = typeof eventOrRace === "object" ? eventOrRace.round : undefined;
-  const date = typeof eventOrRace === "object" ? eventOrRace.date : undefined;
 
+  // All historical seasons up to 2025 are completely finished
   if (year < 2026) return false;
+
+  // 2026: Rounds 1 to 17 are completed and have full session & telemetry data.
+  // Rounds 18 to 24 (Austin, Mexico, Brazil, Vegas, Qatar, Abu Dhabi) are upcoming.
   if (year === 2026) {
-    if (round && round > 17) return true;
+    if (round != null) {
+      return round > 17;
+    }
     const ev = name.toLowerCase();
     const upcomingSlugs = [
       "united_states", "united states", "austin", "cota",
@@ -799,11 +804,11 @@ export function isRaceUpcoming(
     for (const u of upcomingSlugs) {
       if (ev.includes(u)) return true;
     }
+    return false;
   }
-  if (date) {
-    return new Date(date) > new Date();
-  }
-  return false;
+
+  // Future years (> 2026)
+  return true;
 }
 
 export async function loadSessionDrivers(

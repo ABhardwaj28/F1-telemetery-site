@@ -61,6 +61,18 @@ export function getLatestRaceForSeason(year: number, cal: Calendar): CalendarRac
   return cal[cal.length - 1] ?? cal[0] ?? null;
 }
 
+export function safeFormatDate(dateStr?: string, options?: Intl.DateTimeFormatOptions): string {
+  if (!dateStr) return "—";
+  try {
+    const cleaned = dateStr.includes("T") ? dateStr : dateStr.replace(" ", "T");
+    const d = new Date(cleaned);
+    if (isNaN(d.getTime())) return dateStr;
+    return d.toLocaleDateString("en-GB", options ?? { day: "numeric", month: "short" });
+  } catch {
+    return dateStr;
+  }
+}
+
 // ─── Initial State from URL / Storage ─────────────────────────────────────────
 function getInitialAppState() {
   const defaultState = {
@@ -594,24 +606,24 @@ export default function App() {
             </p>
           </div>
           <div className="hero-metrics">
-            {hasTelemetry && telemetry ? (
+            {hasTelemetry ? (
               <>
                 <div className="metric">
                   <span>LAP TIME</span>
-                  <strong>{formatLapTime(telemetry.lap_time)}</strong>
+                  <strong>{telemetry ? formatLapTime(telemetry.lap_time) : "—"}</strong>
                 </div>
                 <div className="metric">
                   <span>TOP SPEED</span>
-                  <strong>{topSpeed.toFixed(0)} km/h</strong>
+                  <strong>{telemetry && topSpeed > 0 ? `${topSpeed.toFixed(0)} km/h` : "—"}</strong>
                 </div>
                 <div className="metric">
                   <span>AVG SPEED</span>
-                  <strong>{avgSpeed.toFixed(0)} km/h</strong>
+                  <strong>{telemetry && avgSpeed > 0 ? `${avgSpeed.toFixed(0)} km/h` : "—"}</strong>
                 </div>
                 <div className="metric">
                   <span>TYRE</span>
-                  <strong style={{ color: getTyreColour(telemetry.compound, selectedYear) }}>
-                    {telemetry.compound}
+                  <strong style={{ color: telemetry ? getTyreColour(telemetry.compound, selectedYear) : "#dedee0" }}>
+                    {telemetry ? telemetry.compound : "—"}
                   </strong>
                 </div>
               </>
@@ -623,11 +635,7 @@ export default function App() {
                 </div>
                 <div className="metric">
                   <span>DATE</span>
-                  <strong>
-                    {selectedRace?.date
-                      ? new Date(selectedRace.date).toLocaleDateString("en-GB", { day: "numeric", month: "short" })
-                      : "—"}
-                  </strong>
+                  <strong>{safeFormatDate(selectedRace?.date)}</strong>
                 </div>
                 <div className="metric">
                   <span>DRIVERS</span>
@@ -642,12 +650,12 @@ export default function App() {
           </div>
         </div>
 
-        {sessionLoading ? (
+        {sessionLoading && drivers.length === 0 ? (
           <div className="loading-box"><div className="loader" /><span>LOADING SESSION DATA…</span></div>
-        ) : sessionError ? (
+        ) : sessionError && drivers.length === 0 ? (
           <div className="error-box"><strong>NO DATA</strong><span>{sessionError}</span></div>
         ) : (
-          <>
+          <div style={{ opacity: sessionLoading ? 0.7 : 1, transition: "opacity 0.15s ease" }}>
             {/* ── Telemetry panels (Monaco only for now) ── */}
             {hasTelemetry && (
               <div className="main-grid">
@@ -660,21 +668,23 @@ export default function App() {
                     </div>
                     <strong style={{ color: teamCol }}>{selectedDriver}</strong>
                   </div>
-                  {telLoading ? (
+                  {telLoading && !telemetryPoints.length ? (
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 350 }}>
                       <div className="loader" />
                     </div>
                   ) : telemetryPoints.length ? (
-                    <SpeedTrace
-                      key={`${selectedDriver}_${selectedLap}_${selectedSessionCode}_${selectedYear}`}
-                      data={telemetryPoints}
-                      turns={turns}
-                      trackLength={trackLength}
-                      onCursorChange={handleCursorChange}
-                      cursorIndex={cursorIndex}
-                      color={teamCol}
-                      sessionCode={selectedSessionCode}
-                    />
+                    <div style={{ opacity: telLoading ? 0.75 : 1, transition: "opacity 0.15s" }}>
+                      <SpeedTrace
+                        key={`${selectedDriver}_${selectedLap}_${selectedSessionCode}_${selectedYear}`}
+                        data={telemetryPoints}
+                        turns={turns}
+                        trackLength={trackLength}
+                        onCursorChange={handleCursorChange}
+                        cursorIndex={cursorIndex}
+                        color={teamCol}
+                        sessionCode={selectedSessionCode}
+                      />
+                    </div>
                   ) : (
                     <div className="empty-state">NO TELEMETRY FOR LAP {selectedLap}</div>
                   )}
@@ -753,16 +763,18 @@ export default function App() {
                 sessionCode={selectedSessionCode}
               />
             </div>
-          </>
+          </div>
         )}
       </>
     );
   }
 
   function renderRaceControl() {
-    if (sessionLoading) return <div className="loading-box"><div className="loader" /><span>LOADING…</span></div>;
+    if (sessionLoading && raceControl.length === 0) {
+      return <div className="loading-box"><div className="loader" /><span>LOADING…</span></div>;
+    }
     return (
-      <>
+      <div style={{ opacity: sessionLoading ? 0.7 : 1, transition: "opacity 0.15s ease" }}>
         <div className="hero-section" style={{ minHeight: 80, padding: "20px 28px" }}>
           <div>
             <div className="eyebrow">{breadcrumb.join(" / ")}</div>
@@ -782,14 +794,16 @@ export default function App() {
           event={selectedRace?.event}
           sessionCode={selectedSessionCode}
         />
-      </>
+      </div>
     );
   }
 
   function renderWeather() {
-    if (sessionLoading) return <div className="loading-box"><div className="loader" /><span>LOADING…</span></div>;
+    if (sessionLoading && weather.length === 0) {
+      return <div className="loading-box"><div className="loader" /><span>LOADING…</span></div>;
+    }
     return (
-      <>
+      <div style={{ opacity: sessionLoading ? 0.7 : 1, transition: "opacity 0.15s ease" }}>
         <div className="hero-section" style={{ minHeight: 80, padding: "20px 28px" }}>
           <div>
             <div className="eyebrow">{breadcrumb.join(" / ")}</div>
@@ -811,19 +825,17 @@ export default function App() {
           event={selectedRace?.event}
           sessionCode={selectedSessionCode}
         />
-      </>
+      </div>
     );
   }
 
   function renderUpcomingPage() {
-    const formattedDate = selectedRace?.date
-      ? new Date(selectedRace.date).toLocaleDateString("en-GB", {
-          weekday: "long",
-          day: "numeric",
-          month: "long",
-          year: "numeric",
-        })
-      : "Upcoming Grand Prix";
+    const formattedDate = safeFormatDate(selectedRace?.date, {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
 
     return (
       <div style={{ maxWidth: 1100, margin: "40px auto", padding: "0 24px" }}>
@@ -1019,7 +1031,17 @@ export default function App() {
         return (
           <HistoricalPanel
             onSelectYear={(yr) => {
+              const yrCal = getHistoricalCalendar(yr);
+              const latestRace = getLatestRaceForSeason(yr, yrCal);
               setSelectedYear(yr);
+              setCalendar(yrCal);
+              if (latestRace) {
+                setSelectedRace(latestRace);
+                const validCodes = (latestRace.sessions ?? []).map((s) => s.code);
+                setSelectedSessionCode(validCodes.includes("R") ? "R" : validCodes[0] ?? "R");
+              }
+              setSelectedLap(1);
+              setSelectedLapB(1);
               setPage("Race Explorer");
             }}
           />
@@ -1117,7 +1139,15 @@ export default function App() {
               value={selectedYear}
               onChange={(e) => {
                 const yr = Number(e.target.value);
+                const yrCal = getHistoricalCalendar(yr);
+                const latestRace = getLatestRaceForSeason(yr, yrCal);
                 setSelectedYear(yr);
+                setCalendar(yrCal);
+                if (latestRace) {
+                  setSelectedRace(latestRace);
+                  const validCodes = (latestRace.sessions ?? []).map((s) => s.code);
+                  setSelectedSessionCode(validCodes.includes("R") ? "R" : validCodes[0] ?? "R");
+                }
                 setSelectedLap(1);
                 setSelectedLapB(1);
               }}
